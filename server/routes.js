@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
-import { resolveRoll } from './game.js'
+import { resolveRoll, degreesFromRoll } from './game.js'
 import { seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
 import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
@@ -329,6 +329,7 @@ export function createRoutes({ presence, buildSnapshot }) {
       weaponName: weapon.name,
       fireMode,
       dodgeRoll: null,
+      dodgeDegrees: null,
       bullets: null,
       damage: null,
     }
@@ -398,9 +399,10 @@ export function createRoutes({ presence, buildSnapshot }) {
     }
 
     const dodgeRoll = rollD100()
+    const { degrees: dodgeDegrees } = degreesFromRoll(dodgeRoll, effectiveEsquive)
 
     if (dodgeRoll <= effectiveEsquive) {
-      db.setAttack({ ...attack, dodgeRoll, outcome: 'dodged' })
+      db.setAttack({ ...attack, dodgeRoll, dodgeDegrees, outcome: 'dodged' })
       return respondWithSnapshot(res, 200)
     }
 
@@ -410,6 +412,7 @@ export function createRoutes({ presence, buildSnapshot }) {
     db.setAttack({
       ...attack,
       dodgeRoll,
+      dodgeDegrees,
       outcome: 'hit',
       bullets: result.bullets,
       damage: { locationKey: result.locationKey, locationLabel, perBullet: result.perBullet, totalDamage: result.totalDamage },

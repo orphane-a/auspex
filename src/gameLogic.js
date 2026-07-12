@@ -157,17 +157,25 @@ export function npcDodgeScore(npc) {
   return base + npc.dodgeBonus
 }
 
-// Single source of truth for the attack-sequence outcome text (V2 §10/§11) — the
-// wording must be strictly identical on the player's and the MJ's screens.
+// Texte de degrés partagé par les jets de compétence (statusMeta) et la séquence
+// d'attaque (attackOutcomeLabel), pour garder un seul endroit qui pluralise
+// "degré(s)" et choisisse "de réussite"/"d'échec".
+function degreeLabel(degrees, isSuccess) {
+  return `${degrees} degré${degrees > 1 ? 's' : ''}${isSuccess ? ' de réussite' : ' d’échec'}`
+}
+
+// Single source of truth for the attack-sequence outcome text (V2 §10/§11, degrés
+// ajoutés en V3) — the wording must be strictly identical on the player's and the
+// MJ's screens.
 export function attackOutcomeLabel(attack) {
   if (!attack) return ''
-  if (attack.outcome === 'miss') return 'Attaque ratée'
-  if (attack.outcome === 'dodged') return 'Esquivé'
+  if (attack.outcome === 'miss') return `Attaque ratée (${degreeLabel(attack.degrees, false)})`
+  if (attack.outcome === 'dodged') return `Esquivé (${degreeLabel(attack.dodgeDegrees, true)})`
   if (attack.outcome === 'hit' && attack.damage) {
     const { totalDamage, locationLabel } = attack.damage
     const bullets = attack.bullets || 1
     const bulletsText = bullets > 1 ? `${bullets} balles touchent` : '1 balle touche'
-    return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis`
+    return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis (esquive ratée, ${degreeLabel(attack.dodgeDegrees, false)})`
   }
   return ''
 }
@@ -180,7 +188,7 @@ export function statusMeta(r) {
     isSuccess: suc,
     isFail: fail,
     isPending: !r,
-    degreeText: r ? `${r.degrees} degré${r.degrees > 1 ? 's' : ''}${suc ? ' de réussite' : ' d’échec'}` : '',
+    degreeText: r ? degreeLabel(r.degrees, suc) : '',
     borderCol: r ? (suc ? 'rgba(123,163,111,.5)' : 'rgba(198,90,79,.5)') : 'rgba(255,255,255,.1)',
     bgCol: r ? (suc ? 'rgba(123,163,111,.1)' : 'rgba(198,90,79,.1)') : 'rgba(255,255,255,.02)',
     textCol: r ? (suc ? '#8fbf87' : '#c65a4f') : 'rgba(230,224,212,.4)',

@@ -217,19 +217,24 @@ describe('attackOutcomeLabel', () => {
     expect(attackOutcomeLabel(null)).toBe('')
   })
 
-  it('labels a miss and a dodge', () => {
-    expect(attackOutcomeLabel({ outcome: 'miss' })).toBe('Attaque ratée')
-    expect(attackOutcomeLabel({ outcome: 'dodged' })).toBe('Esquivé')
+  it('labels a miss with the attack roll degrees', () => {
+    expect(attackOutcomeLabel({ outcome: 'miss', degrees: 2 })).toBe('Attaque ratée (2 degrés d’échec)')
+    expect(attackOutcomeLabel({ outcome: 'miss', degrees: 1 })).toBe('Attaque ratée (1 degré d’échec)')
   })
 
-  it('pluralizes "balle(s)" based on the bullet count and reports damage/location', () => {
+  it('labels a dodge with the dodge roll degrees', () => {
+    expect(attackOutcomeLabel({ outcome: 'dodged', dodgeDegrees: 3 })).toBe('Esquivé (3 degrés de réussite)')
+    expect(attackOutcomeLabel({ outcome: 'dodged', dodgeDegrees: 1 })).toBe('Esquivé (1 degré de réussite)')
+  })
+
+  it('pluralizes "balle(s)" based on the bullet count and reports damage/location/dodge degrees', () => {
     expect(
-      attackOutcomeLabel({ outcome: 'hit', bullets: 1, damage: { totalDamage: 7, locationLabel: 'Abdomen' } }),
-    ).toBe('1 balle touche (abdomen) — 7 dégâts subis')
+      attackOutcomeLabel({ outcome: 'hit', bullets: 1, dodgeDegrees: 2, damage: { totalDamage: 7, locationLabel: 'Abdomen' } }),
+    ).toBe('1 balle touche (abdomen) — 7 dégâts subis (esquive ratée, 2 degrés d’échec)')
 
     expect(
-      attackOutcomeLabel({ outcome: 'hit', bullets: 3, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
-    ).toBe('3 balles touchent (tête) — 14 dégâts subis')
+      attackOutcomeLabel({ outcome: 'hit', bullets: 3, dodgeDegrees: 1, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
+    ).toBe('3 balles touchent (tête) — 14 dégâts subis (esquive ratée, 1 degré d’échec)')
   })
 })
 

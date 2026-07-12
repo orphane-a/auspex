@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { resolveRoll } from './game.js'
+import { resolveRoll, degreesFromRoll } from './game.js'
 
 // rollD100() is `1 + Math.floor(Math.random() * 100)`: to force a given roll R,
 // Math.random() must land in [ (R-1)/100, R/100 ). Using the midpoint of that
@@ -42,5 +42,19 @@ describe('resolveRoll', () => {
   it('treats a falsy malus the same as no malus', () => {
     mockRoll(30)
     expect(resolveRoll(50, 0).target).toBe(50)
+  })
+})
+
+describe('degreesFromRoll', () => {
+  it('succeeds when the roll is under the target, degrees by full tens', () => {
+    expect(degreesFromRoll(30, 50)).toEqual({ status: 'success', degrees: 3 })
+  })
+
+  it('fails when the roll is over the target', () => {
+    expect(degreesFromRoll(45, 30)).toEqual({ status: 'fail', degrees: 2 })
+  })
+
+  it('treats an exact match as a 1-degree success', () => {
+    expect(degreesFromRoll(50, 50)).toEqual({ status: 'success', degrees: 1 })
   })
 })
