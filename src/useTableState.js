@@ -30,6 +30,9 @@ export function useTableState() {
   const [damageNotice, setDamageNotice] = useState(null)
   const seenDamageIdRef = useRef(undefined)
 
+  const [attackAttackerNotice, setAttackAttackerNotice] = useState(null)
+  const seenAttackerNoticeIdRef = useRef(undefined)
+
   const [showAttack, setShowAttack] = useState(false)
   const [attackerType, setAttackerType] = useState(null)
   const [attackerId, setAttackerId] = useState(null)
@@ -402,6 +405,7 @@ export function useTableState() {
   const damageNoticeText = damageNotice
     ? `Vous encaissez ${damageNotice.rawDamage} dégâts${damageNotice.armor > 0 ? ` (${Math.min(damageNotice.armor, damageNotice.rawDamage)} absorbés)` : ''}`
     : ''
+  const attackAttackerNoticeText = attackAttackerNotice?.text ?? ''
 
   const attackAttackerEntity = attack ? entityOfType(attack.attacker.type, attack.attacker.id) : null
   const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
@@ -422,6 +426,24 @@ export function useTableState() {
   const attackPendingForMeAsAttacker = meIsAttacker && attack.outcome === 'pending-attack-roll'
   const attackWaitingOnAttacker = !!attack && attack.outcome === 'pending-attack-roll'
   const showAttackCard = !!attack && (attack.outcome === 'pending-attack-roll' || attack.outcome === 'pending-dodge' || !attackDismissed)
+
+  // Notification passive du résultat pour l'attaquant (V3 §7, confirmé utile à
+  // l'usage) : contrairement au défenseur (déjà notifié via son propre écran de
+  // résultat), l'attaquant n'a plus rien à faire une fois son jet lancé et n'aurait
+  // sinon jamais su si sa cible a esquivé ou encaissé des dégâts. Transitoire comme
+  // le bandeau de dégâts encaissés, plutôt qu'un écran dédié : l'attaquant a déjà
+  // quitté la séquence à ce stade.
+  useEffect(() => {
+    if (seenAttackerNoticeIdRef.current === undefined) {
+      seenAttackerNoticeIdRef.current = meIsAttacker && attackIsTerminal ? attack.id : null
+      return
+    }
+    if (!meIsAttacker || !attackIsTerminal || attack.id === seenAttackerNoticeIdRef.current) return
+    seenAttackerNoticeIdRef.current = attack.id
+    setAttackAttackerNotice({ id: attack.id, text: `${attackDefenderEntity?.name ?? 'la cible'} — ${attackOutcomeText}` })
+    const timer = setTimeout(() => setAttackAttackerNotice(null), 6000)
+    return () => clearTimeout(timer)
+  }, [attack, meIsAttacker, attackIsTerminal, attackOutcomeText, attackDefenderEntity])
 
   function buildSkillGroupsWithChips(items) {
     return groupSkillsByCharacteristic(items).map((group) => ({
@@ -555,6 +577,7 @@ export function useTableState() {
     myArmorList,
     isMeDown: !!myCharacter && myCharacter.pv.current <= 0,
     damageNoticeText,
+    attackAttackerNoticeText,
     npcs,
     npcRoster,
     uploadNpc,

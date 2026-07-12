@@ -35,6 +35,7 @@ export default function PlayerView({ vals }) {
 
       {vals.isMeDown && <div className="down-banner">☠ HORS DE COMBAT</div>}
       {vals.damageNoticeText && <div className="damage-notice">{vals.damageNoticeText}</div>}
+      {vals.attackAttackerNoticeText && <div className="damage-notice">{vals.attackAttackerNoticeText}</div>}
 
       {vals.pScreenMain && (
         <div className="player-body">
