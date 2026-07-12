@@ -81,6 +81,26 @@ export default function PlayerView({ vals }) {
         </div>
       )}
 
+      {vals.attackPendingForMeAsAttacker && (
+        <div className="request-screen">
+          <div className="order-badge">⚔ Vous attaquez</div>
+          <div className="request-skill">Dextérité</div>
+
+          {!vals.rollingAttack && (
+            <button className="roll-button" onClick={vals.rollAttack}>
+              <div className="glyph">⚄</div>
+              <div className="label">LANCER</div>
+            </button>
+          )}
+          {vals.rollingAttack && (
+            <div className="rolling-circle">
+              <div className="glyph">⚄</div>
+            </div>
+          )}
+          <div className="request-hint">Le seuil est calculé pour vous.</div>
+        </div>
+      )}
+
       {vals.attackPendingForMe && (
         <div className="request-screen">
           <div className="order-badge">⚠ Attaque entrante</div>

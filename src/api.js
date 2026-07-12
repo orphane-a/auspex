@@ -37,6 +37,9 @@ export const api = {
   updateNpcDodgeBonus: (npcId, value) => request(`/npcs/${npcId}/dodge-bonus`, { method: 'PATCH', body: JSON.stringify({ value }) }),
   launchAttack: ({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) =>
     request('/table/attack', { method: 'POST', body: JSON.stringify({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) }),
+  // Le personnage attaquant lance lui-même son jet d'attaque (V3 §5 v2) —
+  // symétrique de rollDodge côté défenseur.
+  rollAttack: (characterId) => request('/table/attack/roll', { method: 'POST', body: JSON.stringify({ characterId }) }),
   rollDodge: (characterId) => request('/table/attack/dodge', { method: 'POST', body: JSON.stringify({ characterId }) }),
   // MJ triggers an NPC defender's dodge in its place (V3 §3/§5) — no identity check
   // server-side since an NPC never has its own client to verify against.

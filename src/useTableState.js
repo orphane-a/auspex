@@ -40,6 +40,7 @@ export function useTableState() {
   const [attackDismissed, setAttackDismissed] = useState(false)
   const [dodging, setDodging] = useState(false)
   const [npcDodging, setNpcDodging] = useState(false)
+  const [rollingAttack, setRollingAttack] = useState(false)
   const [attackError, setAttackError] = useState('')
 
   const socketRef = useRef(null)
@@ -270,6 +271,18 @@ export function useTableState() {
       setNpcDodging(false)
     }
   }
+  // Le personnage attaquant lance lui-même son jet d'attaque (V3 §5 v2) —
+  // symétrique de rollDodge côté défenseur.
+  async function rollAttack() {
+    if (!myCharacterId || rollingAttack) return
+    setRollingAttack(true)
+    try {
+      await api.rollAttack(myCharacterId)
+      await new Promise((resolve) => setTimeout(resolve, 900))
+    } finally {
+      setRollingAttack(false)
+    }
+  }
 
   async function resetTable() {
     await api.resetTable()
@@ -388,10 +401,16 @@ export function useTableState() {
   const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
   const attackOutcomeText = attackOutcomeLabel(attack)
   const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
+  const meIsAttacker = !!attack && myCharacterId != null && attack.attacker.type === 'character' && attack.attacker.id === myCharacterId
   const attackPendingForMe = meIsAttackTarget && attack.outcome === 'pending-dodge'
   const attackResolvedForMe = meIsAttackTarget && attack.outcome !== 'pending-dodge' && !attackDismissed
   const attackPendingForNpcDefender = !!attack && attack.outcome === 'pending-dodge' && attack.defender.type === 'npc'
-  const showAttackCard = !!attack && (attack.outcome === 'pending-dodge' || !attackDismissed)
+  // Le personnage attaquant lance lui-même son jet (V3 §5 v2) — symétrique de
+  // attackPendingForMe côté défenseur, pas d'écran de résultat dédié une fois le
+  // jet fait : la séquence continue sans plus rien demander à l'attaquant.
+  const attackPendingForMeAsAttacker = meIsAttacker && attack.outcome === 'pending-attack-roll'
+  const attackWaitingOnAttacker = !!attack && attack.outcome === 'pending-attack-roll'
+  const showAttackCard = !!attack && (attack.outcome === 'pending-attack-roll' || attack.outcome === 'pending-dodge' || !attackDismissed)
 
   function buildSkillGroupsWithChips(items) {
     return groupSkillsByCharacteristic(items).map((group) => ({
@@ -449,8 +468,16 @@ export function useTableState() {
     .filter((m) => m.available)
     .map((m) => ({ key: m.key, label: m.label, isActive: m.key === attackFireMode, select: () => setAttackFireMode(m.key) }))
   const defenderCharacterDisconnected = defenderType === 'character' && defenderId != null && !characters.find((c) => c.id === defenderId)?.connected
+  // Un personnage attaquant doit désormais rester connecté (V3 §5 v2) : lui seul
+  // peut cliquer son propre jet, contrairement au PNJ dont le jet reste automatique.
+  const attackerCharacterDisconnected = attackerType === 'character' && attackerId != null && !characters.find((c) => c.id === attackerId)?.connected
   const attackLaunchDisabled =
-    attackerId == null || defenderId == null || weaponOptions.length === 0 || fireModeOptions.length === 0 || defenderCharacterDisconnected
+    attackerId == null ||
+    defenderId == null ||
+    weaponOptions.length === 0 ||
+    fireModeOptions.length === 0 ||
+    defenderCharacterDisconnected ||
+    attackerCharacterDisconnected
 
   return {
     loading: !snapshot,
@@ -479,9 +506,9 @@ export function useTableState() {
     receivedText: `${received} / ${concernedCharacters.length} jets reçus`,
     mySkillGroups,
     characteristicTendencies: myCharacter ? characteristicTendencies(myCharacter.skills) : [],
-    pScreenMain: (!request || !meConcerned || dismissed) && !attackPendingForMe && !attackResolvedForMe,
-    pScreenRequest: meConcerned && !myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe,
-    pScreenResult: meConcerned && myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe,
+    pScreenMain: (!request || !meConcerned || dismissed) && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
+    pScreenRequest: meConcerned && !myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
+    pScreenResult: meConcerned && myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
     showRollBtn: meConcerned && !myRolled && !rolling,
     rolling,
     myLabel: myMeta.label,
@@ -529,6 +556,7 @@ export function useTableState() {
     attackError,
     attackLaunchDisabled,
     defenderCharacterDisconnected,
+    attackerCharacterDisconnected,
     launchAttack,
     attack,
     attackAttackerEntity,
@@ -539,9 +567,13 @@ export function useTableState() {
     attackPendingForMe,
     attackResolvedForMe,
     attackPendingForNpcDefender,
+    attackPendingForMeAsAttacker,
+    attackWaitingOnAttacker,
     dodging,
     rollDodge,
     npcDodging,
     rollNpcDodge,
+    rollingAttack,
+    rollAttack,
   }
 }

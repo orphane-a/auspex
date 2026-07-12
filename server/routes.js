@@ -267,10 +267,14 @@ export function createRoutes({ presence, buildSnapshot }) {
     return type === 'npc' ? db.updateNpcPvCurrent(id, value) : db.updatePvCurrent(id, value)
   }
 
-  // Étape 1/3 de la séquence d'attaque (V3 §5) : le jet reste toujours automatique
-  // contre la Dextérité brute de l'attaquant (§3), qu'il s'agisse d'un PNJ (inchangé
-  // depuis la V2) ou d'un personnage (nouveau) — même formule de degrés que
-  // resolveRoll (server/game.js), déjà utilisée pour tous les jets de compétence V1.
+  // Étape 1/3 de la séquence d'attaque (V3 §5, v2) : jet contre la Dextérité brute
+  // de l'attaquant (§3) dans tous les cas — même formule de degrés que resolveRoll
+  // (server/game.js). Un PNJ attaquant (inchangé depuis la V2) n'a pas de client :
+  // le jet reste automatique, résolu immédiatement à la validation de la modale MJ.
+  // Un personnage attaquant lance désormais lui-même son jet (nouveau) : la
+  // validation de la modale MJ pose seulement l'intention d'attaque, en attente du
+  // jet du joueur (route /table/attack/roll ci-dessous) — symétrique à l'attente de
+  // l'esquive côté défenseur.
   router.post('/table/attack', (req, res) => {
     const { attackerType, defenderType, weaponName, fireMode } = req.body
     const attackerId = Number(req.body.attackerId)
@@ -296,6 +300,11 @@ export function createRoutes({ presence, buildSnapshot }) {
     if (fireMode === 'auto' && weapon.mode.autoCapacity == null) {
       return res.status(400).json({ error: "Le mode automatique n'est pas disponible pour cette arme." })
     }
+    // Un personnage attaquant doit désormais cliquer lui-même son jet (nouveau),
+    // donc rester connecté — même contrainte que le personnage visé (inchangé V2).
+    if (attackerType === 'character' && !presence.isConnected(attacker.id)) {
+      return res.status(400).json({ error: "L'attaquant doit être connecté." })
+    }
 
     const defender = getCombatant(defenderType, defenderId)
     if (!defender) return res.status(404).json({ error: 'Cible introuvable.' })
@@ -305,25 +314,49 @@ export function createRoutes({ presence, buildSnapshot }) {
       return res.status(400).json({ error: 'La cible doit être connectée.' })
     }
     const existing = db.getTableState().attack
-    if (existing && existing.outcome === 'pending-dodge') {
-      return res.status(409).json({ error: "Une attaque est déjà en attente d'esquive." })
+    if (existing && ['pending-attack-roll', 'pending-dodge'].includes(existing.outcome)) {
+      return res.status(409).json({ error: 'Une attaque est déjà en cours.' })
     }
 
-    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
-    const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
-    db.setAttack({
+    const base = {
       id: Date.now(),
       attacker: { type: attackerType, id: attacker.id },
       defender: { type: defenderType, id: defender.id },
       weaponName: weapon.name,
       fireMode,
-      attackRoll: result.roll,
-      degrees: result.degrees,
-      outcome,
       dodgeRoll: null,
       bullets: null,
       damage: null,
-    })
+    }
+
+    if (attackerType === 'character') {
+      db.setAttack({ ...base, attackRoll: null, degrees: null, outcome: 'pending-attack-roll' })
+      return respondWithSnapshot(res, 200)
+    }
+
+    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
+    const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
+    db.setAttack({ ...base, attackRoll: result.roll, degrees: result.degrees, outcome })
+    respondWithSnapshot(res, 200)
+  })
+
+  // Étape 1/3, suite (V3 §5, v2) : le personnage attaquant clique lui-même son jet
+  // — vérification d'identité, comme pour l'esquive d'un joueur, pour qu'un autre
+  // joueur ne puisse pas lancer à sa place.
+  router.post('/table/attack/roll', (req, res) => {
+    const attack = db.getTableState().attack
+    if (!attack || attack.outcome !== 'pending-attack-roll') {
+      return res.status(409).json({ error: "Aucun jet d'attaque en attente." })
+    }
+    if (Number(req.body.characterId) !== attack.attacker.id) {
+      return res.status(403).json({ error: "Ce personnage n'est pas l'attaquant de cette séquence." })
+    }
+    const attacker = db.getCharacter(attack.attacker.id)
+    if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
+
+    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
+    const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
+    db.setAttack({ ...attack, attackRoll: result.roll, degrees: result.degrees, outcome })
     respondWithSnapshot(res, 200)
   })
 

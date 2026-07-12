@@ -99,7 +99,9 @@ export default function GmView({ vals, onManageCharacters }) {
                 <div className="attack-card-title">
                   ⚔️ {vals.attackAttackerEntity?.name} attaque {vals.attackDefenderEntity?.name}
                 </div>
-                {vals.attack.outcome === 'pending-dodge' ? (
+                {vals.attack.outcome === 'pending-attack-roll' ? (
+                  <div className="attack-card-status">En attente du jet d'attaque de {vals.attackAttackerEntity?.name}…</div>
+                ) : vals.attack.outcome === 'pending-dodge' ? (
                   <div className="attack-card-status">
                     {vals.attackPendingForNpcDefender ? (
                       <button className="secondary-btn" onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>

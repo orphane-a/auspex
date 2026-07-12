@@ -33,6 +33,7 @@ export default function AttackModal({ vals }) {
               {vals.attackerCharacterOptions.map((c) => (
                 <button key={`atk-char-${c.id}`} className={`chip ${c.isActive ? 'active' : ''}`} onClick={c.select}>
                   {c.name}
+                  {!c.connected ? ' (non connecté)' : ''}
                 </button>
               ))}
             </div>
@@ -103,6 +104,9 @@ export default function AttackModal({ vals }) {
             </>
           )}
 
+          {vals.attackerCharacterDisconnected && (
+            <div className="form-error">L'attaquant n'est pas connecté — il ne pourra pas lancer son propre jet.</div>
+          )}
           {vals.defenderCharacterDisconnected && (
             <div className="form-error">Ce joueur n'est pas connecté — l'attaque ne peut pas être lancée.</div>
           )}
