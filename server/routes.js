@@ -125,6 +125,50 @@ export function createRoutes({ presence, buildSnapshot }) {
     respondWithSnapshot(res, 200)
   })
 
+  // Symétrique des routes personnage (V3 §4/§8) : un PNJ n'a pas de client, donc
+  // pas de bandeau "dégâts encaissés" à alimenter via setLastDamage, contrairement
+  // à leurs équivalents /characters/:id/pv et /characters/:id/damage.
+  router.patch('/npcs/:id/pv', (req, res) => {
+    const current = Number(req.body.current)
+    if (!Number.isFinite(current)) return res.status(400).json({ error: 'Valeur de PV invalide.' })
+    const npc = db.updateNpcPvCurrent(Number(req.params.id), Math.round(current))
+    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
+    respondWithSnapshot(res, 200, { npc })
+  })
+
+  router.post('/npcs/:id/damage', (req, res) => {
+    const rawDamage = Number(req.body.rawDamage)
+    const location = HIT_LOCATIONS.find((l) => l.key === req.body.locationKey)
+    if (!Number.isFinite(rawDamage) || rawDamage < 0 || !location) {
+      return res.status(400).json({ error: 'Dégâts ou localisation invalides.' })
+    }
+    const npc = db.getNpc(Number(req.params.id))
+    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
+    const result = applyDamage(npc, { rawDamage: Math.round(rawDamage), locationKey: location.key })
+    const updated = db.updateNpcPvCurrent(npc.id, result.newCurrent)
+    respondWithSnapshot(res, 200, { npc: updated, damage: { ...result, locationLabel: location.label } })
+  })
+
+  router.patch('/npcs/:id/armor', (req, res) => {
+    const armor = req.body.armor
+    if (!armor || typeof armor !== 'object') return res.status(400).json({ error: 'Armure invalide.' })
+    const sanitized = {}
+    for (const loc of HIT_LOCATIONS) {
+      if (armor[loc.key] != null) sanitized[loc.key] = Math.max(0, Math.round(Number(armor[loc.key]) || 0))
+    }
+    const npc = db.updateNpcArmor(Number(req.params.id), sanitized)
+    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
+    respondWithSnapshot(res, 200, { npc })
+  })
+
+  router.patch('/npcs/:id/dodge-bonus', (req, res) => {
+    const value = Number(req.body.value)
+    if (!Number.isFinite(value)) return res.status(400).json({ error: "Bonus d'esquive invalide." })
+    const npc = db.updateNpcDodgeBonus(Number(req.params.id), Math.round(value))
+    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
+    respondWithSnapshot(res, 200, { npc })
+  })
+
   router.patch('/characters/:id/skills/:skillName', (req, res) => {
     const score = Number(req.body.score)
     if (!Number.isFinite(score)) return res.status(400).json({ error: 'Score invalide.' })
