@@ -2,3 +2,4 @@ node_modules
 dist
 server/table.sqlite
 server/table.sqlite-*
+.claude/scheduled_tasks.lock
