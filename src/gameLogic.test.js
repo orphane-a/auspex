@@ -241,3 +241,10 @@ describe('statusMeta', () => {
     expect(meta.degreeText).toBe('1 degré d’échec')
   })
 })
+
+import { describe as describe2, it as it2, expect as expect2 } from 'vitest'
+describe2('branch protection verification (temporary)', () => {
+  it2('is a deliberately failing test', () => {
+    expect2(1).toBe(2)
+  })
+})
