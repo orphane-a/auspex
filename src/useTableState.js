@@ -166,6 +166,10 @@ export function useTableState() {
     await api.updateDodgeBonus(characterId, value)
   }
 
+  async function updateNpcDodgeBonus(npcId, value) {
+    await api.updateNpcDodgeBonus(npcId, value)
+  }
+
   // First available mode for a weapon, in coup-par-coup / semi / auto priority —
   // an initial default only, never remembered between attacks (V2 §11).
   function defaultFireMode(weapon) {
@@ -357,6 +361,22 @@ export function useTableState() {
     }
   })
 
+  // Barre de PV pour les PNJ dans la vue MJ (V3 §6) — même modèle pv que les
+  // personnages, jamais branché à l'affichage jusqu'ici faute d'usage (V2 §11).
+  const npcRoster = npcs.map((n) => {
+    const status = pvStatus(n.pv)
+    return {
+      id: n.id,
+      name: n.name,
+      pvCurrent: n.pv.current,
+      pvMax: n.pv.max,
+      pvRatio: n.pv.max > 0 ? Math.max(0, Math.min(1, n.pv.current / n.pv.max)) : 0,
+      pvStatusLabel: status.label,
+      pvStatusKey: status.key,
+      isDown: n.pv.current <= 0,
+    }
+  })
+
   const myPvStatus = myCharacter ? pvStatus(myCharacter.pv) : null
   const myPvRatio = myCharacter && myCharacter.pv.max > 0 ? Math.max(0, Math.min(1, myCharacter.pv.current / myCharacter.pv.max)) : 0
   const myArmorList = myCharacter ? HIT_LOCATIONS.map((l) => ({ key: l.key, label: l.label, value: myCharacter.armor[l.key] || 0 })) : []
@@ -493,8 +513,10 @@ export function useTableState() {
     isMeDown: !!myCharacter && myCharacter.pv.current <= 0,
     damageNoticeText,
     npcs,
+    npcRoster,
     uploadNpc,
     deleteNpc,
+    updateNpcDodgeBonus,
     showAttack,
     openAttack,
     closeAttack,

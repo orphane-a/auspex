@@ -69,6 +69,31 @@ export default function GmView({ vals, onManageCharacters }) {
               ))}
             </div>
 
+            {vals.npcRoster.length > 0 && (
+              <>
+                <div className="section-label" style={{ marginTop: 16 }}>
+                  PNJ en jeu
+                </div>
+                <div className="roster-list">
+                  {vals.npcRoster.map((n) => (
+                    <div key={n.id} className="roster-row roster-row-wrap">
+                      <div className="roster-row-left">
+                        <div className="roster-name">{n.name}</div>
+                      </div>
+                      <div className="roster-pv-block">
+                        <div className="roster-pv-bar">
+                          <div className={`roster-pv-bar-fill pv-${n.pvStatusKey}`} style={{ width: `${n.pvRatio * 100}%` }} />
+                        </div>
+                        <div className="roster-pv-label">
+                          {n.pvCurrent} / {n.pvMax} PV · <span className={`pv-tag pv-${n.pvStatusKey}`}>{n.pvStatusLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             {vals.showAttackCard && (
               <div className="attack-card">
                 <div className="attack-card-title">

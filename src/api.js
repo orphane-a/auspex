@@ -34,6 +34,7 @@ export const api = {
     request(`/characters/${characterId}/dodge-bonus`, { method: 'PATCH', body: JSON.stringify({ value }) }),
   uploadNpc: (formData) => request('/npcs', { method: 'POST', body: formData }),
   deleteNpc: (id) => request(`/npcs/${id}`, { method: 'DELETE' }),
+  updateNpcDodgeBonus: (npcId, value) => request(`/npcs/${npcId}/dodge-bonus`, { method: 'PATCH', body: JSON.stringify({ value }) }),
   launchAttack: ({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) =>
     request('/table/attack', { method: 'POST', body: JSON.stringify({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) }),
   rollDodge: (characterId) => request('/table/attack/dodge', { method: 'POST', body: JSON.stringify({ characterId }) }),
