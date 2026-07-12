@@ -37,6 +37,17 @@ export default function PlayerView({ vals }) {
       {vals.damageNoticeText && <div className="damage-notice">{vals.damageNoticeText}</div>}
       {vals.attackAttackerNoticeText && <div className="damage-notice">{vals.attackAttackerNoticeText}</div>}
 
+      {/* Même encart "X attaque Y" que la vue MJ, sur tous les écrans joueur liés à
+          l'attaque — le sens du combat doit rester clair même quand ce n'est pas au
+          joueur d'agir (retour MJ). */}
+      {(vals.attackPendingForMeAsAttacker || vals.attackWaitingForDodgeAsAttacker || vals.attackPendingForMe || vals.attackResolvedForMe) && (
+        <div className="attack-card">
+          <div className="attack-card-title">
+            <span>⚔️ {vals.attackDirectionText}</span>
+          </div>
+        </div>
+      )}
+
       {vals.pScreenMain && (
         <div className="player-body">
           {vals.characteristicTendencies.length >= 3 && (
@@ -99,6 +110,15 @@ export default function PlayerView({ vals }) {
             </div>
           )}
           <div className="request-hint">Le seuil est calculé pour vous.</div>
+        </div>
+      )}
+
+      {vals.attackWaitingForDodgeAsAttacker && (
+        <div className="request-screen">
+          <div className="order-badge">⚔ Touché !</div>
+          <div className="attack-card-status" style={{ marginTop: 12 }}>
+            En attente de l'esquive de {vals.attackDefenderEntity?.name}…
+          </div>
         </div>
       )}
 

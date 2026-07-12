@@ -424,8 +424,16 @@ export function useTableState() {
   // attackPendingForMe côté défenseur, pas d'écran de résultat dédié une fois le
   // jet fait : la séquence continue sans plus rien demander à l'attaquant.
   const attackPendingForMeAsAttacker = meIsAttacker && attack.outcome === 'pending-attack-roll'
+  // L'attaquant a touché mais n'a plus rien à faire : la cible teste son esquive
+  // (elle-même ou le MJ pour un PNJ) — sans ça, l'attaquant restait sans nouvelle
+  // entre son propre jet et la notification finale (améliore le wording, retour MJ).
+  const attackWaitingForDodgeAsAttacker = meIsAttacker && attack.outcome === 'pending-dodge'
   const attackWaitingOnAttacker = !!attack && attack.outcome === 'pending-attack-roll'
   const showAttackCard = !!attack && (attack.outcome === 'pending-attack-roll' || attack.outcome === 'pending-dodge' || !attackDismissed)
+  // Même encart que la vue MJ ("Garde Impérial attaque Djoko"), repris sur tous les
+  // écrans joueur liés à l'attaque pour que le sens du combat soit toujours clair,
+  // même quand ce n'est pas au joueur d'agir.
+  const attackDirectionText = attack ? `${attackAttackerEntity?.name ?? '?'} attaque ${attackDefenderEntity?.name ?? '?'}` : ''
 
   // Notification passive du résultat pour l'attaquant (V3 §7, confirmé utile à
   // l'usage) : contrairement au défenseur (déjà notifié via son propre écran de
@@ -440,10 +448,12 @@ export function useTableState() {
     }
     if (!meIsAttacker || !attackIsTerminal || attack.id === seenAttackerNoticeIdRef.current) return
     seenAttackerNoticeIdRef.current = attack.id
-    setAttackAttackerNotice({ id: attack.id, text: `${attackDefenderEntity?.name ?? 'la cible'} — ${attackOutcomeText}` })
+    // Même encart "X attaque Y" que la vue MJ (retour MJ), pour rester cohérent avec
+    // les autres écrans joueur de la séquence plutôt qu'une phrase différente ici.
+    setAttackAttackerNotice({ id: attack.id, text: `${attackDirectionText} — ${attackOutcomeText}` })
     const timer = setTimeout(() => setAttackAttackerNotice(null), 6000)
     return () => clearTimeout(timer)
-  }, [attack, meIsAttacker, attackIsTerminal, attackOutcomeText, attackDefenderEntity])
+  }, [attack, meIsAttacker, attackIsTerminal, attackOutcomeText, attackDirectionText])
 
   function buildSkillGroupsWithChips(items) {
     return groupSkillsByCharacteristic(items).map((group) => ({
@@ -544,9 +554,28 @@ export function useTableState() {
     receivedText: `${received} / ${concernedCharacters.length} jets reçus`,
     mySkillGroups,
     characteristicTendencies: myCharacter ? characteristicTendencies(myCharacter.skills) : [],
-    pScreenMain: (!request || !meConcerned || dismissed) && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
-    pScreenRequest: meConcerned && !myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
-    pScreenResult: meConcerned && myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe && !attackPendingForMeAsAttacker,
+    pScreenMain:
+      (!request || !meConcerned || dismissed) &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
+    pScreenRequest:
+      meConcerned &&
+      !myRolled &&
+      !dismissed &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
+    pScreenResult:
+      meConcerned &&
+      myRolled &&
+      !dismissed &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
     showRollBtn: meConcerned && !myRolled && !rolling,
     rolling,
     myLabel: myMeta.label,
@@ -609,7 +638,9 @@ export function useTableState() {
     attackResolvedForMe,
     attackPendingForNpcDefender,
     attackPendingForMeAsAttacker,
+    attackWaitingForDodgeAsAttacker,
     attackWaitingOnAttacker,
+    attackDirectionText,
     dodging,
     rollDodge,
     npcDodging,
