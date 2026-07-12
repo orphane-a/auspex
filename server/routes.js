@@ -88,6 +88,7 @@ export function createRoutes({ presence, buildSnapshot }) {
       pvCurrent: parsed.pvCurrent,
       armor: parsed.armor,
       characteristics: parsed.characteristics,
+      weapons: parsed.weapons,
     })
     respondWithSnapshot(res, 201, { character })
   })

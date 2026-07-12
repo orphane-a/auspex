@@ -359,8 +359,11 @@ export async function parseCharacterSheet(buffer) {
   const { pvBase, pvCurrent } = extractPv(found.sheet)
   const armor = extractArmor(found.sheet)
   const characteristics = extractCharacteristics(found.sheet)
+  // Weapons (V3 §3/§4) — same "Compétences d'Armes" table and extractWeapons already
+  // used for an NPC sheet, so a player can be picked as attacker just like an NPC.
+  const weapons = extractWeapons(found.sheet)
 
-  return { skills, avatar, pvBase, pvCurrent, armor, characteristics }
+  return { skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons }
 }
 
 // Reads an NPC/enemy sheet (V2 §10/§11) — same PV/armor/characteristics logic as
