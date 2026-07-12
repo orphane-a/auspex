@@ -17,9 +17,12 @@ npm run dev       # backend (port 3001) + Vite dev server (port 5173), concurren
 npm run build     # vite build -> dist/
 npm start         # node server/index.js — serves dist/ + /api from one process
 npm run preview   # vite preview, against the production build
+npm test          # vitest run — pure logic (gameLogic.js, server/game.js) + server/db.js and
+                   # server/state.js against a throwaway SQLite file
 ```
 
-There is no test suite or lint script configured yet. Don't invent commands that don't exist.
+CI (`.github/workflows/ci.yml`) runs `npm test` + `npm run build` on every push/PR to `main`.
+There is no lint script configured yet. Don't invent commands that don't exist.
 
 ## Local services
 
@@ -55,4 +58,7 @@ wait for explicit go-ahead.
   that style rather than pulling in a new dependency for one call site.
 - UI strings and comments in `src/` are French — keep new user-facing text in French.
 - `server/table.sqlite*` and `node_modules` are gitignored — never commit generated DB files.
+- Tests live next to source (`gameLogic.js` → `gameLogic.test.js`). Anything touching `server/db.js`
+  points `DATA_DIR` at a throwaway temp directory and calls `closeDb()` in `afterAll` before
+  removing it — Windows locks the SQLite file handle otherwise.
 - Conventional Commits for new commits.

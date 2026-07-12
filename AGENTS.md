@@ -47,16 +47,33 @@ Propose the change and the files it touches, then wait for explicit approval bef
 - Language: plain JavaScript/JSX — no TypeScript, no type checking step
 - Frontend: React 18 + Vite
 - Backend: Express 5, Socket.io, better-sqlite3
-- No test runner, no linter configured — don't reference gates that don't exist
+- Tests: Vitest (`npm test`), run in CI on every push/PR to `main` — see "Testing" below.
+  No linter configured — don't reference a gate that doesn't exist.
 
 ## Code standards
 
 - No new dependency for something the existing manual-validation style already covers
   (`routes.js`, `xlsxParser.js` do plain shape checks on parsed input — follow that pattern).
 - Keep `src/gameLogic.js` free of UI and I/O — it's the one place game-rule math should live,
-  and it should stay unit-testable even though nothing tests it yet.
+  and it's the most thoroughly unit-tested file in the repo for exactly that reason.
 - Comments explain non-obvious intent or trade-offs (see `server/index.js` for the style), never
   narrate what the code does.
+
+## Testing
+
+- `npm test` runs Vitest once (`vitest run`); CI runs the same command plus `npm run build` on
+  every push/PR to `main` (`.github/workflows/ci.yml`).
+- Tests live next to source: `src/gameLogic.js` → `src/gameLogic.test.js`,
+  `server/game.js` → `server/game.test.js`.
+- `server/db.js` and `server/state.js` open/migrate a real SQLite file as an import-time side
+  effect. Their tests set `process.env.DATA_DIR` to a fresh `mkdtempSync` directory and use a
+  dynamic `await import(...)` *after* setting it, so they never touch the real dev `table.sqlite`.
+  Call the module's `closeDb()` in `afterAll` before `rmSync`-ing that temp dir — better-sqlite3
+  holds the file open, and Windows refuses to delete a directory with an open handle inside it.
+- Randomness (`Math.random`, used by `rollD100`/table codes) is mocked with `vi.spyOn` rather than
+  asserting on ranges, so outcomes are exact and reproducible.
+- Any new gameplay rule in `gameLogic.js`/`server/game.js` should ship with tests in the same
+  change — that file is exactly what "Mandatory human review" above is protecting.
 
 ## Security
 
@@ -72,8 +89,8 @@ Propose the change and the files it touches, then wait for explicit approval bef
 2. Implement in small, reviewable steps — one concern per change.
 3. If the change touches the DB schema, the socket protocol, or `gameLogic.js`, flag it and wait
    for the owner's go-ahead before implementing (see "Mandatory human review").
-4. `npm run build` to confirm the production bundle still compiles before considering a frontend
-   change done.
+4. `npm test` and `npm run build` before considering a change done — CI runs both on every push
+   to `main`, so a broken one here means Railway is about to auto-deploy a broken build.
 
 ## Forbidden shortcuts
 

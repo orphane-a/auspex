@@ -274,3 +274,9 @@ export function addNpc({ name, characteristics, weapons, pvBase, pvCurrent, armo
 export function removeNpc(id) {
   db.prepare('DELETE FROM npcs WHERE id = ?').run(id)
 }
+
+// Lets tests release the file handle before cleaning up a temp DATA_DIR — the
+// module never needs to close it during normal server operation.
+export function closeDb() {
+  db.close()
+}
