@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Avatar from './Avatar.jsx'
 import CharacteristicsRadar from './CharacteristicsRadar.jsx'
+import ArmorDiagram from './ArmorDiagram.jsx'
 
 export default function PlayerView({ vals }) {
   const [showArmor, setShowArmor] = useState(false)
@@ -54,16 +55,7 @@ export default function PlayerView({ vals }) {
           <button className="armor-toggle" onClick={() => setShowArmor((s) => !s)}>
             {showArmor ? '▾' : '▸'} Armure
           </button>
-          {showArmor && (
-            <div className="armor-list">
-              {vals.myArmorList.map((a) => (
-                <div key={a.key} className="armor-row">
-                  <span>{a.label}</span>
-                  <span>{a.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          {showArmor && myChar && <ArmorDiagram armor={myChar.armor} />}
 
           <div className="section-label">Compétences</div>
           {vals.mySkillGroups.map((group) => (

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Avatar from '../Avatar.jsx'
-import { HIT_LOCATIONS } from '../gameLogic.js'
+import ArmorDiagram from '../ArmorDiagram.jsx'
 
 function CharacterEditPanel({ vals, character }) {
   const [bonusLabel, setBonusLabel] = useState('')
@@ -78,19 +78,11 @@ function CharacterEditPanel({ vals, character }) {
       <div className="section-label" style={{ marginTop: 16 }}>
         Armure par localisation
       </div>
-      <div className="armor-edit-grid">
-        {HIT_LOCATIONS.map((loc) => (
-          <div key={loc.key} className="char-edit-row">
-            <label className="char-edit-label">{loc.label}</label>
-            <input
-              className="text-input char-edit-input"
-              type="number"
-              defaultValue={character.armor[loc.key] || 0}
-              onBlur={(e) => vals.updateArmorLocation(character.id, loc.key, Number(e.target.value))}
-            />
-          </div>
-        ))}
-      </div>
+      <ArmorDiagram
+        armor={character.armor}
+        editable
+        onChange={(locationKey, value) => vals.updateArmorLocation(character.id, locationKey, value)}
+      />
 
       <div className="section-label" style={{ marginTop: 16 }}>
         Palier de talent d'esquive
