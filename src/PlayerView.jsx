@@ -115,7 +115,7 @@ export default function PlayerView({ vals }) {
 
       {vals.attackWaitingForDodgeAsAttacker && (
         <div className="request-screen">
-          <div className="order-badge">⚔ Touché !</div>
+          <div className="order-badge">⚔ Touché ! ({vals.attackRollDegreeText})</div>
           <div className="attack-card-status" style={{ marginTop: 12 }}>
             En attente de l'esquive de {vals.attackDefenderEntity?.name}…
           </div>
@@ -124,7 +124,7 @@ export default function PlayerView({ vals }) {
 
       {vals.attackPendingForMe && (
         <div className="request-screen">
-          <div className="order-badge">⚠ Attaque entrante</div>
+          <div className="order-badge">⚠ Attaque entrante ({vals.attackRollDegreeText})</div>
           <div className="request-skill">Esquive</div>
 
           {!vals.dodging && (

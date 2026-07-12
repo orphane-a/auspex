@@ -14,6 +14,7 @@ import {
   effectiveSkillScore,
   npcDodgeScore,
   attackOutcomeLabel,
+  attackRollDegreeLabel,
   statusMeta,
 } from './gameLogic.js'
 
@@ -235,6 +236,26 @@ describe('attackOutcomeLabel', () => {
     expect(
       attackOutcomeLabel({ outcome: 'hit', bullets: 3, dodgeDegrees: 1, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
     ).toBe('3 balles touchent (tête) — 14 dégâts subis (esquive ratée, 1 degré d’échec)')
+  })
+})
+
+describe('attackRollDegreeLabel', () => {
+  it('returns an empty string for no attack', () => {
+    expect(attackRollDegreeLabel(null)).toBe('')
+  })
+
+  it('returns an empty string for a miss (already reported by attackOutcomeLabel)', () => {
+    expect(attackRollDegreeLabel({ outcome: 'miss', degrees: 2 })).toBe('')
+  })
+
+  it('reports the attack roll degrees as a success while the dodge is pending', () => {
+    expect(attackRollDegreeLabel({ outcome: 'pending-dodge', degrees: 3 })).toBe('3 degrés de réussite')
+    expect(attackRollDegreeLabel({ outcome: 'pending-dodge', degrees: 1 })).toBe('1 degré de réussite')
+  })
+
+  it('still reports the attack roll degrees once the sequence resolves', () => {
+    expect(attackRollDegreeLabel({ outcome: 'dodged', degrees: 2 })).toBe('2 degrés de réussite')
+    expect(attackRollDegreeLabel({ outcome: 'hit', degrees: 4 })).toBe('4 degrés de réussite')
   })
 })
 

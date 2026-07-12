@@ -158,9 +158,9 @@ export function npcDodgeScore(npc) {
 }
 
 // Texte de degrés partagé par les jets de compétence (statusMeta) et la séquence
-// d'attaque (attackOutcomeLabel), pour garder un seul endroit qui pluralise
-// "degré(s)" et choisisse "de réussite"/"d'échec".
-function degreeLabel(degrees, isSuccess) {
+// d'attaque (attackOutcomeLabel/attackRollDegreeLabel), pour garder un seul endroit
+// qui pluralise "degré(s)" et choisisse "de réussite"/"d'échec".
+export function degreeLabel(degrees, isSuccess) {
   return `${degrees} degré${degrees > 1 ? 's' : ''}${isSuccess ? ' de réussite' : ' d’échec'}`
 }
 
@@ -178,6 +178,14 @@ export function attackOutcomeLabel(attack) {
     return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis (esquive ratée, ${degreeLabel(attack.dodgeDegrees, false)})`
   }
   return ''
+}
+
+// Degrés du jet d'attaque lui-même (V3), affichés pendant l'attente de l'esquive —
+// à ce stade l'attaque a forcément touché (un jet raté part directement en 'miss',
+// §5), donc toujours "de réussite".
+export function attackRollDegreeLabel(attack) {
+  if (!attack || attack.outcome === 'miss') return ''
+  return degreeLabel(attack.degrees, true)
 }
 
 export function statusMeta(r) {

@@ -8,6 +8,7 @@ import {
   pvStatus,
   HIT_LOCATIONS,
   attackOutcomeLabel,
+  attackRollDegreeLabel,
 } from './gameLogic'
 
 const MY_CHARACTER_KEY = 'auspex.myCharacterId'
@@ -410,6 +411,7 @@ export function useTableState() {
   const attackAttackerEntity = attack ? entityOfType(attack.attacker.type, attack.attacker.id) : null
   const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
   const attackOutcomeText = attackOutcomeLabel(attack)
+  const attackRollDegreeText = attackRollDegreeLabel(attack)
   const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
   const meIsAttacker = !!attack && myCharacterId != null && attack.attacker.type === 'character' && attack.attacker.id === myCharacterId
   // "Resolved" veut dire un des trois états terminaux — pas juste "différent de
@@ -631,6 +633,7 @@ export function useTableState() {
     attackAttackerEntity,
     attackDefenderEntity,
     attackOutcomeText,
+    attackRollDegreeText,
     showAttackCard,
     dismissAttack,
     cancelAttack,

@@ -110,12 +110,13 @@ export default function GmView({ vals, onManageCharacters }) {
                   <div className="attack-card-status">En attente du jet d'attaque de {vals.attackAttackerEntity?.name}…</div>
                 ) : vals.attack.outcome === 'pending-dodge' ? (
                   <div className="attack-card-status">
+                    Touché ({vals.attackRollDegreeText})
                     {vals.attackPendingForNpcDefender ? (
-                      <button className="secondary-btn" onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>
+                      <button className="secondary-btn" style={{ display: 'block', marginTop: 8 }} onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>
                         🎲 Lancer l'esquive du PNJ
                       </button>
                     ) : (
-                      "En attente de l'esquive…"
+                      " — en attente de l'esquive…"
                     )}
                   </div>
                 ) : (
