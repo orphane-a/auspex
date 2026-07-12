@@ -65,22 +65,25 @@ export default function GmView({ vals, onManageCharacters }) {
                       {p.pvCurrent} / {p.pvMax} PV · <span className={`pv-tag pv-${p.pvStatusKey}`}>{p.pvStatusLabel}</span>
                     </div>
                   </div>
-                  <div className="roster-actions">
-                    {p.connected && (
-                      <button className="roster-action-btn" onClick={() => vals.openAttack(p.id)}>
-                        🎯 Attaque
-                      </button>
-                    )}
-                  </div>
                 </div>
               ))}
             </div>
 
             {vals.showAttackCard && (
               <div className="attack-card">
-                <div className="attack-card-title">🎯 Attaque sur {vals.attackTargetCharacter?.name}</div>
+                <div className="attack-card-title">
+                  ⚔️ {vals.attackAttackerEntity?.name} attaque {vals.attackDefenderEntity?.name}
+                </div>
                 {vals.attack.outcome === 'pending-dodge' ? (
-                  <div className="attack-card-status">En attente de l'esquive…</div>
+                  <div className="attack-card-status">
+                    {vals.attackPendingForNpcDefender ? (
+                      <button className="secondary-btn" onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>
+                        🎲 Lancer l'esquive du PNJ
+                      </button>
+                    ) : (
+                      "En attente de l'esquive…"
+                    )}
+                  </div>
                 ) : (
                   <>
                     <div className="attack-card-result">{vals.attackOutcomeText}</div>
@@ -94,6 +97,9 @@ export default function GmView({ vals, onManageCharacters }) {
 
             <button className="primary-btn" onClick={vals.openLaunch}>
               ⚔ Ordonner un test
+            </button>
+            <button className="secondary-btn" style={{ marginTop: 10 }} onClick={vals.openAttack}>
+              ⚔️ Attaque
             </button>
           </div>
         )}

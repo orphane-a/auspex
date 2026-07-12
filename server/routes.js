@@ -4,7 +4,7 @@ import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
 import { resolveRoll } from './game.js'
 import { seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
-import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
+import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
 import * as db from './db.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -257,22 +257,33 @@ export function createRoutes({ presence, buildSnapshot }) {
     respondWithSnapshot(res, 200, { character })
   })
 
-  // Étape 1/3 de la séquence d'attaque (V2 §10) : jet d'attaque du MJ pour un
-  // ennemi non fiché. Raté ⇒ séquence terminée immédiatement ; touché ⇒ attend
-  // le jet d'esquive du joueur visé (étape 2).
-  // Étape 1/3 de la séquence d'attaque (V2 §10 v2) : le MJ choisit le PNJ, l'arme
-  // et le mode de tir ; le jet d'attaque se résout contre la Dextérité du PNJ avec
-  // la même formule de degrés que resolveRoll (server/game.js), déjà utilisée pour
-  // tous les jets de compétence V1 — pas de duplication de la logique de degrés.
-  router.post('/table/attack', (req, res) => {
-    const npcId = Number(req.body.npcId)
-    const targetCharacterId = Number(req.body.targetCharacterId)
-    const { weaponName, fireMode } = req.body
+  // Un attaquant ou un défenseur peut être un PNJ ou un personnage, dans n'importe
+  // quelle combinaison (V3 §2/§3) — un seul point de lookup pour les deux routes
+  // ci-dessous plutôt que de dupliquer le if/else PNJ-ou-personnage partout.
+  function getCombatant(type, id) {
+    return type === 'npc' ? db.getNpc(id) : db.getCharacter(id)
+  }
+  function updateCombatantPv(type, id, value) {
+    return type === 'npc' ? db.updateNpcPvCurrent(id, value) : db.updatePvCurrent(id, value)
+  }
 
-    const npc = db.getNpc(npcId)
-    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
-    const weapon = npc.weapons.find((w) => w.name === weaponName)
-    if (!weapon) return res.status(400).json({ error: 'Arme introuvable pour ce PNJ.' })
+  // Étape 1/3 de la séquence d'attaque (V3 §5) : le jet reste toujours automatique
+  // contre la Dextérité brute de l'attaquant (§3), qu'il s'agisse d'un PNJ (inchangé
+  // depuis la V2) ou d'un personnage (nouveau) — même formule de degrés que
+  // resolveRoll (server/game.js), déjà utilisée pour tous les jets de compétence V1.
+  router.post('/table/attack', (req, res) => {
+    const { attackerType, defenderType, weaponName, fireMode } = req.body
+    const attackerId = Number(req.body.attackerId)
+    const defenderId = Number(req.body.defenderId)
+
+    if (!['npc', 'character'].includes(attackerType) || !['npc', 'character'].includes(defenderType)) {
+      return res.status(400).json({ error: 'Camp attaquant ou défenseur invalide.' })
+    }
+
+    const attacker = getCombatant(attackerType, attackerId)
+    if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
+    const weapon = attacker.weapons.find((w) => w.name === weaponName)
+    if (!weapon) return res.status(400).json({ error: 'Arme introuvable pour cet attaquant.' })
     if (!['single', 'semi', 'auto'].includes(fireMode)) {
       return res.status(400).json({ error: 'Mode de tir invalide.' })
     }
@@ -286,22 +297,26 @@ export function createRoutes({ presence, buildSnapshot }) {
       return res.status(400).json({ error: "Le mode automatique n'est pas disponible pour cette arme." })
     }
 
-    const target = db.getCharacter(targetCharacterId)
-    if (!target) return res.status(404).json({ error: 'Cible introuvable.' })
-    if (!presence.isConnected(target.id)) return res.status(400).json({ error: 'La cible doit être connectée.' })
+    const defender = getCombatant(defenderType, defenderId)
+    if (!defender) return res.status(404).json({ error: 'Cible introuvable.' })
+    // Un PNJ n'a jamais de client (§3) donc jamais cette contrainte ; un Joueur visé
+    // doit rester connecté pour pouvoir cliquer son propre jet d'esquive (inchangé V2).
+    if (defenderType === 'character' && !presence.isConnected(defender.id)) {
+      return res.status(400).json({ error: 'La cible doit être connectée.' })
+    }
     const existing = db.getTableState().attack
     if (existing && existing.outcome === 'pending-dodge') {
       return res.status(409).json({ error: "Une attaque est déjà en attente d'esquive." })
     }
 
-    const result = resolveRoll(npc.characteristics.Dex || 0, null)
+    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
     const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
     db.setAttack({
       id: Date.now(),
-      npcId: npc.id,
+      attacker: { type: attackerType, id: attacker.id },
+      defender: { type: defenderType, id: defender.id },
       weaponName: weapon.name,
       fireMode,
-      targetCharacterId: target.id,
       attackRoll: result.roll,
       degrees: result.degrees,
       outcome,
@@ -312,26 +327,39 @@ export function createRoutes({ presence, buildSnapshot }) {
     respondWithSnapshot(res, 200)
   })
 
-  // Étapes 2 et 3 (V2 §10 v2) : jet d'esquive du joueur visé, indépendant du jet
-  // d'attaque. Échec ⇒ les dégâts viennent maintenant du profil de l'arme choisie
-  // à l'étape 1 (resolveWeaponDamage), `attackRoll` ne servant plus qu'à la
-  // localisation (chiffres inversés, inchangé depuis la v1).
+  // Étapes 2 et 3 (V3 §5) : le jet d'esquive est résolu soit par le joueur visé
+  // (body { characterId }, inchangé depuis la V2 — vérification d'identité gardée
+  // pour qu'un autre joueur ne puisse pas esquiver à sa place), soit par le MJ pour
+  // un PNJ visé (§3 : pas de client PNJ, donc pas de vérification d'identité —
+  // score calculé côté serveur via npcDodgeScore). Échec ⇒ dégâts depuis le profil
+  // de l'arme choisie à l'étape 1 (resolveWeaponDamage), `attackRoll` ne servant
+  // plus qu'à la localisation (chiffres inversés, inchangé depuis la v1).
   router.post('/table/attack/dodge', (req, res) => {
     const attack = db.getTableState().attack
     if (!attack || attack.outcome !== 'pending-dodge') {
       return res.status(409).json({ error: "Aucune esquive en attente." })
     }
-    if (Number(req.body.characterId) !== attack.targetCharacterId) {
-      return res.status(403).json({ error: "Ce personnage n'est pas visé par cette attaque." })
-    }
-    const character = db.getCharacter(attack.targetCharacterId)
-    if (!character) return res.status(404).json({ error: 'Personnage introuvable.' })
-    const npc = db.getNpc(attack.npcId)
-    if (!npc) return res.status(404).json({ error: 'PNJ introuvable.' })
-    const weapon = npc.weapons.find((w) => w.name === attack.weaponName)
+
+    const attacker = getCombatant(attack.attacker.type, attack.attacker.id)
+    if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
+    const weapon = attacker.weapons.find((w) => w.name === attack.weaponName)
     if (!weapon) return res.status(404).json({ error: 'Arme introuvable.' })
 
-    const effectiveEsquive = effectiveSkillScore(character, 'Esquive', 'Agi') + character.dodgeBonus
+    const defender = getCombatant(attack.defender.type, attack.defender.id)
+    if (!defender) {
+      return res.status(404).json({ error: attack.defender.type === 'npc' ? 'PNJ introuvable.' : 'Personnage introuvable.' })
+    }
+
+    let effectiveEsquive
+    if (attack.defender.type === 'character') {
+      if (Number(req.body.characterId) !== attack.defender.id) {
+        return res.status(403).json({ error: "Ce personnage n'est pas visé par cette attaque." })
+      }
+      effectiveEsquive = effectiveSkillScore(defender, 'Esquive', 'Agi') + defender.dodgeBonus
+    } else {
+      effectiveEsquive = npcDodgeScore(defender)
+    }
+
     const dodgeRoll = rollD100()
 
     if (dodgeRoll <= effectiveEsquive) {
@@ -339,8 +367,8 @@ export function createRoutes({ presence, buildSnapshot }) {
       return respondWithSnapshot(res, 200)
     }
 
-    const result = resolveWeaponDamage(character, { attackRoll: attack.attackRoll, degrees: attack.degrees, weapon, fireMode: attack.fireMode })
-    const updated = db.updatePvCurrent(character.id, result.newCurrent)
+    const result = resolveWeaponDamage(defender, { attackRoll: attack.attackRoll, degrees: attack.degrees, weapon, fireMode: attack.fireMode })
+    const updated = updateCombatantPv(attack.defender.type, defender.id, result.newCurrent)
     const locationLabel = HIT_LOCATIONS.find((l) => l.key === result.locationKey).label
     db.setAttack({
       ...attack,
@@ -349,7 +377,8 @@ export function createRoutes({ presence, buildSnapshot }) {
       bullets: result.bullets,
       damage: { locationKey: result.locationKey, locationLabel, perBullet: result.perBullet, totalDamage: result.totalDamage },
     })
-    respondWithSnapshot(res, 200, { character: updated })
+    const extra = attack.defender.type === 'npc' ? { npc: updated } : { character: updated }
+    respondWithSnapshot(res, 200, extra)
   })
 
   return router

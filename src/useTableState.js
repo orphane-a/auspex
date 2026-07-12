@@ -31,12 +31,15 @@ export function useTableState() {
   const seenDamageIdRef = useRef(undefined)
 
   const [showAttack, setShowAttack] = useState(false)
-  const [attackTargetId, setAttackTargetId] = useState(null)
-  const [attackNpcId, setAttackNpcId] = useState(null)
+  const [attackerType, setAttackerType] = useState(null)
+  const [attackerId, setAttackerId] = useState(null)
+  const [defenderType, setDefenderType] = useState(null)
+  const [defenderId, setDefenderId] = useState(null)
   const [attackWeaponName, setAttackWeaponName] = useState(null)
   const [attackFireMode, setAttackFireMode] = useState(null)
   const [attackDismissed, setAttackDismissed] = useState(false)
   const [dodging, setDodging] = useState(false)
+  const [npcDodging, setNpcDodging] = useState(false)
   const [attackError, setAttackError] = useState('')
 
   const socketRef = useRef(null)
@@ -173,14 +176,34 @@ export function useTableState() {
     return null
   }
 
-  // Séquence d'attaque/esquive (V2 §10 v2) — le MJ choisit le PNJ et l'arme parmi
-  // les fiches PNJ uploadées, au lieu d'un score ennemi libre.
-  function openAttack(characterId) {
-    const connectedIds = characters.filter((c) => c.connected).map((c) => c.id)
-    setAttackTargetId(characterId != null && connectedIds.includes(characterId) ? characterId : connectedIds[0] ?? null)
+  function entityOfType(type, id) {
+    if (id == null) return null
+    return type === 'npc' ? npcs.find((n) => n.id === id) : characters.find((c) => c.id === id)
+  }
+
+  // Séquence d'attaque (V3 §5/§6) : le MJ choisit librement l'attaquant et la cible
+  // parmi les PNJ et les personnages, dans n'importe quelle combinaison — le bouton
+  // n'est plus rattaché à une ligne personnage, donc plus de préremplissage à partir
+  // d'un characterId.
+  function openAttack() {
     const firstNpc = npcs[0] || null
-    const firstWeapon = firstNpc?.weapons[0] || null
-    setAttackNpcId(firstNpc?.id ?? null)
+    const firstCharacter = characters[0] || null
+    const attackerEntity = firstNpc || firstCharacter
+    const attackerEntityType = firstNpc ? 'npc' : firstCharacter ? 'character' : null
+    setAttackerType(attackerEntityType)
+    setAttackerId(attackerEntity?.id ?? null)
+
+    // Repli par défaut : un joueur connecté différent de l'attaquant si possible,
+    // sinon un PNJ différent de l'attaquant — juste un point de départ pratique,
+    // le MJ reste libre de tout changer dans la modale.
+    const connectedOther = characters.find((c) => c.connected && !(attackerEntityType === 'character' && c.id === attackerEntity?.id))
+    const npcOther = npcs.find((n) => !(attackerEntityType === 'npc' && n.id === attackerEntity?.id))
+    const defenderEntity = connectedOther || npcOther || null
+    const defenderEntityType = connectedOther ? 'character' : npcOther ? 'npc' : null
+    setDefenderType(defenderEntityType)
+    setDefenderId(defenderEntity?.id ?? null)
+
+    const firstWeapon = attackerEntity?.weapons[0] || null
     setAttackWeaponName(firstWeapon?.name ?? null)
     setAttackFireMode(defaultFireMode(firstWeapon))
     setAttackError('')
@@ -189,24 +212,29 @@ export function useTableState() {
   function closeAttack() {
     setShowAttack(false)
   }
-  function selectAttackNpc(npcId) {
-    setAttackNpcId(npcId)
-    const npc = npcs.find((n) => n.id === npcId)
-    const firstWeapon = npc?.weapons[0] || null
+  function selectAttacker(type, id) {
+    setAttackerType(type)
+    setAttackerId(id)
+    const entity = entityOfType(type, id)
+    const firstWeapon = entity?.weapons[0] || null
     setAttackWeaponName(firstWeapon?.name ?? null)
     setAttackFireMode(defaultFireMode(firstWeapon))
   }
+  function selectDefender(type, id) {
+    setDefenderType(type)
+    setDefenderId(id)
+  }
   function selectAttackWeapon(weaponName) {
     setAttackWeaponName(weaponName)
-    const npc = npcs.find((n) => n.id === attackNpcId)
-    const weapon = npc?.weapons.find((w) => w.name === weaponName) || null
+    const entity = entityOfType(attackerType, attackerId)
+    const weapon = entity?.weapons.find((w) => w.name === weaponName) || null
     setAttackFireMode(defaultFireMode(weapon))
   }
   async function launchAttack() {
-    if (attackTargetId == null || attackNpcId == null || !attackWeaponName || !attackFireMode) return
+    if (attackerType == null || attackerId == null || defenderType == null || defenderId == null || !attackWeaponName || !attackFireMode) return
     setAttackError('')
     try {
-      await api.launchAttack({ npcId: attackNpcId, weaponName: attackWeaponName, fireMode: attackFireMode, targetCharacterId: attackTargetId })
+      await api.launchAttack({ attackerType, attackerId, defenderType, defenderId, weaponName: attackWeaponName, fireMode: attackFireMode })
       setShowAttack(false)
     } catch (err) {
       setAttackError(err.message)
@@ -224,6 +252,18 @@ export function useTableState() {
       await new Promise((resolve) => setTimeout(resolve, 900))
     } finally {
       setDodging(false)
+    }
+  }
+  // MJ lance l'esquive à la place d'un PNJ visé (V3 §3/§5) — pas de client PNJ à
+  // distance pour cliquer son propre "LANCER".
+  async function rollNpcDodge() {
+    if (npcDodging) return
+    setNpcDodging(true)
+    try {
+      await api.rollNpcDodge()
+      await new Promise((resolve) => setTimeout(resolve, 900))
+    } finally {
+      setNpcDodging(false)
     }
   }
 
@@ -324,11 +364,13 @@ export function useTableState() {
     ? `Vous encaissez ${damageNotice.rawDamage} dégâts${damageNotice.armor > 0 ? ` (${Math.min(damageNotice.armor, damageNotice.rawDamage)} absorbés)` : ''}`
     : ''
 
-  const attackTargetCharacter = attack ? characters.find((c) => c.id === attack.targetCharacterId) || null : null
+  const attackAttackerEntity = attack ? entityOfType(attack.attacker.type, attack.attacker.id) : null
+  const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
   const attackOutcomeText = attackOutcomeLabel(attack)
-  const meIsAttackTarget = !!attack && myCharacterId != null && attack.targetCharacterId === myCharacterId
+  const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
   const attackPendingForMe = meIsAttackTarget && attack.outcome === 'pending-dodge'
   const attackResolvedForMe = meIsAttackTarget && attack.outcome !== 'pending-dodge' && !attackDismissed
+  const attackPendingForNpcDefender = !!attack && attack.outcome === 'pending-dodge' && attack.defender.type === 'npc'
   const showAttackCard = !!attack && (attack.outcome === 'pending-dodge' || !attackDismissed)
 
   function buildSkillGroupsWithChips(items) {
@@ -352,17 +394,33 @@ export function useTableState() {
   const malusOpts = MALUS_OPTIONS.map((m) => ({ label: m, isActive: m === malus, set: () => setMalus(malus === m ? null : m) }))
   const connectedCharacters = characters.filter((c) => c.connected)
   const selectable = connectedCharacters.map((c) => ({ id: c.id, name: c.name, isChosen: !!chosen[c.id], toggle: () => togglePlayer(c.id) }))
-  // Cible restreinte aux personnages connectés (V2 §10/§11) — pas de mode de
-  // secours pour un joueur absent.
-  const attackTargetOptions = connectedCharacters.map((c) => ({ id: c.id, name: c.name, isActive: c.id === attackTargetId, select: () => setAttackTargetId(c.id) }))
-  const npcOptions = npcs.map((n) => ({ id: n.id, name: n.name, isActive: n.id === attackNpcId, select: () => selectAttackNpc(n.id) }))
-  const attackNpc = npcs.find((n) => n.id === attackNpcId) || null
-  const weaponOptions = (attackNpc?.weapons || []).map((w) => ({
+
+  // Modale d'attaque (V3 §3/§6) : listes complètes PNJ + Joueurs, pour l'attaquant
+  // comme pour la cible — un attaquant peut être un joueur non connecté (§6) ; côté
+  // cible, le serveur bloque lui-même un Joueur non connecté (message affiché via
+  // attackError), donc pas de filtre ici non plus.
+  function buildSideOptions(type, currentType, currentId, onSelect) {
+    const items = type === 'npc' ? npcs : characters
+    return items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      connected: type === 'character' ? item.connected : true,
+      isActive: currentType === type && currentId === item.id,
+      select: () => onSelect(type, item.id),
+    }))
+  }
+  const attackerNpcOptions = buildSideOptions('npc', attackerType, attackerId, selectAttacker)
+  const attackerCharacterOptions = buildSideOptions('character', attackerType, attackerId, selectAttacker)
+  const defenderNpcOptions = buildSideOptions('npc', defenderType, defenderId, selectDefender)
+  const defenderCharacterOptions = buildSideOptions('character', defenderType, defenderId, selectDefender)
+
+  const attackerEntity = entityOfType(attackerType, attackerId)
+  const weaponOptions = (attackerEntity?.weapons || []).map((w) => ({
     name: w.name,
     isActive: w.name === attackWeaponName,
     select: () => selectAttackWeapon(w.name),
   }))
-  const attackWeapon = attackNpc?.weapons.find((w) => w.name === attackWeaponName) || null
+  const attackWeapon = attackerEntity?.weapons.find((w) => w.name === attackWeaponName) || null
   const fireModeOptions = [
     { key: 'single', label: 'Coup par coup', available: !!attackWeapon?.mode.single },
     { key: 'semi', label: 'Semi-auto', available: attackWeapon?.mode.semiCapacity != null },
@@ -370,6 +428,9 @@ export function useTableState() {
   ]
     .filter((m) => m.available)
     .map((m) => ({ key: m.key, label: m.label, isActive: m.key === attackFireMode, select: () => setAttackFireMode(m.key) }))
+  const defenderCharacterDisconnected = defenderType === 'character' && defenderId != null && !characters.find((c) => c.id === defenderId)?.connected
+  const attackLaunchDisabled =
+    attackerId == null || defenderId == null || weaponOptions.length === 0 || fireModeOptions.length === 0 || defenderCharacterDisconnected
 
   return {
     loading: !snapshot,
@@ -437,20 +498,28 @@ export function useTableState() {
     showAttack,
     openAttack,
     closeAttack,
-    attackTargetOptions,
-    npcOptions,
+    attackerNpcOptions,
+    attackerCharacterOptions,
+    defenderNpcOptions,
+    defenderCharacterOptions,
     weaponOptions,
     fireModeOptions,
     attackError,
+    attackLaunchDisabled,
+    defenderCharacterDisconnected,
     launchAttack,
     attack,
-    attackTargetCharacter,
+    attackAttackerEntity,
+    attackDefenderEntity,
     attackOutcomeText,
     showAttackCard,
     dismissAttack,
     attackPendingForMe,
     attackResolvedForMe,
+    attackPendingForNpcDefender,
     dodging,
     rollDodge,
+    npcDodging,
+    rollNpcDodge,
   }
 }

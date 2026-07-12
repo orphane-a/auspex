@@ -99,11 +99,15 @@ export function ensureTableState() {
 }
 
 function rowToTableState(row) {
+  const attack = row.attack ? JSON.parse(row.attack) : null
   return {
     code: row.code,
     request: row.request ? JSON.parse(row.request) : null,
     rolls: JSON.parse(row.rolls),
-    attack: row.attack ? JSON.parse(row.attack) : null,
+    // Une attaque encore en attente au format V2 (npcId/targetCharacterId) ne doit
+    // jamais faire planter les clients après ce déploiement (V3 §4) — elle est
+    // traitée comme terminée plutôt que lue avec la nouvelle forme attacker/defender.
+    attack: attack && attack.attacker && attack.defender ? attack : null,
   }
 }
 

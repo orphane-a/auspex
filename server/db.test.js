@@ -45,6 +45,17 @@ describe('table state', () => {
     const rolls = db.patchRoll(2, { roll: 20 })
     expect(rolls).toEqual({ 1: { roll: 10 }, 2: { roll: 20 } })
   })
+
+  it('round-trips a V3 attack (attacker/defender shape)', () => {
+    const attack = { id: 1, attacker: { type: 'npc', id: 1 }, defender: { type: 'character', id: 2 }, outcome: 'pending-dodge' }
+    db.setAttack(attack)
+    expect(db.getTableState().attack).toEqual(attack)
+  })
+
+  it('reads a stale V2-shaped attack (npcId/targetCharacterId) back as null instead of crashing clients', () => {
+    db.setAttack({ id: 1, npcId: 1, targetCharacterId: 2, outcome: 'hit' })
+    expect(db.getTableState().attack).toBeNull()
+  })
 })
 
 describe('character CRUD', () => {

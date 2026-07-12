@@ -34,9 +34,12 @@ export const api = {
     request(`/characters/${characterId}/dodge-bonus`, { method: 'PATCH', body: JSON.stringify({ value }) }),
   uploadNpc: (formData) => request('/npcs', { method: 'POST', body: formData }),
   deleteNpc: (id) => request(`/npcs/${id}`, { method: 'DELETE' }),
-  launchAttack: ({ npcId, weaponName, fireMode, targetCharacterId }) =>
-    request('/table/attack', { method: 'POST', body: JSON.stringify({ npcId, weaponName, fireMode, targetCharacterId }) }),
+  launchAttack: ({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) =>
+    request('/table/attack', { method: 'POST', body: JSON.stringify({ attackerType, attackerId, defenderType, defenderId, weaponName, fireMode }) }),
   rollDodge: (characterId) => request('/table/attack/dodge', { method: 'POST', body: JSON.stringify({ characterId }) }),
+  // MJ triggers an NPC defender's dodge in its place (V3 §3/§5) — no identity check
+  // server-side since an NPC never has its own client to verify against.
+  rollNpcDodge: () => request('/table/attack/dodge', { method: 'POST', body: JSON.stringify({}) }),
 }
 
 let socket = null
