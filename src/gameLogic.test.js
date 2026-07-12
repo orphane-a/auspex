@@ -12,6 +12,7 @@ import {
   pvMax,
   applyDamage,
   effectiveSkillScore,
+  npcDodgeScore,
   attackOutcomeLabel,
   statusMeta,
 } from './gameLogic.js'
@@ -194,6 +195,20 @@ describe('effectiveSkillScore', () => {
   it('falls back to 0 when even the linked characteristic is missing', () => {
     const character = { skills: [], characteristics: {} }
     expect(effectiveSkillScore(character, 'Acrobaties', 'Cha')).toBe(0)
+  })
+})
+
+describe('npcDodgeScore', () => {
+  it('falls back to half Agilité when there is no dodge bonus', () => {
+    expect(npcDodgeScore({ characteristics: { Agi: 41 }, dodgeBonus: 0 })).toBe(21) // round(41/2)
+  })
+
+  it('adds the manual dodge bonus on top of the fallback', () => {
+    expect(npcDodgeScore({ characteristics: { Agi: 40 }, dodgeBonus: 20 })).toBe(40) // round(40/2) + 20
+  })
+
+  it('falls back to 0 when Agilité itself is missing', () => {
+    expect(npcDodgeScore({ characteristics: {}, dodgeBonus: 10 })).toBe(10)
   })
 })
 

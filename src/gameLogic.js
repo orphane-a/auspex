@@ -148,6 +148,15 @@ export function effectiveSkillScore(character, skillName, linkedCharacteristic) 
   return carac ? Math.round(carac / 2) : 0
 }
 
+// Score d'esquive d'un défenseur PNJ (V3 §3/§5) : un PNJ n'a jamais de grille de
+// compétences, donc jamais de score d'Esquive formé — contrairement à
+// effectiveSkillScore, pas de recherche dans une liste de compétences, uniquement
+// le repli non formé (Agi ÷ 2) plus son dodgeBonus manuel (§4).
+export function npcDodgeScore(npc) {
+  const base = npc.characteristics.Agi ? Math.round(npc.characteristics.Agi / 2) : 0
+  return base + npc.dodgeBonus
+}
+
 // Single source of truth for the attack-sequence outcome text (V2 §10/§11) — the
 // wording must be strictly identical on the player's and the MJ's screens.
 export function attackOutcomeLabel(attack) {
