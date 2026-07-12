@@ -104,6 +104,7 @@ export default function AttackModal({ vals }) {
             </>
           )}
 
+          {vals.attackerIsDefender && <div className="form-error">Un combattant ne peut pas s'attaquer lui-même.</div>}
           {vals.attackerCharacterDisconnected && (
             <div className="form-error">L'attaquant n'est pas connecté — il ne pourra pas lancer son propre jet.</div>
           )}

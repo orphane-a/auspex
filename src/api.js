@@ -44,6 +44,9 @@ export const api = {
   // MJ triggers an NPC defender's dodge in its place (V3 §3/§5) — no identity check
   // server-side since an NPC never has its own client to verify against.
   rollNpcDodge: () => request('/table/attack/dodge', { method: 'POST', body: JSON.stringify({}) }),
+  // Filet de sécurité MJ pour débloquer une séquence coincée, sans réinitialiser
+  // toute la table (V3 §5 v2).
+  cancelAttack: () => request('/table/attack/cancel', { method: 'POST' }),
 }
 
 let socket = null

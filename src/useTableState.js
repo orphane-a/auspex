@@ -248,6 +248,12 @@ export function useTableState() {
   function dismissAttack() {
     setAttackDismissed(true)
   }
+  // Filet de sécurité MJ : débloque la séquence si elle reste coincée en attente
+  // (jet d'attaque ou d'esquive), sans passer par une réinitialisation complète de
+  // la table qui viderait aussi les personnages.
+  async function cancelAttack() {
+    await api.cancelAttack()
+  }
   async function rollDodge() {
     if (!myCharacterId || dodging) return
     setDodging(true)
@@ -402,8 +408,13 @@ export function useTableState() {
   const attackOutcomeText = attackOutcomeLabel(attack)
   const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
   const meIsAttacker = !!attack && myCharacterId != null && attack.attacker.type === 'character' && attack.attacker.id === myCharacterId
+  // "Resolved" veut dire un des trois états terminaux — pas juste "différent de
+  // pending-dodge" (bug V3 §5 v2 : avec pending-attack-roll comme état intermédiaire
+  // supplémentaire, cette ancienne condition marquait à tort la cible comme
+  // "résolue" avant même que l'attaquant ait lancé son dé).
+  const attackIsTerminal = attack && ['miss', 'dodged', 'hit'].includes(attack.outcome)
   const attackPendingForMe = meIsAttackTarget && attack.outcome === 'pending-dodge'
-  const attackResolvedForMe = meIsAttackTarget && attack.outcome !== 'pending-dodge' && !attackDismissed
+  const attackResolvedForMe = meIsAttackTarget && attackIsTerminal && !attackDismissed
   const attackPendingForNpcDefender = !!attack && attack.outcome === 'pending-dodge' && attack.defender.type === 'npc'
   // Le personnage attaquant lance lui-même son jet (V3 §5 v2) — symétrique de
   // attackPendingForMe côté défenseur, pas d'écran de résultat dédié une fois le
@@ -471,13 +482,18 @@ export function useTableState() {
   // Un personnage attaquant doit désormais rester connecté (V3 §5 v2) : lui seul
   // peut cliquer son propre jet, contrairement au PNJ dont le jet reste automatique.
   const attackerCharacterDisconnected = attackerType === 'character' && attackerId != null && !characters.find((c) => c.id === attackerId)?.connected
+  // Un combattant contre lui-même n'a pas de sens (aucune règle ne le résout) —
+  // bloqué au même endroit que les autres cas invalides plutôt que côté serveur
+  // uniquement, pour ne pas laisser le bouton "Lancer l'attaque" cliquable.
+  const attackerIsDefender = attackerType != null && attackerId != null && attackerType === defenderType && attackerId === defenderId
   const attackLaunchDisabled =
     attackerId == null ||
     defenderId == null ||
     weaponOptions.length === 0 ||
     fireModeOptions.length === 0 ||
     defenderCharacterDisconnected ||
-    attackerCharacterDisconnected
+    attackerCharacterDisconnected ||
+    attackerIsDefender
 
   return {
     loading: !snapshot,
@@ -557,6 +573,7 @@ export function useTableState() {
     attackLaunchDisabled,
     defenderCharacterDisconnected,
     attackerCharacterDisconnected,
+    attackerIsDefender,
     launchAttack,
     attack,
     attackAttackerEntity,
@@ -564,6 +581,7 @@ export function useTableState() {
     attackOutcomeText,
     showAttackCard,
     dismissAttack,
+    cancelAttack,
     attackPendingForMe,
     attackResolvedForMe,
     attackPendingForNpcDefender,

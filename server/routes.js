@@ -308,6 +308,10 @@ export function createRoutes({ presence, buildSnapshot }) {
 
     const defender = getCombatant(defenderType, defenderId)
     if (!defender) return res.status(404).json({ error: 'Cible introuvable.' })
+    // Un combattant contre lui-même n'a aucune règle qui le résout (V3 §5 v2).
+    if (attackerType === defenderType && attacker.id === defender.id) {
+      return res.status(400).json({ error: "Un combattant ne peut pas s'attaquer lui-même." })
+    }
     // Un PNJ n'a jamais de client (§3) donc jamais cette contrainte ; un Joueur visé
     // doit rester connecté pour pouvoir cliquer son propre jet d'esquive (inchangé V2).
     if (defenderType === 'character' && !presence.isConnected(defender.id)) {
@@ -412,6 +416,14 @@ export function createRoutes({ presence, buildSnapshot }) {
     })
     const extra = attack.defender.type === 'npc' ? { npc: updated } : { character: updated }
     respondWithSnapshot(res, 200, extra)
+  })
+
+  // Filet de sécurité MJ (V3 §5 v2) : débloque une séquence restée coincée en
+  // attente (jet d'attaque ou d'esquive jamais fait, client parti, etc.) sans
+  // passer par une réinitialisation complète de la table.
+  router.post('/table/attack/cancel', (req, res) => {
+    db.setAttack(null)
+    respondWithSnapshot(res, 200)
   })
 
   return router
