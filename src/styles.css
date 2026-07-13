@@ -1,10 +1,24 @@
+:root {
+  --font-display: 'Cinzel', 'Trajan Pro', 'Times New Roman', serif;
+  --font-ui: 'Oswald', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fw-light: 300; --fw-regular: 400; --fw-medium: 500;
+  --fw-semibold: 600; --fw-bold: 700;
+
+  --fs-title-hero: 34px; --fs-title-xl: 26px; --fs-title-lg: 22px;
+  --fs-title-md: 20px;   --fs-title-sm: 15px; --fs-title-xs: 14px;
+
+  --ls-tight: 0.05em; --ls-normal: 0.06em; --ls-wide: 0.1em;
+  --ls-wider: 0.16em; --ls-widest: 0.24em;
+}
+
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
   background: #08080a;
-  font-family: Oswald, system-ui, sans-serif;
+  font-family: var(--font-ui);
   color: #e6e0d4;
 }
 a {
@@ -112,15 +126,15 @@ a:hover {
   transform: translate(-50%, -50%);
 }
 .brand-title {
-  font-family: Cinzel, serif;
-  font-weight: 700;
-  font-size: 22px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-title-lg);
   letter-spacing: 0.14em;
   color: #e3c987;
   line-height: 1;
 }
 .brand-subtitle {
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.34em;
   text-transform: uppercase;
   color: rgba(230, 224, 212, 0.42);
@@ -128,7 +142,7 @@ a:hover {
 }
 .reset-btn {
   cursor: pointer;
-  font: 500 11px Oswald;
+  font: var(--fw-medium) 11px var(--font-ui);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(230, 224, 212, 0.6);
@@ -147,8 +161,8 @@ a:hover {
 .view-tab {
   cursor: pointer;
   flex: 1;
-  font: 500 12px Oswald;
-  letter-spacing: 0.16em;
+  font: var(--fw-medium) 12px var(--font-ui);
+  letter-spacing: var(--ls-wider);
   text-transform: uppercase;
   padding: 12px 10px;
   border-radius: 4px;
@@ -165,7 +179,7 @@ a:hover {
 .route-banner {
   max-width: 720px;
   margin: 0 auto 26px;
-  font: 300 12px Oswald;
+  font: var(--fw-light) 12px var(--font-ui);
   letter-spacing: 0.03em;
   color: rgba(230, 224, 212, 0.6);
   background: rgba(201, 162, 74, 0.06);
@@ -177,7 +191,7 @@ a:hover {
 .route-hint {
   max-width: 720px;
   margin: -14px auto 26px;
-  font: 300 11px Oswald;
+  font: var(--fw-light) 11px var(--font-ui);
   letter-spacing: 0.03em;
   color: rgba(230, 224, 212, 0.4);
 }
@@ -213,15 +227,15 @@ a:hover {
   gap: 11px;
 }
 .panel-titlebar-title span {
-  font-family: Cinzel, serif;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.06em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-title-sm);
+  letter-spacing: var(--ls-normal);
   color: #e6e0d4;
 }
 .panel-titlebar-tag {
-  font: 400 11px Oswald;
-  letter-spacing: 0.1em;
+  font: var(--fw-regular) 11px var(--font-ui);
+  letter-spacing: var(--ls-wide);
   color: rgba(230, 224, 212, 0.4);
 }
 .icon-diamond {
@@ -243,8 +257,8 @@ a:hover {
   background: rgba(201, 162, 74, 0.6);
 }
 .helper-text {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.35);
   margin-top: 12px;
   text-align: center;
@@ -274,22 +288,22 @@ a:hover {
   text-align: center;
 }
 .code-card-label {
-  font: 500 10px Oswald;
-  letter-spacing: 0.24em;
+  font: var(--fw-medium) 10px var(--font-ui);
+  letter-spacing: var(--ls-widest);
   text-transform: uppercase;
   color: rgba(201, 162, 74, 0.8);
   margin-bottom: 9px;
 }
 .code-card-value {
-  font-family: Cinzel, serif;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
   font-size: clamp(30px, 6vw, 40px);
   letter-spacing: 0.2em;
   color: #e3c987;
   text-shadow: 0 0 22px rgba(201, 162, 74, 0.3);
 }
 .code-card-hint {
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.08em;
   color: rgba(230, 224, 212, 0.5);
   margin-top: 8px;
@@ -302,14 +316,14 @@ a:hover {
   gap: 12px;
 }
 .count-card-value {
-  font: 600 30px Oswald;
+  font: var(--fw-semibold) 30px var(--font-ui);
   color: #e6e0d4;
   line-height: 1;
 }
 .count-card-value span {
   color: rgba(230, 224, 212, 0.4);
   font-size: 15px;
-  font-weight: 300;
+  font-weight: var(--fw-light);
 }
 .count-bar {
   height: 6px;
@@ -322,8 +336,8 @@ a:hover {
   background: linear-gradient(90deg, #7ba36f, #8fbf87);
 }
 .section-label {
-  font: 500 10px Oswald;
-  letter-spacing: 0.24em;
+  font: var(--fw-medium) 10px var(--font-ui);
+  letter-spacing: var(--ls-widest);
   text-transform: uppercase;
   color: rgba(230, 224, 212, 0.42);
   margin-bottom: 11px;
@@ -362,20 +376,20 @@ a:hover {
   height: 26px;
 }
 .roster-name {
-  font: 500 14px Oswald;
+  font: var(--fw-medium) 14px var(--font-ui);
   letter-spacing: 0.03em;
   color: #e6e0d4;
 }
 .roster-cls {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.42);
 }
 .roster-status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.08em;
 }
 .status-dot {
@@ -395,8 +409,8 @@ a:hover {
   background: linear-gradient(180deg, rgba(201, 162, 74, 0.2), rgba(201, 162, 74, 0.08));
   border-radius: 4px;
   color: #e3c987;
-  font: 600 14px Oswald;
-  letter-spacing: 0.16em;
+  font: var(--fw-semibold) 14px var(--font-ui);
+  letter-spacing: var(--ls-wider);
   text-transform: uppercase;
 }
 .primary-btn:disabled {
@@ -413,8 +427,8 @@ a:hover {
   background: linear-gradient(180deg, rgba(201, 162, 74, 0.18), rgba(201, 162, 74, 0.06));
   border-radius: 4px;
   color: #e3c987;
-  font: 600 12px Oswald;
-  letter-spacing: 0.16em;
+  font: var(--fw-semibold) 12px var(--font-ui);
+  letter-spacing: var(--ls-wider);
   text-transform: uppercase;
 }
 
@@ -428,14 +442,14 @@ a:hover {
   flex-wrap: wrap;
 }
 .results-title {
-  font-family: Cinzel, serif;
-  font-weight: 600;
-  font-size: 19px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-title-md);
   color: #e6e0d4;
 }
 .results-subtitle {
-  font: 300 12px Oswald;
-  letter-spacing: 0.06em;
+  font: var(--fw-light) 12px var(--font-ui);
+  letter-spacing: var(--ls-normal);
   color: rgba(230, 224, 212, 0.5);
   margin-top: 2px;
 }
@@ -443,8 +457,8 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 400 11px Oswald;
-  letter-spacing: 0.1em;
+  font: var(--fw-regular) 11px var(--font-ui);
+  letter-spacing: var(--ls-wide);
   color: #8fbf87;
   white-space: nowrap;
 }
@@ -470,28 +484,28 @@ a:hover {
   transition: border-color 0.45s ease, background-color 0.45s ease;
 }
 .roll-row-name {
-  font: 500 15px Oswald;
+  font: var(--fw-medium) 15px var(--font-ui);
   letter-spacing: 0.03em;
   color: #e6e0d4;
 }
 .roll-row-cls {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.45);
 }
 .roll-row-result {
   text-align: right;
 }
 .roll-row-label {
-  font-family: Cinzel, serif;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.05em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-title-sm);
+  letter-spacing: var(--ls-tight);
   transition: color 0.45s ease;
 }
 .roll-row-degree {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.5);
 }
 
@@ -538,9 +552,9 @@ a:hover {
   border-bottom: 1px solid rgba(201, 162, 74, 0.16);
 }
 .modal-titlebar span {
-  font-family: Cinzel, serif;
-  font-weight: 600;
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-title-sm);
   color: #e6e0d4;
 }
 .modal-close {
@@ -558,8 +572,8 @@ a:hover {
   margin-bottom: 14px;
 }
 .char-group-label {
-  font: 500 10px Oswald;
-  letter-spacing: 0.1em;
+  font: var(--fw-medium) 10px var(--font-ui);
+  letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   color: rgba(201, 162, 74, 0.6);
   margin-bottom: 6px;
@@ -572,7 +586,7 @@ a:hover {
 }
 .skill-tab {
   cursor: pointer;
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.04em;
   padding: 7px 12px;
   border-radius: 20px;
@@ -593,8 +607,8 @@ a:hover {
 }
 .chip {
   cursor: pointer;
-  font: 400 12px Oswald;
-  letter-spacing: 0.06em;
+  font: var(--fw-regular) 12px var(--font-ui);
+  letter-spacing: var(--ls-normal);
   padding: 8px 14px;
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -615,7 +629,7 @@ a:hover {
   cursor: pointer;
   flex: 1;
   min-width: 0;
-  font: 400 12px Oswald;
+  font: var(--fw-regular) 12px var(--font-ui);
   letter-spacing: 0.03em;
   padding: 11px 0;
   border-radius: 3px;
@@ -636,8 +650,8 @@ a:hover {
 .who-btn {
   cursor: pointer;
   flex: 1;
-  font: 400 12px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-regular) 12px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   padding: 11px 0;
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -651,7 +665,7 @@ a:hover {
 }
 .text-input {
   width: 100%;
-  font: 400 14px Oswald;
+  font: var(--fw-regular) 14px var(--font-ui);
   letter-spacing: 0.03em;
   color: #e6e0d4;
   background: rgba(255, 255, 255, 0.03);
@@ -663,7 +677,7 @@ a:hover {
   color: rgba(230, 224, 212, 0.35);
 }
 .form-error {
-  font: 400 12px Oswald;
+  font: var(--fw-regular) 12px var(--font-ui);
   letter-spacing: 0.03em;
   color: #e08a7d;
   margin-top: 8px;
@@ -702,7 +716,7 @@ a:hover {
   background: #c9a24a;
 }
 .selectable-label {
-  font: 400 13px Oswald;
+  font: var(--fw-regular) 13px var(--font-ui);
   letter-spacing: 0.04em;
   color: rgba(230, 224, 212, 0.6);
 }
@@ -710,8 +724,8 @@ a:hover {
   color: #e6e0d4;
 }
 .whoall-hint {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.4);
   margin-bottom: 22px;
 }
@@ -742,23 +756,23 @@ a:hover {
   gap: 9px;
 }
 .player-header-name {
-  font-family: Cinzel, serif;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
   font-size: 13px;
   color: #e6e0d4;
   line-height: 1.1;
 }
 .player-header-cls {
-  font: 300 10px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 10px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.42);
 }
 .player-header-code {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font: 400 9px Oswald;
-  letter-spacing: 0.1em;
+  font: var(--fw-regular) 9px var(--font-ui);
+  letter-spacing: var(--ls-wide);
   color: #8fbf87;
 }
 .player-header-code .status-dot {
@@ -803,12 +817,12 @@ a:hover {
   fill: #e3c987;
 }
 .radar-label-char {
-  font: 700 10px Cinzel, serif;
+  font: var(--fw-bold) 10px var(--font-display);
   letter-spacing: 0.08em;
   fill: #e3c987;
 }
 .radar-label-skill {
-  font: 400 8px Oswald;
+  font: var(--fw-regular) 8px var(--font-ui);
   letter-spacing: 0.02em;
   fill: rgba(230, 224, 212, 0.5);
 }
@@ -822,14 +836,14 @@ a:hover {
   padding: 9px 14px;
   margin-bottom: 13px;
   color: rgba(230, 224, 212, 0.32);
-  font: 300 12px Oswald;
+  font: var(--fw-light) 12px var(--font-ui);
   letter-spacing: 0.04em;
 }
 .pending-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 300 10px Oswald;
+  font: var(--fw-light) 10px var(--font-ui);
   letter-spacing: 0.04em;
   color: rgba(201, 162, 74, 0.7);
   background: rgba(201, 162, 74, 0.06);
@@ -848,7 +862,7 @@ a:hover {
 .skill-row {
   padding: 12px 2px;
   border-bottom: 1px solid rgba(201, 162, 74, 0.1);
-  font: 400 14px Oswald;
+  font: var(--fw-regular) 14px var(--font-ui);
   letter-spacing: 0.04em;
   color: rgba(230, 224, 212, 0.72);
 }
@@ -866,8 +880,8 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font: 400 10px Oswald;
-  letter-spacing: 0.16em;
+  font: var(--fw-regular) 10px var(--font-ui);
+  letter-spacing: var(--ls-wider);
   text-transform: uppercase;
   color: #c9a24a;
   border: 1px solid rgba(201, 162, 74, 0.4);
@@ -876,15 +890,15 @@ a:hover {
   margin-bottom: 24px;
 }
 .request-skill {
-  font-family: Cinzel, serif;
-  font-weight: 600;
-  font-size: 26px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-title-xl);
   color: #e6e0d4;
   margin-bottom: 8px;
 }
 .request-flavor {
-  font: 300 12px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 12px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.5);
   font-style: italic;
   margin-bottom: 44px;
@@ -909,10 +923,10 @@ a:hover {
   line-height: 1;
 }
 .roll-button .label {
-  font-family: Cinzel, serif;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
   font-size: 15px;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ls-wide);
   margin-top: 6px;
 }
 .rolling-circle {
@@ -931,8 +945,8 @@ a:hover {
   animation: spin40 0.6s linear infinite;
 }
 .request-hint {
-  font: 300 11px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.4);
   margin-top: 24px;
 }
@@ -945,19 +959,19 @@ a:hover {
   animation: pop 0.5s ease both;
 }
 .result-card-skill {
-  font: 300 11px Oswald;
-  letter-spacing: 0.06em;
+  font: var(--fw-light) 11px var(--font-ui);
+  letter-spacing: var(--ls-normal);
   color: rgba(230, 224, 212, 0.5);
   margin-bottom: 9px;
 }
 .result-card-label {
-  font-family: Cinzel, serif;
-  font-weight: 700;
-  font-size: 34px;
-  letter-spacing: 0.05em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-title-hero);
+  letter-spacing: var(--ls-tight);
 }
 .result-card-degree {
-  font: 400 13px Oswald;
+  font: var(--fw-regular) 13px var(--font-ui);
   letter-spacing: 0.04em;
   color: rgba(230, 224, 212, 0.62);
   margin-top: 7px;
@@ -982,7 +996,7 @@ a:hover {
   gap: 9px;
 }
 .teammate-name {
-  font: 400 13px Oswald;
+  font: var(--fw-regular) 13px var(--font-ui);
   letter-spacing: 0.03em;
   color: #e6e0d4;
 }
@@ -990,12 +1004,12 @@ a:hover {
   text-align: right;
 }
 .teammate-label {
-  font: 500 12px Oswald;
+  font: var(--fw-medium) 12px var(--font-ui);
   letter-spacing: 0.04em;
   transition: color 0.45s ease;
 }
 .teammate-degree {
-  font: 300 10px Oswald;
+  font: var(--fw-light) 10px var(--font-ui);
   color: rgba(230, 224, 212, 0.45);
 }
 /* PV / armor / damage (V2) */
@@ -1037,12 +1051,12 @@ a:hover {
   background: #c65a4f;
 }
 .roster-pv-label {
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.04em;
   color: rgba(230, 224, 212, 0.55);
 }
 .pv-tag {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .pv-tag.pv-sain {
   color: #8fbf87;
@@ -1063,7 +1077,7 @@ a:hover {
 }
 .roster-action-btn {
   cursor: pointer;
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.04em;
   padding: 7px 11px;
   border-radius: 3px;
@@ -1088,8 +1102,8 @@ a:hover {
   border: 1px solid rgba(198, 90, 79, 0.5);
   background: rgba(198, 90, 79, 0.12);
   color: #e08a7d;
-  font: 600 12px Oswald;
-  letter-spacing: 0.1em;
+  font: var(--fw-semibold) 12px var(--font-ui);
+  letter-spacing: var(--ls-wide);
   animation: blink 1.6s ease-in-out infinite;
 }
 .damage-notice {
@@ -1100,7 +1114,7 @@ a:hover {
   border: 1px solid rgba(201, 162, 74, 0.4);
   background: rgba(201, 162, 74, 0.1);
   color: #e3c987;
-  font: 400 12px Oswald;
+  font: var(--fw-regular) 12px var(--font-ui);
   letter-spacing: 0.04em;
   animation: fadeUp 0.3s ease both;
 }
@@ -1110,7 +1124,7 @@ a:hover {
   background: none;
   border: none;
   color: rgba(201, 162, 74, 0.75);
-  font: 400 11px Oswald;
+  font: var(--fw-regular) 11px var(--font-ui);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0;
@@ -1126,7 +1140,7 @@ a:hover {
   display: flex;
   justify-content: space-between;
   padding: 9px 13px;
-  font: 300 12px Oswald;
+  font: var(--fw-light) 12px var(--font-ui);
   letter-spacing: 0.03em;
   color: rgba(230, 224, 212, 0.6);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -1148,7 +1162,7 @@ a:hover {
 }
 .char-edit-label {
   flex: 1 1 auto;
-  font: 300 12px Oswald;
+  font: var(--fw-light) 12px var(--font-ui);
   letter-spacing: 0.03em;
   color: rgba(230, 224, 212, 0.6);
 }
@@ -1173,7 +1187,7 @@ a:hover {
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.02);
-  font: 300 12px Oswald;
+  font: var(--fw-light) 12px var(--font-ui);
   color: rgba(230, 224, 212, 0.65);
 }
 
@@ -1186,19 +1200,19 @@ a:hover {
   animation: fadeUp 0.3s ease both;
 }
 .attack-card-title {
-  font-family: Cinzel, serif;
-  font-weight: 600;
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-title-xs);
   color: #e6e0d4;
   margin-bottom: 8px;
 }
 .attack-card-status {
-  font: 300 12px Oswald;
-  letter-spacing: 0.05em;
+  font: var(--fw-light) 12px var(--font-ui);
+  letter-spacing: var(--ls-tight);
   color: rgba(230, 224, 212, 0.55);
 }
 .attack-card-result {
-  font: 500 13px Oswald;
+  font: var(--fw-medium) 13px var(--font-ui);
   letter-spacing: 0.04em;
   color: #e3c987;
   margin-bottom: 12px;
@@ -1213,7 +1227,7 @@ a:hover {
   background: linear-gradient(180deg, rgba(201, 162, 74, 0.18), rgba(201, 162, 74, 0.06));
   border-radius: 5px;
   color: #e3c987;
-  font: 600 12px Oswald;
+  font: var(--fw-semibold) 12px var(--font-ui);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
