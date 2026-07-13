@@ -12,7 +12,7 @@ export default function LaunchModal({ vals }) {
         <div className="modal-titlebar">
           <span>Ordonner un test</span>
           <button className="modal-close" onClick={vals.closeLaunch}>
-            ✕
+            [X]
           </button>
         </div>
         <div className="modal-content">

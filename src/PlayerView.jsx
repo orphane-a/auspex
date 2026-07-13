@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import Avatar from './Avatar.jsx'
 import CharacteristicsRadar from './CharacteristicsRadar.jsx'
+import { asciiBar } from './gameLogic.js'
 
 export default function PlayerView({ vals }) {
   const [showArmor, setShowArmor] = useState(false)
+  const [showSkills, setShowSkills] = useState(true)
   const myChar = vals.myCharacter
 
   return (
@@ -24,11 +26,12 @@ export default function PlayerView({ vals }) {
 
       {myChar && (
         <div className="player-pv-strip">
-          <div className="roster-pv-bar">
-            <div className={`roster-pv-bar-fill pv-${vals.myPvStatus.key}`} style={{ width: `${vals.myPvRatio * 100}%` }} />
+          <div className="ascii-bar">
+            PV[<span className={`pv-tag pv-${vals.myPvStatus.key}`}>{asciiBar(vals.myPvRatio).filled}</span>
+            {asciiBar(vals.myPvRatio).empty}] {myChar.pv.current}/{myChar.pv.max}
           </div>
           <div className="roster-pv-label">
-            {myChar.pv.current} / {myChar.pv.max} PV · <span className={`pv-tag pv-${vals.myPvStatus.key}`}>{vals.myPvStatus.label}</span>
+            <span className={`pv-tag pv-${vals.myPvStatus.key}`}>{vals.myPvStatus.label}</span>
           </div>
         </div>
       )}
@@ -55,10 +58,6 @@ export default function PlayerView({ vals }) {
               <CharacteristicsRadar tendencies={vals.characteristicTendencies} />
             </div>
           )}
-          <div className="search-bar">
-            <span>⌕</span>
-            <span>Rechercher une compétence…</span>
-          </div>
           <div className="pending-banner">
             <span className="glyph">◈</span>
             En attente d'un ordre du Maître de Jeu.
@@ -66,6 +65,10 @@ export default function PlayerView({ vals }) {
           <button className="armor-toggle" onClick={() => setShowArmor((s) => !s)}>
             {showArmor ? '▾' : '▸'} Armure
           </button>
+          <button className="armor-toggle" onClick={() => setShowSkills((s) => !s)}>
+            {showSkills ? '▾' : '▸'} Compétences
+          </button>
+
           {showArmor && (
             <div className="armor-list">
               {vals.myArmorList.map((a) => (
@@ -76,40 +79,58 @@ export default function PlayerView({ vals }) {
               ))}
             </div>
           )}
-
-          <div className="section-label">Compétences</div>
-          {vals.mySkillGroups.map((group) => (
-            <div key={group.characteristic} className="char-group">
-              <div className="char-group-label">{group.characteristicName}</div>
-              <div className="skills-list">
-                {group.skills.map((skill) => (
-                  <div key={skill} className="skill-row">
-                    {skill}
-                  </div>
-                ))}
+          {showSkills &&
+            vals.mySkillGroups.map((group) => (
+              <div key={group.characteristic} className="char-group">
+                <div className="char-group-label skill-group-label">{group.characteristicName}</div>
+                <div className="skills-list">
+                  {group.skills.map((skill) => (
+                    <div key={skill} className="skill-row">
+                      {skill}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
       {vals.attackPendingForMeAsAttacker && (
         <div className="request-screen">
-          <div className="order-badge">⚔ Vous attaquez</div>
-          <div className="request-skill">Dextérité</div>
+          <div className="order-badge">➤ Vous attaquez</div>
+          <div className="request-skill">Test de Dextérité</div>
+
+          <div className="stat-pill-row">
+            <div className="stat-pill">
+              <div className="stat-pill-label">Arme</div>
+              <div className="stat-pill-value">{vals.attack.weaponName}</div>
+            </div>
+            <div className="stat-pill stat-pill-highlight">
+              <div className="stat-pill-label">Seuil</div>
+              <div className="stat-pill-value">{vals.attackAttackerThreshold}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Mod</div>
+              <div className="stat-pill-value">+00</div>
+            </div>
+          </div>
 
           {!vals.rollingAttack && (
-            <button className="roll-button" onClick={vals.rollAttack}>
-              <div className="glyph">⚄</div>
-              <div className="label">LANCER</div>
-            </button>
+            <>
+              <pre className="dice-art">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│  > ROLL <  │\n└───────────┘'}</pre>
+              <button className="roll-button" onClick={vals.rollAttack}>
+                <div className="glyph">➤</div>
+                <div className="label">LANCER</div>
+                <div className="roll-button-sub">1d100</div>
+              </button>
+            </>
           )}
           {vals.rollingAttack && (
             <div className="rolling-circle">
               <div className="glyph">⚄</div>
             </div>
           )}
-          <div className="request-hint">Le seuil est calculé pour vous.</div>
+          <div className="request-hint">Réussite si résultat ≤ {vals.attackAttackerThreshold}.</div>
         </div>
       )}
 
@@ -123,30 +144,52 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMe && (
-        <div className="request-screen">
-          <div className="order-badge">⚠ Attaque entrante ({vals.attackRollDegreeText})</div>
+        <div className="request-screen incoming-attack">
+          <div className="incoming-attack-banner">⚠ Attaque entrante</div>
+          <div className="order-badge">
+            {vals.attackAttackerEntity?.name} · {vals.attack.weaponName} · {vals.attackFireModeLabel}
+          </div>
           <div className="request-skill">Esquive</div>
 
+          <div className="stat-pill-row">
+            <div className="stat-pill stat-pill-highlight">
+              <div className="stat-pill-label">Seuil</div>
+              <div className="stat-pill-value">{vals.attackDefenderThreshold}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Agi</div>
+              <div className="stat-pill-value">{vals.myCharacter?.characteristics?.Agi ?? 0}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Mod</div>
+              <div className="stat-pill-value">+00</div>
+            </div>
+          </div>
+
           {!vals.dodging && (
-            <button className="roll-button" onClick={vals.rollDodge}>
-              <div className="glyph">⚄</div>
-              <div className="label">LANCER</div>
-            </button>
+            <>
+              <pre className="dice-art danger">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│ > DODGE <  │\n└───────────┘'}</pre>
+              <button className="roll-button danger" onClick={vals.rollDodge}>
+                <div className="glyph">↯</div>
+                <div className="label">ESQUIVER</div>
+                <div className="roll-button-sub">1d100</div>
+              </button>
+            </>
           )}
           {vals.dodging && (
-            <div className="rolling-circle">
+            <div className="rolling-circle danger">
               <div className="glyph">⚄</div>
             </div>
           )}
-          <div className="request-hint">Le seuil est calculé pour vous.</div>
+          <div className="request-hint">Esquive réussie si résultat ≤ {vals.attackDefenderThreshold}.</div>
         </div>
       )}
 
       {vals.attackResolvedForMe && (
         <div className="player-body">
-          <div className="result-card" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(198,90,79,.5)' : 'rgba(123,163,111,.5)' }}>
+          <div className="result-card" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(192,96,58,.5)' : 'rgba(77,255,143,.5)' }}>
             {vals.attack.outcome !== 'hit' && <div className="result-card-skill">Esquive</div>}
-            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#c65a4f' : '#8fbf87' }}>
+            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#ff9d6f' : '#4dff8f' }}>
               {vals.attackOutcomeText}
             </div>
           </div>
@@ -163,10 +206,13 @@ export default function PlayerView({ vals }) {
           {vals.reqMalus && <div className="request-flavor">Malus {vals.reqMalus}</div>}
 
           {vals.showRollBtn && (
-            <button className="roll-button" onClick={vals.rollDice}>
-              <div className="glyph">⚄</div>
-              <div className="label">LANCER</div>
-            </button>
+            <>
+              <pre className="dice-art">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│  > ROLL <  │\n└───────────┘'}</pre>
+              <button className="roll-button" onClick={vals.rollDice}>
+                <div className="glyph">⚄</div>
+                <div className="label">LANCER</div>
+              </button>
+            </>
           )}
           {vals.rolling && (
             <div className="rolling-circle">
