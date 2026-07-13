@@ -95,13 +95,29 @@ export default function PlayerView({ vals }) {
 
       {vals.attackPendingForMeAsAttacker && (
         <div className="request-screen hud-corners">
-          <div className="order-badge">⚔ Vous attaquez</div>
-          <div className="request-skill">Dextérité</div>
+          <div className="order-badge">➤ Vous attaquez</div>
+          <div className="request-skill">Test de Dextérité</div>
+
+          <div className="stat-pill-row">
+            <div className="stat-pill">
+              <div className="stat-pill-label">Arme</div>
+              <div className="stat-pill-value">{vals.attack.weaponName}</div>
+            </div>
+            <div className="stat-pill stat-pill-highlight">
+              <div className="stat-pill-label">Seuil</div>
+              <div className="stat-pill-value">{vals.attackAttackerThreshold}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Mod</div>
+              <div className="stat-pill-value">+00</div>
+            </div>
+          </div>
 
           {!vals.rollingAttack && (
             <button className="roll-button" onClick={vals.rollAttack}>
-              <div className="glyph">⚄</div>
+              <div className="glyph">➤</div>
               <div className="label">LANCER</div>
+              <div className="roll-button-sub">1d100</div>
             </button>
           )}
           {vals.rollingAttack && (
@@ -109,7 +125,7 @@ export default function PlayerView({ vals }) {
               <div className="glyph">⚄</div>
             </div>
           )}
-          <div className="request-hint">Le seuil est calculé pour vous.</div>
+          <div className="request-hint">Réussite si résultat ≤ {vals.attackAttackerThreshold}.</div>
         </div>
       )}
 
@@ -123,22 +139,41 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMe && (
-        <div className="request-screen hud-corners">
-          <div className="order-badge">⚠ Attaque entrante ({vals.attackRollDegreeText})</div>
+        <div className="request-screen hud-corners incoming-attack">
+          <div className="incoming-attack-banner">⚠ Attaque entrante</div>
+          <div className="order-badge">
+            {vals.attackAttackerEntity?.name} · {vals.attack.weaponName} · {vals.attackFireModeLabel}
+          </div>
           <div className="request-skill">Esquive</div>
 
+          <div className="stat-pill-row">
+            <div className="stat-pill stat-pill-highlight">
+              <div className="stat-pill-label">Seuil</div>
+              <div className="stat-pill-value">{vals.attackDefenderThreshold}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Agi</div>
+              <div className="stat-pill-value">{vals.myCharacter?.characteristics?.Agi ?? 0}</div>
+            </div>
+            <div className="stat-pill">
+              <div className="stat-pill-label">Mod</div>
+              <div className="stat-pill-value">+00</div>
+            </div>
+          </div>
+
           {!vals.dodging && (
-            <button className="roll-button" onClick={vals.rollDodge}>
-              <div className="glyph">⚄</div>
-              <div className="label">LANCER</div>
+            <button className="roll-button danger" onClick={vals.rollDodge}>
+              <div className="glyph">↯</div>
+              <div className="label">ESQUIVER</div>
+              <div className="roll-button-sub">1d100</div>
             </button>
           )}
           {vals.dodging && (
-            <div className="rolling-circle">
+            <div className="rolling-circle danger">
               <div className="glyph">⚄</div>
             </div>
           )}
-          <div className="request-hint">Le seuil est calculé pour vous.</div>
+          <div className="request-hint">Esquive réussie si résultat ≤ {vals.attackDefenderThreshold}.</div>
         </div>
       )}
 

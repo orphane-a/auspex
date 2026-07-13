@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { api, getSocket } from './api'
 import {
   MALUS_OPTIONS,
+  FIRE_MODE_LABELS,
   characteristicTendencies,
   groupSkillsByCharacteristic,
   statusMeta,
   pvStatus,
+  effectiveSkillScore,
+  npcDodgeScore,
   HIT_LOCATIONS,
   attackOutcomeLabel,
   attackRollDegreeLabel,
@@ -411,6 +414,16 @@ export function useTableState() {
 
   const attackAttackerEntity = attack ? entityOfType(attack.attacker.type, attack.attacker.id) : null
   const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
+  // Seuils affichés côté joueur (écrans F/G d'Auspex Ecrans.dc.html) — mêmes formules
+  // que le serveur (resolveRoll/effectiveEsquive, server/routes.js), recalculées ici
+  // à partir des données déjà présentes dans le snapshot plutôt que transmises en plus.
+  function dodgeThresholdFor(entity, type) {
+    if (!entity) return 0
+    return type === 'npc' ? npcDodgeScore(entity) : effectiveSkillScore(entity, 'Esquive', 'Agi') + entity.dodgeBonus
+  }
+  const attackAttackerThreshold = attackAttackerEntity?.characteristics?.Dex || 0
+  const attackDefenderThreshold = attack ? dodgeThresholdFor(attackDefenderEntity, attack.defender.type) : 0
+  const attackFireModeLabel = attack ? FIRE_MODE_LABELS[attack.fireMode] || '' : ''
   const attackOutcomeText = attackOutcomeLabel(attack)
   const attackRollDegreeText = attackRollDegreeLabel(attack)
   const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
@@ -489,6 +502,7 @@ export function useTableState() {
     return items.map((item) => ({
       id: item.id,
       name: item.name,
+      avatar: item.avatar,
       connected: type === 'character' ? item.connected : true,
       isActive: currentType === type && currentId === item.id,
       select: () => onSelect(type, item.id),
@@ -498,19 +512,38 @@ export function useTableState() {
   const attackerCharacterOptions = buildSideOptions('character', attackerType, attackerId, selectAttacker)
   const defenderNpcOptions = buildSideOptions('npc', defenderType, defenderId, selectDefender)
   const defenderCharacterOptions = buildSideOptions('character', defenderType, defenderId, selectDefender)
+  // Résumé des modes disponibles pour une arme (V4 : ligne d'arme d'Auspex Ecrans.dc.html
+  // écran E), même libellés que fireModeOptions ci-dessous pour ne pas diverger.
+  function weaponModesText(w) {
+    return [
+      w.mode.melee && FIRE_MODE_LABELS.melee,
+      w.mode.single && FIRE_MODE_LABELS.single,
+      w.mode.semiCapacity != null && FIRE_MODE_LABELS.semi,
+      w.mode.autoCapacity != null && FIRE_MODE_LABELS.auto,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+  }
 
   const attackerEntity = entityOfType(attackerType, attackerId)
+  // Duel preview (écran E) : reflète la sélection en cours dans la modale, distinct
+  // de attackAttackerEntity/attackDefenderEntity ci-dessus qui suivent l'attaque déjà lancée.
+  const attackModalDefenderEntity = entityOfType(defenderType, defenderId)
+  const attackModalAttackerThreshold = attackerEntity?.characteristics?.Dex || 0
+  const attackModalDefenderThreshold = dodgeThresholdFor(attackModalDefenderEntity, defenderType)
   const weaponOptions = (attackerEntity?.weapons || []).map((w) => ({
     name: w.name,
+    damage: w.damage,
+    modesText: weaponModesText(w),
     isActive: w.name === attackWeaponName,
     select: () => selectAttackWeapon(w.name),
   }))
   const attackWeapon = attackerEntity?.weapons.find((w) => w.name === attackWeaponName) || null
   const fireModeOptions = [
-    { key: 'melee', label: 'Corps à corps', available: !!attackWeapon?.mode.melee },
-    { key: 'single', label: 'Coup par coup', available: !!attackWeapon?.mode.single },
-    { key: 'semi', label: 'Semi-auto', available: attackWeapon?.mode.semiCapacity != null },
-    { key: 'auto', label: 'Auto', available: attackWeapon?.mode.autoCapacity != null },
+    { key: 'melee', label: FIRE_MODE_LABELS.melee, available: !!attackWeapon?.mode.melee },
+    { key: 'single', label: FIRE_MODE_LABELS.single, available: !!attackWeapon?.mode.single },
+    { key: 'semi', label: FIRE_MODE_LABELS.semi, available: attackWeapon?.mode.semiCapacity != null },
+    { key: 'auto', label: FIRE_MODE_LABELS.auto, available: attackWeapon?.mode.autoCapacity != null },
   ]
     .filter((m) => m.available)
     .map((m) => ({ key: m.key, label: m.label, isActive: m.key === attackFireMode, select: () => setAttackFireMode(m.key) }))
@@ -625,6 +658,10 @@ export function useTableState() {
     defenderCharacterOptions,
     weaponOptions,
     fireModeOptions,
+    attackModalAttackerEntity: attackerEntity,
+    attackModalDefenderEntity,
+    attackModalAttackerThreshold,
+    attackModalDefenderThreshold,
     attackError,
     attackLaunchDisabled,
     defenderCharacterDisconnected,
@@ -634,6 +671,9 @@ export function useTableState() {
     attack,
     attackAttackerEntity,
     attackDefenderEntity,
+    attackAttackerThreshold,
+    attackDefenderThreshold,
+    attackFireModeLabel,
     attackOutcomeText,
     attackRollDegreeText,
     showAttackCard,

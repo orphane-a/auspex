@@ -1,5 +1,15 @@
 export const MALUS_OPTIONS = ['+10', '+20', '+30', '+40', '+50']
 
+// Wording shared between the weapon-mode picker (AttackModal) and any other
+// place a fire mode needs a human label (V3) — one source of truth so the two
+// never drift apart.
+export const FIRE_MODE_LABELS = {
+  melee: 'Corps à corps',
+  single: 'Coup par coup',
+  semi: 'Semi-auto',
+  auto: 'Auto',
+}
+
 // Character sheets only carry the short form (T column: "Agi", "Cha"...) — spelled
 // out here since that abbreviation means nothing to a player mid-game. Falls back
 // to the raw abbreviation for anything outside this homebrew's usual seven.
