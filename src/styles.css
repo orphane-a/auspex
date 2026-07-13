@@ -851,23 +851,11 @@ a:hover {
   fill: #9dffc4;
 }
 .radar-label-skill {
-  font: 400 8px 'Share Tech Mono';
+  font: 500 12px 'Share Tech Mono';
   letter-spacing: 0.02em;
-  fill: rgba(31, 122, 69, 0.5);
+  fill: #4dff8f;
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(26, 77, 44, 0.1);
-  border-radius: 0;
-  padding: 9px 14px;
-  margin-bottom: 13px;
-  color: rgba(31, 122, 69, 0.32);
-  font: 300 12px 'Share Tech Mono';
-  letter-spacing: 0.04em;
-}
 .pending-banner {
   display: flex;
   align-items: center;

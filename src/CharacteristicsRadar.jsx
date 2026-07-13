@@ -70,7 +70,7 @@ export default function CharacteristicsRadar({ tendencies }) {
         return (
           <text key={i} x={x} y={y} textAnchor={anchor} className="radar-label-char">
             {characteristicLabel(t.characteristic)}
-            <tspan x={x} dy="13" className="radar-label-skill">
+            <tspan x={x} dy="18" className="radar-label-skill">
               {t.topSkill}
             </tspan>
           </text>

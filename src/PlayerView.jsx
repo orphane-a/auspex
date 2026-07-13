@@ -58,10 +58,6 @@ export default function PlayerView({ vals }) {
               <CharacteristicsRadar tendencies={vals.characteristicTendencies} />
             </div>
           )}
-          <div className="search-bar">
-            <span>⌕</span>
-            <span>Rechercher une compétence…</span>
-          </div>
           <div className="pending-banner">
             <span className="glyph">◈</span>
             En attente d'un ordre du Maître de Jeu.
