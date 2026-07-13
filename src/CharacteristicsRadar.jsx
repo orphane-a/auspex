@@ -3,10 +3,30 @@ import { characteristicLabel } from './gameLogic'
 const SIZE = 300
 const CENTER = SIZE / 2
 const RADIUS = 88
-const LABEL_RADIUS = 132
+const LABEL_RADIUS = 108
+const SKILL_LINE_MAX_CHARS = 13
 
 function axisAngle(index, count) {
   return (Math.PI * 2 * index) / count - Math.PI / 2
+}
+
+// Wraps the standout-skill label onto short lines instead of letting a long
+// name (e.g. "Connaissance générale (Maelstrom)") run past the radar's frame.
+function wrapSkillLabel(text) {
+  const words = text.split(' ')
+  const lines = []
+  let current = ''
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word
+    if (next.length > SKILL_LINE_MAX_CHARS && current) {
+      lines.push(current)
+      current = word
+    } else {
+      current = next
+    }
+  }
+  if (current) lines.push(current)
+  return lines
 }
 
 // Shows the *shape* of a character's characteristics without ever printing a raw
@@ -70,9 +90,11 @@ export default function CharacteristicsRadar({ tendencies }) {
         return (
           <text key={i} x={x} y={y} textAnchor={anchor} className="radar-label-char">
             {characteristicLabel(t.characteristic)}
-            <tspan x={x} dy="18" className="radar-label-skill">
-              {t.topSkill}
-            </tspan>
+            {wrapSkillLabel(t.topSkill).map((line, li) => (
+              <tspan key={li} x={x} dy={li === 0 ? 18 : 14} className="radar-label-skill">
+                {line}
+              </tspan>
+            ))}
           </text>
         )
       })}

@@ -825,7 +825,7 @@ a:hover {
   width: 100%;
   max-width: 300px;
   margin: 0 auto;
-  overflow: visible;
+  overflow: hidden;
 }
 .radar-grid {
   fill: none;
