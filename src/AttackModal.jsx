@@ -1,6 +1,4 @@
-import Avatar from './Avatar.jsx'
-
-function EntityPickRow({ label, options, emptyHint }) {
+function EntityPickRow({ label, options, emptyHint, showStats }) {
   return (
     <>
       <div className="section-label" style={{ marginTop: 4 }}>
@@ -9,14 +7,19 @@ function EntityPickRow({ label, options, emptyHint }) {
       {options.length === 0 ? (
         <div className="whoall-hint">{emptyHint}</div>
       ) : (
-        <div className="entity-pick-row">
+        <div className="entity-pick-list">
           {options.map((o) => (
             <button key={`${label}-${o.id}`} className={`entity-pick ${o.isActive ? 'active' : ''}`} onClick={o.select}>
-              <Avatar src={o.avatar} />
-              <span>
+              <span className="entity-pick-box">{o.isActive ? '▓' : ' '}</span>
+              <span className="entity-pick-name">
                 {o.name}
                 {!o.connected ? ' (non connecté)' : ''}
               </span>
+              {showStats && (
+                <span className="entity-pick-stats">
+                  esq {o.dodgeScore} · pv {o.pvCurrent}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -39,27 +42,25 @@ export default function AttackModal({ vals }) {
         <div className="modal-content">
           <div className="duel-preview">
             <div className="duel-card duel-card-attacker">
-              <div className="duel-card-label">Attaquant</div>
-              <Avatar src={vals.attackModalAttackerEntity?.avatar} />
+              <div className="duel-card-label">[ATK]</div>
               <div className="duel-card-name">{vals.attackModalAttackerEntity?.name ?? '—'}</div>
-              <div className="duel-card-stat">DEX {vals.attackModalAttackerThreshold}</div>
+              <div className="duel-card-stat">DEX:{vals.attackModalAttackerThreshold}</div>
             </div>
             <div className="duel-arrow">
               <span>➤</span>
               <span>ENGAGE</span>
             </div>
             <div className="duel-card duel-card-defender">
-              <div className="duel-card-label">Cible</div>
-              <Avatar src={vals.attackModalDefenderEntity?.avatar} />
+              <div className="duel-card-label">[TGT]</div>
               <div className="duel-card-name">{vals.attackModalDefenderEntity?.name ?? '—'}</div>
-              <div className="duel-card-stat">ESQ {vals.attackModalDefenderThreshold}</div>
+              <div className="duel-card-stat">ESQ:{vals.attackModalDefenderThreshold}</div>
             </div>
           </div>
 
           <EntityPickRow label="Attaquant — PNJ" options={vals.attackerNpcOptions} emptyHint="Aucun PNJ importé." />
           <EntityPickRow label="Attaquant — Joueurs" options={vals.attackerCharacterOptions} emptyHint="Aucun personnage importé." />
-          <EntityPickRow label="Cible — PNJ" options={vals.defenderNpcOptions} emptyHint="Aucun PNJ importé." />
-          <EntityPickRow label="Cible — Joueurs" options={vals.defenderCharacterOptions} emptyHint="Aucun personnage importé." />
+          <EntityPickRow label="Cible — PNJ" options={vals.defenderNpcOptions} emptyHint="Aucun PNJ importé." showStats />
+          <EntityPickRow label="Cible — Joueurs" options={vals.defenderCharacterOptions} emptyHint="Aucun personnage importé." showStats />
 
           {vals.weaponOptions.length > 0 ? (
             <>
@@ -69,6 +70,7 @@ export default function AttackModal({ vals }) {
               <div className="weapon-row-list">
                 {vals.weaponOptions.map((w) => (
                   <button key={w.name} className={`weapon-row ${w.isActive ? 'active' : ''}`} onClick={w.select}>
+                    <span className="entity-pick-box">{w.isActive ? '▓' : ' '}</span>
                     <span>
                       <span className="weapon-row-name">{w.name}</span>
                       <span className="weapon-row-modes">{w.modesText}</span>

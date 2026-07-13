@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Avatar from './Avatar.jsx'
 import CharacteristicsRadar from './CharacteristicsRadar.jsx'
+import { asciiBar } from './gameLogic.js'
 
 export default function PlayerView({ vals }) {
   const [showArmor, setShowArmor] = useState(false)
@@ -24,11 +25,12 @@ export default function PlayerView({ vals }) {
 
       {myChar && (
         <div className="player-pv-strip">
-          <div className="roster-pv-bar">
-            <div className={`roster-pv-bar-fill pv-${vals.myPvStatus.key}`} style={{ width: `${vals.myPvRatio * 100}%` }} />
+          <div className="ascii-bar">
+            PV[<span className={`pv-tag pv-${vals.myPvStatus.key}`}>{asciiBar(vals.myPvRatio).filled}</span>
+            {asciiBar(vals.myPvRatio).empty}] {myChar.pv.current}/{myChar.pv.max}
           </div>
           <div className="roster-pv-label">
-            {myChar.pv.current} / {myChar.pv.max} PV · <span className={`pv-tag pv-${vals.myPvStatus.key}`}>{vals.myPvStatus.label}</span>
+            <span className={`pv-tag pv-${vals.myPvStatus.key}`}>{vals.myPvStatus.label}</span>
           </div>
         </div>
       )}

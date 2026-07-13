@@ -10,6 +10,13 @@ export const FIRE_MODE_LABELS = {
   auto: 'Auto',
 }
 
+// Terminal-style "PV[▓▓▓░░]" readout (Auspex Ecrans.dc.html) — a fixed number of
+// block segments rather than a smooth width, since that's the whole visual point.
+export function asciiBar(ratio, size = 10) {
+  const filled = Math.max(0, Math.min(size, Math.round(ratio * size)))
+  return { filled: '▓'.repeat(filled), empty: '░'.repeat(size - filled) }
+}
+
 // Character sheets only carry the short form (T column: "Agi", "Cha"...) — spelled
 // out here since that abbreviation means nothing to a player mid-game. Falls back
 // to the raw abbreviation for anything outside this homebrew's usual seven.

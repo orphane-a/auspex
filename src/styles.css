@@ -77,6 +77,17 @@ a:hover {
     radial-gradient(120% 80% at 50% 0%, rgba(20, 60, 35, 0.35) 0%, rgba(3, 10, 6, 1) 60%);
 }
 
+.terminal-statusbar {
+  max-width: 720px;
+  margin: 0 auto 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 400 11px 'Share Tech Mono';
+  letter-spacing: 0.04em;
+  color: #1f7a45;
+}
+
 .stage-header {
   max-width: 720px;
   margin: 0 auto 24px;
@@ -225,11 +236,15 @@ a:hover {
   gap: 11px;
 }
 .panel-titlebar-title span {
-  font-family: 'VT323', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 600;
   font-size: 14px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   color: #7dffb0;
+}
+.panel-titlebar-title span::before {
+  content: '┌─ ';
+  color: #2f9e5a;
 }
 .panel-titlebar-tag {
   font: 400 11px 'Share Tech Mono';
@@ -323,15 +338,8 @@ a:hover {
   font-size: 15px;
   font-weight: 300;
 }
-.count-bar {
-  height: 6px;
-  background: rgba(26, 77, 44, 0.07);
-  border-radius: 0;
-  overflow: hidden;
-}
-.count-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #2f9e5a, #4dff8f);
+.count-ascii-bar {
+  color: #2f9e5a;
 }
 .section-label {
   font: 500 11px 'Share Tech Mono';
@@ -557,10 +565,15 @@ a:hover {
   border-bottom: 1px solid rgba(47, 158, 90, 0.16);
 }
 .modal-titlebar span {
-  font-family: 'VT323', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 600;
   font-size: 15px;
+  letter-spacing: 0.02em;
   color: #7dffb0;
+}
+.modal-titlebar span::before {
+  content: '┌─ ';
+  color: #2f9e5a;
 }
 .modal-close {
   cursor: pointer;
@@ -1044,28 +1057,11 @@ a:hover {
   flex: 1 1 160px;
   min-width: 140px;
 }
-.roster-pv-bar {
-  height: 7px;
-  border-radius: 0;
-  background: rgba(26, 77, 44, 0.07);
-  overflow: hidden;
-  margin-bottom: 5px;
-}
-.roster-pv-bar-fill {
-  height: 100%;
-  transition: width 0.4s ease;
-}
-.roster-pv-bar-fill.pv-sain {
-  background: linear-gradient(90deg, #2f9e5a, #4dff8f);
-}
-.roster-pv-bar-fill.pv-blesse {
-  background: linear-gradient(90deg, #b6903f, #e3c987);
-}
-.roster-pv-bar-fill.pv-critique {
-  background: linear-gradient(90deg, #8a4a2c, #ff9d6f);
-}
-.roster-pv-bar-fill.pv-horsCombat {
-  background: #c65a4f;
+.ascii-bar {
+  font: 400 12px 'Share Tech Mono';
+  letter-spacing: 0.02em;
+  color: #2f9e5a;
+  margin-bottom: 3px;
 }
 .roster-pv-label {
   font: 400 11px 'Share Tech Mono';
@@ -1406,34 +1402,47 @@ a:hover {
   margin-top: 6px;
 }
 
-/* Attacker/target picker buttons (écran E) */
-.entity-pick-row {
+/* Attacker/target picker rows (écran E) — [▓] NAME  esq X · pv Y */
+.entity-pick-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   margin-bottom: 14px;
 }
 .entity-pick {
   cursor: pointer;
-  flex: 1 1 90px;
+  width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 11px 6px;
+  gap: 10px;
+  padding: 7px 10px;
   border-radius: 0;
-  border: 1px solid rgba(26, 77, 44, 0.12);
-  background: rgba(26, 77, 44, 0.03);
-  color: rgba(31, 122, 69, 0.65);
-  font: 400 11px 'Share Tech Mono';
-  letter-spacing: 0.04em;
-  text-align: center;
+  border: 1px solid rgba(26, 77, 44, 0.5);
+  background: transparent;
+  color: #2f9e5a;
+  font: 400 13px 'Share Tech Mono';
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+.entity-pick-box {
+  flex: none;
+  color: #38e07b;
+}
+.entity-pick-name {
+  flex: 1;
+}
+.entity-pick-stats {
+  flex: none;
+  color: #155c33;
+  font-size: 12px;
 }
 .entity-pick.active {
   border-color: #38e07b;
   background: rgba(47, 158, 90, 0.12);
   color: #9dffc4;
-  box-shadow: 0 0 12px -4px rgba(47, 158, 90, 0.55);
+}
+.entity-pick.active .entity-pick-stats {
+  color: #1f7a45;
 }
 
 /* Weapon row list (écran E, remplace les chips d'arme) */

@@ -1,6 +1,7 @@
 import Avatar from './Avatar.jsx'
 import LaunchModal from './LaunchModal.jsx'
 import AttackModal from './AttackModal.jsx'
+import { asciiBar } from './gameLogic.js'
 
 export default function GmView({ vals, onManageCharacters }) {
   return (
@@ -33,11 +34,9 @@ export default function GmView({ vals, onManageCharacters }) {
                   {vals.connectedCount}
                   <span> / {vals.totalCount} présents</span>
                 </div>
-                <div className="count-bar">
-                  <div
-                    className="count-bar-fill"
-                    style={{ width: `${vals.totalCount ? Math.round((vals.connectedCount / vals.totalCount) * 100) : 0}%` }}
-                  />
+                <div className="ascii-bar count-ascii-bar">
+                  [<span className="ascii-bar-filled">{asciiBar(vals.totalCount ? vals.connectedCount / vals.totalCount : 0, 5).filled}</span>
+                  {asciiBar(vals.totalCount ? vals.connectedCount / vals.totalCount : 0, 5).empty}]
                 </div>
               </div>
             </div>
@@ -58,11 +57,12 @@ export default function GmView({ vals, onManageCharacters }) {
                     {p.statusText}
                   </span>
                   <div className="roster-pv-block">
-                    <div className="roster-pv-bar">
-                      <div className={`roster-pv-bar-fill pv-${p.pvStatusKey}`} style={{ width: `${p.pvRatio * 100}%` }} />
+                    <div className="ascii-bar">
+                      PV[<span className={`pv-tag pv-${p.pvStatusKey}`}>{asciiBar(p.pvRatio).filled}</span>
+                      {asciiBar(p.pvRatio).empty}] {p.pvCurrent}/{p.pvMax}
                     </div>
                     <div className="roster-pv-label">
-                      {p.pvCurrent} / {p.pvMax} PV · <span className={`pv-tag pv-${p.pvStatusKey}`}>{p.pvStatusLabel}</span>
+                      <span className={`pv-tag pv-${p.pvStatusKey}`}>{p.pvStatusLabel}</span>
                     </div>
                   </div>
                 </div>
@@ -81,11 +81,12 @@ export default function GmView({ vals, onManageCharacters }) {
                         <div className="roster-name">{n.name}</div>
                       </div>
                       <div className="roster-pv-block">
-                        <div className="roster-pv-bar">
-                          <div className={`roster-pv-bar-fill pv-${n.pvStatusKey}`} style={{ width: `${n.pvRatio * 100}%` }} />
+                        <div className="ascii-bar">
+                          PV[<span className={`pv-tag pv-${n.pvStatusKey}`}>{asciiBar(n.pvRatio).filled}</span>
+                          {asciiBar(n.pvRatio).empty}] {n.pvCurrent}/{n.pvMax}
                         </div>
                         <div className="roster-pv-label">
-                          {n.pvCurrent} / {n.pvMax} PV · <span className={`pv-tag pv-${n.pvStatusKey}`}>{n.pvStatusLabel}</span>
+                          <span className={`pv-tag pv-${n.pvStatusKey}`}>{n.pvStatusLabel}</span>
                         </div>
                       </div>
                     </div>

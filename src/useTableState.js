@@ -505,6 +505,8 @@ export function useTableState() {
       avatar: item.avatar,
       connected: type === 'character' ? item.connected : true,
       isActive: currentType === type && currentId === item.id,
+      dodgeScore: dodgeThresholdFor(item, type),
+      pvCurrent: item.pv.current,
       select: () => onSelect(type, item.id),
     }))
   }
