@@ -7,7 +7,7 @@ export default function LaunchModal({ vals }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-sheet">
+      <div className="modal-sheet hud-corners">
         <div className="panel-stripe" />
         <div className="modal-titlebar">
           <span>Ordonner un test</span>

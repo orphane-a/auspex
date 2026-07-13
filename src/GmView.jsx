@@ -5,7 +5,7 @@ import AttackModal from './AttackModal.jsx'
 export default function GmView({ vals, onManageCharacters }) {
   return (
     <>
-      <div className="panel">
+      <div className="panel hud-corners">
         <div className="panel-stripe" />
         <div className="panel-titlebar">
           <div className="panel-titlebar-title">

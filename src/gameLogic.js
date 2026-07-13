@@ -199,8 +199,8 @@ export function statusMeta(r) {
     isFail: fail,
     isPending: !r,
     degreeText: r ? degreeLabel(r.degrees, suc) : '',
-    borderCol: r ? (suc ? 'rgba(123,163,111,.5)' : 'rgba(198,90,79,.5)') : 'rgba(255,255,255,.1)',
-    bgCol: r ? (suc ? 'rgba(123,163,111,.1)' : 'rgba(198,90,79,.1)') : 'rgba(255,255,255,.02)',
-    textCol: r ? (suc ? '#8fbf87' : '#c65a4f') : 'rgba(230,224,212,.4)',
+    borderCol: r ? (suc ? 'rgba(90,230,150,.4)' : 'rgba(198,90,79,.45)') : 'rgba(255,255,255,.1)',
+    bgCol: r ? (suc ? 'rgba(57,217,138,.07)' : 'rgba(198,90,79,.08)') : 'rgba(255,255,255,.02)',
+    textCol: r ? (suc ? '#7dffb0' : '#ff8877') : 'rgba(214,228,218,.4)',
   }
 }

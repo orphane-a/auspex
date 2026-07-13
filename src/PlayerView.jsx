@@ -94,7 +94,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMeAsAttacker && (
-        <div className="request-screen">
+        <div className="request-screen hud-corners">
           <div className="order-badge">⚔ Vous attaquez</div>
           <div className="request-skill">Dextérité</div>
 
@@ -114,7 +114,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackWaitingForDodgeAsAttacker && (
-        <div className="request-screen">
+        <div className="request-screen hud-corners">
           <div className="order-badge">⚔ Touché ! ({vals.attackRollDegreeText})</div>
           <div className="attack-card-status" style={{ marginTop: 12 }}>
             En attente de l'esquive de {vals.attackDefenderEntity?.name}…
@@ -123,7 +123,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMe && (
-        <div className="request-screen">
+        <div className="request-screen hud-corners">
           <div className="order-badge">⚠ Attaque entrante ({vals.attackRollDegreeText})</div>
           <div className="request-skill">Esquive</div>
 
@@ -144,9 +144,9 @@ export default function PlayerView({ vals }) {
 
       {vals.attackResolvedForMe && (
         <div className="player-body">
-          <div className="result-card" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(198,90,79,.5)' : 'rgba(123,163,111,.5)' }}>
+          <div className="result-card hud-corners" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(198,90,79,.5)' : 'rgba(90,230,150,.5)' }}>
             {vals.attack.outcome !== 'hit' && <div className="result-card-skill">Esquive</div>}
-            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#c65a4f' : '#8fbf87' }}>
+            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#ff8877' : '#5ffca8' }}>
               {vals.attackOutcomeText}
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.pScreenRequest && (
-        <div className="request-screen">
+        <div className="request-screen hud-corners">
           <div className="order-badge">✦ Ordre du MJ</div>
           <div className="request-skill">{vals.reqSkill}</div>
           {vals.reqMalus && <div className="request-flavor">Malus {vals.reqMalus}</div>}
@@ -179,7 +179,7 @@ export default function PlayerView({ vals }) {
 
       {vals.pScreenResult && (
         <div className="player-body">
-          <div className="result-card" style={{ borderColor: vals.myBorder, background: vals.myBg }}>
+          <div className="result-card hud-corners" style={{ borderColor: vals.myBorder, background: vals.myBg }}>
             <div className="result-card-skill">{vals.reqSkill}</div>
             <div className="result-card-label" style={{ color: vals.myText }}>
               {vals.myLabel}

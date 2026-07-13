@@ -178,7 +178,7 @@ export default function MjHome({ vals, onGoToDashboard }) {
   }
 
   return (
-    <div className="panel">
+    <div className="panel hud-corners">
       <div className="panel-stripe" />
       <div className="panel-titlebar">
         <div className="panel-titlebar-title">
