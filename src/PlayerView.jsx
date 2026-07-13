@@ -5,6 +5,7 @@ import { asciiBar } from './gameLogic.js'
 
 export default function PlayerView({ vals }) {
   const [showArmor, setShowArmor] = useState(false)
+  const [showSkills, setShowSkills] = useState(true)
   const myChar = vals.myCharacter
 
   return (
@@ -79,19 +80,22 @@ export default function PlayerView({ vals }) {
             </div>
           )}
 
-          <div className="section-label">Compétences</div>
-          {vals.mySkillGroups.map((group) => (
-            <div key={group.characteristic} className="char-group">
-              <div className="char-group-label">{group.characteristicName}</div>
-              <div className="skills-list">
-                {group.skills.map((skill) => (
-                  <div key={skill} className="skill-row">
-                    {skill}
-                  </div>
-                ))}
+          <button className="armor-toggle" onClick={() => setShowSkills((s) => !s)}>
+            {showSkills ? '▾' : '▸'} Compétences
+          </button>
+          {showSkills &&
+            vals.mySkillGroups.map((group) => (
+              <div key={group.characteristic} className="char-group">
+                <div className="char-group-label skill-group-label">{group.characteristicName}</div>
+                <div className="skills-list">
+                  {group.skills.map((skill) => (
+                    <div key={skill} className="skill-row">
+                      {skill}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 

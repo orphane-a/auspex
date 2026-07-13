@@ -596,6 +596,15 @@ a:hover {
   color: rgba(47, 158, 90, 0.6);
   margin-bottom: 6px;
 }
+/* Vue joueur uniquement (liste de compétences repliable) — plus grand que la
+   modale MJ ci-dessus, et plus grand que .skill-row pour bien détacher la
+   caractéristique de ses compétences. */
+.char-group-label.skill-group-label {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #9dffc4;
+}
 .skill-tab-row {
   display: flex;
   flex-wrap: wrap;
@@ -837,7 +846,7 @@ a:hover {
   fill: #9dffc4;
 }
 .radar-label-char {
-  font: 700 10px 'VT323', monospace;
+  font: 700 15px 'VT323', monospace;
   letter-spacing: 0.08em;
   fill: #9dffc4;
 }
@@ -1137,7 +1146,7 @@ a:hover {
   background: none;
   border: none;
   color: rgba(47, 158, 90, 0.75);
-  font: 400 11px 'Share Tech Mono';
+  font: 600 16px 'Share Tech Mono';
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0;
