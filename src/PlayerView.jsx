@@ -65,6 +65,10 @@ export default function PlayerView({ vals }) {
           <button className="armor-toggle" onClick={() => setShowArmor((s) => !s)}>
             {showArmor ? '▾' : '▸'} Armure
           </button>
+          <button className="armor-toggle" onClick={() => setShowSkills((s) => !s)}>
+            {showSkills ? '▾' : '▸'} Compétences
+          </button>
+
           {showArmor && (
             <div className="armor-list">
               {vals.myArmorList.map((a) => (
@@ -75,10 +79,6 @@ export default function PlayerView({ vals }) {
               ))}
             </div>
           )}
-
-          <button className="armor-toggle" onClick={() => setShowSkills((s) => !s)}>
-            {showSkills ? '▾' : '▸'} Compétences
-          </button>
           {showSkills &&
             vals.mySkillGroups.map((group) => (
               <div key={group.characteristic} className="char-group">
