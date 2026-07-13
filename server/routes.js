@@ -288,7 +288,7 @@ export function createRoutes({ presence, buildSnapshot }) {
     if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
     const weapon = attacker.weapons.find((w) => w.name === weaponName)
     if (!weapon) return res.status(400).json({ error: 'Arme introuvable pour cet attaquant.' })
-    if (!['single', 'semi', 'auto'].includes(fireMode)) {
+    if (!['single', 'semi', 'auto', 'melee'].includes(fireMode)) {
       return res.status(400).json({ error: 'Mode de tir invalide.' })
     }
     if (fireMode === 'single' && !weapon.mode.single) {
@@ -299,6 +299,10 @@ export function createRoutes({ presence, buildSnapshot }) {
     }
     if (fireMode === 'auto' && weapon.mode.autoCapacity == null) {
       return res.status(400).json({ error: "Le mode automatique n'est pas disponible pour cette arme." })
+    }
+    // Corps à corps (V3) : une seule attaque, jamais de rafale.
+    if (fireMode === 'melee' && !weapon.mode.melee) {
+      return res.status(400).json({ error: "Le mode corps à corps n'est pas disponible pour cette arme." })
     }
     // Un personnage attaquant doit désormais cliquer lui-même son jet (nouveau),
     // donc rester connecté — même contrainte que le personnage visé (inchangé V2).

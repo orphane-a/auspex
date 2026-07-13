@@ -175,10 +175,11 @@ export function useTableState() {
     await api.updateNpcDodgeBonus(npcId, value)
   }
 
-  // First available mode for a weapon, in coup-par-coup / semi / auto priority —
-  // an initial default only, never remembered between attacks (V2 §11).
+  // First available mode for a weapon, in mêlée / coup-par-coup / semi / auto
+  // priority — an initial default only, never remembered between attacks (V2 §11).
   function defaultFireMode(weapon) {
     if (!weapon) return null
+    if (weapon.mode.melee) return 'melee'
     if (weapon.mode.single) return 'single'
     if (weapon.mode.semiCapacity != null) return 'semi'
     if (weapon.mode.autoCapacity != null) return 'auto'
@@ -506,6 +507,7 @@ export function useTableState() {
   }))
   const attackWeapon = attackerEntity?.weapons.find((w) => w.name === attackWeaponName) || null
   const fireModeOptions = [
+    { key: 'melee', label: 'Corps à corps', available: !!attackWeapon?.mode.melee },
     { key: 'single', label: 'Coup par coup', available: !!attackWeapon?.mode.single },
     { key: 'semi', label: 'Semi-auto', available: attackWeapon?.mode.semiCapacity != null },
     { key: 'auto', label: 'Auto', available: attackWeapon?.mode.autoCapacity != null },

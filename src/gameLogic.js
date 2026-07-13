@@ -94,10 +94,11 @@ export function parseWeaponMode(modeStr) {
   }
 }
 
-// Bullets that connect (V2 §10/§11): 1 in coup-par-coup ; in semi/auto, capped by
-// the weapon's actual burst capacity for that mode, not a universal fixed cap.
+// Bullets that connect (V2 §10/§11): 1 in coup-par-coup ou corps à corps (V3, pas
+// de rafale à mains nues/à l'arme blanche) ; en semi/auto, capé par la capacité de
+// rafale réelle de l'arme pour ce mode, pas un plafond universel.
 export function bulletsHit(fireMode, degrees, weapon) {
-  if (fireMode === 'single') return 1
+  if (fireMode === 'single' || fireMode === 'melee') return 1
   const capacity = fireMode === 'semi' ? weapon.mode.semiCapacity : weapon.mode.autoCapacity
   return Math.min(degrees, capacity || 1)
 }
@@ -174,7 +175,8 @@ export function attackOutcomeLabel(attack) {
   if (attack.outcome === 'hit' && attack.damage) {
     const { totalDamage, locationLabel } = attack.damage
     const bullets = attack.bullets || 1
-    const bulletsText = bullets > 1 ? `${bullets} balles touchent` : '1 balle touche'
+    // Corps à corps (V3) : "balle(s)" n'a pas de sens pour une arme blanche.
+    const bulletsText = attack.fireMode === 'melee' ? 'Le coup touche' : bullets > 1 ? `${bullets} balles touchent` : '1 balle touche'
     return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis (esquive ratée, ${degreeLabel(attack.dodgeDegrees, false)})`
   }
   return ''

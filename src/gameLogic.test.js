@@ -113,6 +113,11 @@ describe('bulletsHit', () => {
   it('falls back to 1 bullet when the weapon has no capacity for that mode', () => {
     expect(bulletsHit('auto', 5, weapon)).toBe(1)
   })
+
+  it('always lands exactly one hit in melee, regardless of degrees (V3)', () => {
+    const melee = { mode: { melee: true, semiCapacity: null, autoCapacity: null } }
+    expect(bulletsHit('melee', 5, melee)).toBe(1)
+  })
 })
 
 describe('resolveWeaponDamage', () => {
@@ -236,6 +241,12 @@ describe('attackOutcomeLabel', () => {
     expect(
       attackOutcomeLabel({ outcome: 'hit', bullets: 3, dodgeDegrees: 1, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
     ).toBe('3 balles touchent (tête) — 14 dégâts subis (esquive ratée, 1 degré d’échec)')
+  })
+
+  it('uses melee wording instead of "balle(s)" for a melee fire mode (V3)', () => {
+    expect(
+      attackOutcomeLabel({ outcome: 'hit', fireMode: 'melee', bullets: 1, dodgeDegrees: 2, damage: { totalDamage: 12, locationLabel: 'Poitrine' } }),
+    ).toBe('Le coup touche (poitrine) — 12 dégâts subis (esquive ratée, 2 degrés d’échec)')
   })
 })
 

@@ -270,7 +270,7 @@ export default function MjHome({ vals, onGoToDashboard }) {
                       <div className="roster-cls">
                         {n.weapons.length === 0
                           ? 'Aucune arme exploitable'
-                          : n.weapons.map((w) => `${w.name} (${w.modeRaw}, ${w.damage} dégâts)`).join(' · ')}
+                          : n.weapons.map((w) => `${w.name} (${w.modeRaw || 'corps à corps'}, ${w.damage} dégâts)`).join(' · ')}
                       </div>
                     </div>
                   </div>
