@@ -65,22 +65,60 @@ export default function GmView({ vals, onManageCharacters }) {
                       {p.pvCurrent} / {p.pvMax} PV · <span className={`pv-tag pv-${p.pvStatusKey}`}>{p.pvStatusLabel}</span>
                     </div>
                   </div>
-                  <div className="roster-actions">
-                    {p.connected && (
-                      <button className="roster-action-btn" onClick={() => vals.openAttack(p.id)}>
-                        🎯 Attaque
-                      </button>
-                    )}
-                  </div>
                 </div>
               ))}
             </div>
 
+            {vals.npcRoster.length > 0 && (
+              <>
+                <div className="section-label" style={{ marginTop: 16 }}>
+                  PNJ en jeu
+                </div>
+                <div className="roster-list">
+                  {vals.npcRoster.map((n) => (
+                    <div key={n.id} className="roster-row roster-row-wrap">
+                      <div className="roster-row-left">
+                        <div className="roster-name">{n.name}</div>
+                      </div>
+                      <div className="roster-pv-block">
+                        <div className="roster-pv-bar">
+                          <div className={`roster-pv-bar-fill pv-${n.pvStatusKey}`} style={{ width: `${n.pvRatio * 100}%` }} />
+                        </div>
+                        <div className="roster-pv-label">
+                          {n.pvCurrent} / {n.pvMax} PV · <span className={`pv-tag pv-${n.pvStatusKey}`}>{n.pvStatusLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             {vals.showAttackCard && (
               <div className="attack-card">
-                <div className="attack-card-title">🎯 Attaque sur {vals.attackTargetCharacter?.name}</div>
-                {vals.attack.outcome === 'pending-dodge' ? (
-                  <div className="attack-card-status">En attente de l'esquive…</div>
+                <div className="attack-card-title">
+                  <span>
+                    ⚔️ {vals.attackAttackerEntity?.name} attaque {vals.attackDefenderEntity?.name}
+                  </span>
+                  {/* Filet de sécurité (V3 §5 v2) : débloque une séquence coincée en attente,
+                      même sans résolution — sinon plus aucune attaque n'est possible. */}
+                  <button className="modal-close" onClick={vals.cancelAttack} title="Annuler l'attaque">
+                    ✕
+                  </button>
+                </div>
+                {vals.attack.outcome === 'pending-attack-roll' ? (
+                  <div className="attack-card-status">En attente du jet d'attaque de {vals.attackAttackerEntity?.name}…</div>
+                ) : vals.attack.outcome === 'pending-dodge' ? (
+                  <div className="attack-card-status">
+                    Touché ({vals.attackRollDegreeText})
+                    {vals.attackPendingForNpcDefender ? (
+                      <button className="secondary-btn" style={{ display: 'block', marginTop: 8 }} onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>
+                        🎲 Lancer l'esquive du PNJ
+                      </button>
+                    ) : (
+                      " — en attente de l'esquive…"
+                    )}
+                  </div>
                 ) : (
                   <>
                     <div className="attack-card-result">{vals.attackOutcomeText}</div>
@@ -94,6 +132,9 @@ export default function GmView({ vals, onManageCharacters }) {
 
             <button className="primary-btn" onClick={vals.openLaunch}>
               ⚔ Ordonner un test
+            </button>
+            <button className="secondary-btn" style={{ marginTop: 10 }} onClick={vals.openAttack}>
+              ⚔️ Attaque
             </button>
           </div>
         )}

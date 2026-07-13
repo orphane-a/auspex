@@ -270,13 +270,27 @@ export default function MjHome({ vals, onGoToDashboard }) {
                       <div className="roster-cls">
                         {n.weapons.length === 0
                           ? 'Aucune arme exploitable'
-                          : n.weapons.map((w) => `${w.name} (${w.modeRaw}, ${w.damage} dégâts)`).join(' · ')}
+                          : n.weapons.map((w) => `${w.name} (${w.modeRaw || 'corps à corps'}, ${w.damage} dégâts)`).join(' · ')}
                       </div>
                     </div>
                   </div>
                   <button className="modal-close" onClick={() => vals.deleteNpc(n.id)}>
                     ✕
                   </button>
+                </div>
+                <div className="char-edit-panel">
+                  <div className="section-label">Palier d'esquive (repli non formé Agi ÷ 2 + ce bonus)</div>
+                  <div className="malus-row">
+                    {[0, 10, 20].map((tier) => (
+                      <button
+                        key={tier}
+                        className={`malus-btn ${n.dodgeBonus === tier ? 'active' : ''}`}
+                        onClick={() => vals.updateNpcDodgeBonus(n.id, tier)}
+                      >
+                        {tier === 0 ? '+0' : `+${tier}`}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

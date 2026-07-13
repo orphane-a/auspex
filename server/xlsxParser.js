@@ -126,10 +126,10 @@ function extractCharacteristics(sheet) {
   return characteristics
 }
 
-// Weapons (V2 §10) — "Compétences d'Armes" table, previously out of scope (cahier
-// des charges V1 §7). Only rows carrying both a name and a "Mode" string count as
-// a usable weapon row; this naturally skips melee weapons that have no fire mode
-// on this homebrew's sheets (e.g. Djoko's "Epée énergétique").
+// Weapons (V2 §10, corps à corps V3) — "Compétences d'Armes" table. A row needs a
+// name plus either a "Mode" string (ranged) or a numeric damage value with no mode
+// (melee weapons have no fire mode on this homebrew's sheets, e.g. Djoko's "Epée
+// énergétique") — a name alone, with neither, isn't a real weapon row.
 function extractWeapons(sheet) {
   const label = findLabelAddr(sheet, "competences d'armes")
   if (!label) return []
@@ -140,9 +140,15 @@ function extractWeapons(sheet) {
   for (let row = headerRow + 2; row <= maxRow; row++) {
     const name = normalizeText(cellAt(sheet, NAME_COL, row)?.v)
     const modeRaw = normalizeText(cellAt(sheet, MODE_COL, row)?.v)
-    if (!name || !modeRaw) continue
     const rawDamage = cellAt(sheet, DAMAGE_COL, row)?.v
-    weapons.push({ name, modeRaw, mode: parseWeaponMode(modeRaw), damage: typeof rawDamage === 'number' ? Math.round(rawDamage) : 0 })
+    const hasDamage = typeof rawDamage === 'number'
+    if (!name || (!modeRaw && !hasDamage)) continue
+    weapons.push({
+      name,
+      modeRaw: modeRaw || null,
+      mode: modeRaw ? parseWeaponMode(modeRaw) : { single: false, semiCapacity: null, autoCapacity: null, melee: true },
+      damage: hasDamage ? Math.round(rawDamage) : 0,
+    })
   }
   return weapons
 }
@@ -359,8 +365,11 @@ export async function parseCharacterSheet(buffer) {
   const { pvBase, pvCurrent } = extractPv(found.sheet)
   const armor = extractArmor(found.sheet)
   const characteristics = extractCharacteristics(found.sheet)
+  // Weapons (V3 §3/§4) — same "Compétences d'Armes" table and extractWeapons already
+  // used for an NPC sheet, so a player can be picked as attacker just like an NPC.
+  const weapons = extractWeapons(found.sheet)
 
-  return { skills, avatar, pvBase, pvCurrent, armor, characteristics }
+  return { skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons }
 }
 
 // Reads an NPC/enemy sheet (V2 §10/§11) — same PV/armor/characteristics logic as

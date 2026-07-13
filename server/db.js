@@ -63,10 +63,23 @@ if (!characterColumns.includes('characteristics')) {
 if (!characterColumns.includes('dodge_bonus')) {
   db.exec('ALTER TABLE characters ADD COLUMN dodge_bonus INTEGER NOT NULL DEFAULT 0')
 }
+// Weapons for a player character (V3 §4) — same shape as an NPC's, so a player can
+// be picked as attacker in the generalized attack sequence just like an NPC.
+if (!characterColumns.includes('weapons')) {
+  db.exec("ALTER TABLE characters ADD COLUMN weapons TEXT NOT NULL DEFAULT '[]'")
+}
 
 const tableStateColumns = db.prepare('PRAGMA table_info(table_state)').all().map((c) => c.name)
 if (!tableStateColumns.includes('attack')) {
   db.exec('ALTER TABLE table_state ADD COLUMN attack TEXT')
+}
+
+// Symmetric to a character's dodge_bonus (V3 §3/§4) — manual-only, never imported,
+// lets the MJ make a specific NPC (e.g. a boss) harder to hit despite the sheet
+// having no "Esquive" row of its own.
+const npcColumns = db.prepare('PRAGMA table_info(npcs)').all().map((c) => c.name)
+if (!npcColumns.includes('dodge_bonus')) {
+  db.exec('ALTER TABLE npcs ADD COLUMN dodge_bonus INTEGER NOT NULL DEFAULT 0')
 }
 
 const LETTERS = 'BCDFGHJKLMNPQRSTVWXZ'
@@ -86,11 +99,15 @@ export function ensureTableState() {
 }
 
 function rowToTableState(row) {
+  const attack = row.attack ? JSON.parse(row.attack) : null
   return {
     code: row.code,
     request: row.request ? JSON.parse(row.request) : null,
     rolls: JSON.parse(row.rolls),
-    attack: row.attack ? JSON.parse(row.attack) : null,
+    // Une attaque encore en attente au format V2 (npcId/targetCharacterId) ne doit
+    // jamais faire planter les clients après ce déploiement (V3 §4) — elle est
+    // traitée comme terminée plutôt que lue avec la nouvelle forme attacker/defender.
+    attack: attack && attack.attacker && attack.defender ? attack : null,
   }
 }
 
@@ -148,6 +165,7 @@ function rowToCharacter(row) {
     armor: JSON.parse(row.armor),
     characteristics: JSON.parse(row.characteristics),
     dodgeBonus: row.dodge_bonus,
+    weapons: JSON.parse(row.weapons),
   }
 }
 
@@ -160,10 +178,10 @@ export function getCharacter(id) {
   return row ? rowToCharacter(row) : null
 }
 
-export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, armor, characteristics }) {
+export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons }) {
   const result = db
     .prepare(
-      'INSERT INTO characters (name, cls, skills, avatar, pv_base, pv_current, pv_bonuses, armor, characteristics) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO characters (name, cls, skills, avatar, pv_base, pv_current, pv_bonuses, armor, characteristics, weapons) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     )
     .run(
       name,
@@ -175,6 +193,7 @@ export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, arm
       '[]',
       JSON.stringify(armor || {}),
       JSON.stringify(characteristics || {}),
+      JSON.stringify(weapons || []),
     )
   return getCharacter(result.lastInsertRowid)
 }
@@ -252,6 +271,7 @@ function rowToNpc(row) {
     weapons: JSON.parse(row.weapons),
     pv: { max: row.pv_base + bonuses.reduce((sum, b) => sum + b.amount, 0), current: row.pv_current, base: row.pv_base, bonuses },
     armor: JSON.parse(row.armor),
+    dodgeBonus: row.dodge_bonus,
   }
 }
 
@@ -273,6 +293,31 @@ export function addNpc({ name, characteristics, weapons, pvBase, pvCurrent, armo
 
 export function removeNpc(id) {
   db.prepare('DELETE FROM npcs WHERE id = ?').run(id)
+}
+
+// Mode rapide (V3 §8), symétrique de updatePvCurrent pour un PNJ — un PNJ touché
+// en étape 3 de la séquence d'attaque doit avoir où encaisser ses dégâts.
+export function updateNpcPvCurrent(npcId, value) {
+  const npc = getNpc(npcId)
+  if (!npc) return null
+  const clamped = Math.max(0, Math.min(npc.pv.max, value))
+  db.prepare('UPDATE npcs SET pv_current = ? WHERE id = ?').run(clamped, npcId)
+  return getNpc(npcId)
+}
+
+export function updateNpcArmor(npcId, armor) {
+  const npc = getNpc(npcId)
+  if (!npc) return null
+  const merged = { ...npc.armor, ...armor }
+  db.prepare('UPDATE npcs SET armor = ? WHERE id = ?').run(JSON.stringify(merged), npcId)
+  return getNpc(npcId)
+}
+
+export function updateNpcDodgeBonus(npcId, value) {
+  const npc = getNpc(npcId)
+  if (!npc) return null
+  db.prepare('UPDATE npcs SET dodge_bonus = ? WHERE id = ?').run(value, npcId)
+  return getNpc(npcId)
 }
 
 // Lets tests release the file handle before cleaning up a temp DATA_DIR — the

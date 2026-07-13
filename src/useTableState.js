@@ -8,6 +8,7 @@ import {
   pvStatus,
   HIT_LOCATIONS,
   attackOutcomeLabel,
+  attackRollDegreeLabel,
 } from './gameLogic'
 
 const MY_CHARACTER_KEY = 'auspex.myCharacterId'
@@ -30,13 +31,20 @@ export function useTableState() {
   const [damageNotice, setDamageNotice] = useState(null)
   const seenDamageIdRef = useRef(undefined)
 
+  const [attackAttackerNotice, setAttackAttackerNotice] = useState(null)
+  const seenAttackerNoticeIdRef = useRef(undefined)
+
   const [showAttack, setShowAttack] = useState(false)
-  const [attackTargetId, setAttackTargetId] = useState(null)
-  const [attackNpcId, setAttackNpcId] = useState(null)
+  const [attackerType, setAttackerType] = useState(null)
+  const [attackerId, setAttackerId] = useState(null)
+  const [defenderType, setDefenderType] = useState(null)
+  const [defenderId, setDefenderId] = useState(null)
   const [attackWeaponName, setAttackWeaponName] = useState(null)
   const [attackFireMode, setAttackFireMode] = useState(null)
   const [attackDismissed, setAttackDismissed] = useState(false)
   const [dodging, setDodging] = useState(false)
+  const [npcDodging, setNpcDodging] = useState(false)
+  const [rollingAttack, setRollingAttack] = useState(false)
   const [attackError, setAttackError] = useState('')
 
   const socketRef = useRef(null)
@@ -163,24 +171,49 @@ export function useTableState() {
     await api.updateDodgeBonus(characterId, value)
   }
 
-  // First available mode for a weapon, in coup-par-coup / semi / auto priority —
-  // an initial default only, never remembered between attacks (V2 §11).
+  async function updateNpcDodgeBonus(npcId, value) {
+    await api.updateNpcDodgeBonus(npcId, value)
+  }
+
+  // First available mode for a weapon, in mêlée / coup-par-coup / semi / auto
+  // priority — an initial default only, never remembered between attacks (V2 §11).
   function defaultFireMode(weapon) {
     if (!weapon) return null
+    if (weapon.mode.melee) return 'melee'
     if (weapon.mode.single) return 'single'
     if (weapon.mode.semiCapacity != null) return 'semi'
     if (weapon.mode.autoCapacity != null) return 'auto'
     return null
   }
 
-  // Séquence d'attaque/esquive (V2 §10 v2) — le MJ choisit le PNJ et l'arme parmi
-  // les fiches PNJ uploadées, au lieu d'un score ennemi libre.
-  function openAttack(characterId) {
-    const connectedIds = characters.filter((c) => c.connected).map((c) => c.id)
-    setAttackTargetId(characterId != null && connectedIds.includes(characterId) ? characterId : connectedIds[0] ?? null)
+  function entityOfType(type, id) {
+    if (id == null) return null
+    return type === 'npc' ? npcs.find((n) => n.id === id) : characters.find((c) => c.id === id)
+  }
+
+  // Séquence d'attaque (V3 §5/§6) : le MJ choisit librement l'attaquant et la cible
+  // parmi les PNJ et les personnages, dans n'importe quelle combinaison — le bouton
+  // n'est plus rattaché à une ligne personnage, donc plus de préremplissage à partir
+  // d'un characterId.
+  function openAttack() {
     const firstNpc = npcs[0] || null
-    const firstWeapon = firstNpc?.weapons[0] || null
-    setAttackNpcId(firstNpc?.id ?? null)
+    const firstCharacter = characters[0] || null
+    const attackerEntity = firstNpc || firstCharacter
+    const attackerEntityType = firstNpc ? 'npc' : firstCharacter ? 'character' : null
+    setAttackerType(attackerEntityType)
+    setAttackerId(attackerEntity?.id ?? null)
+
+    // Repli par défaut : un joueur connecté différent de l'attaquant si possible,
+    // sinon un PNJ différent de l'attaquant — juste un point de départ pratique,
+    // le MJ reste libre de tout changer dans la modale.
+    const connectedOther = characters.find((c) => c.connected && !(attackerEntityType === 'character' && c.id === attackerEntity?.id))
+    const npcOther = npcs.find((n) => !(attackerEntityType === 'npc' && n.id === attackerEntity?.id))
+    const defenderEntity = connectedOther || npcOther || null
+    const defenderEntityType = connectedOther ? 'character' : npcOther ? 'npc' : null
+    setDefenderType(defenderEntityType)
+    setDefenderId(defenderEntity?.id ?? null)
+
+    const firstWeapon = attackerEntity?.weapons[0] || null
     setAttackWeaponName(firstWeapon?.name ?? null)
     setAttackFireMode(defaultFireMode(firstWeapon))
     setAttackError('')
@@ -189,24 +222,29 @@ export function useTableState() {
   function closeAttack() {
     setShowAttack(false)
   }
-  function selectAttackNpc(npcId) {
-    setAttackNpcId(npcId)
-    const npc = npcs.find((n) => n.id === npcId)
-    const firstWeapon = npc?.weapons[0] || null
+  function selectAttacker(type, id) {
+    setAttackerType(type)
+    setAttackerId(id)
+    const entity = entityOfType(type, id)
+    const firstWeapon = entity?.weapons[0] || null
     setAttackWeaponName(firstWeapon?.name ?? null)
     setAttackFireMode(defaultFireMode(firstWeapon))
   }
+  function selectDefender(type, id) {
+    setDefenderType(type)
+    setDefenderId(id)
+  }
   function selectAttackWeapon(weaponName) {
     setAttackWeaponName(weaponName)
-    const npc = npcs.find((n) => n.id === attackNpcId)
-    const weapon = npc?.weapons.find((w) => w.name === weaponName) || null
+    const entity = entityOfType(attackerType, attackerId)
+    const weapon = entity?.weapons.find((w) => w.name === weaponName) || null
     setAttackFireMode(defaultFireMode(weapon))
   }
   async function launchAttack() {
-    if (attackTargetId == null || attackNpcId == null || !attackWeaponName || !attackFireMode) return
+    if (attackerType == null || attackerId == null || defenderType == null || defenderId == null || !attackWeaponName || !attackFireMode) return
     setAttackError('')
     try {
-      await api.launchAttack({ npcId: attackNpcId, weaponName: attackWeaponName, fireMode: attackFireMode, targetCharacterId: attackTargetId })
+      await api.launchAttack({ attackerType, attackerId, defenderType, defenderId, weaponName: attackWeaponName, fireMode: attackFireMode })
       setShowAttack(false)
     } catch (err) {
       setAttackError(err.message)
@@ -214,6 +252,12 @@ export function useTableState() {
   }
   function dismissAttack() {
     setAttackDismissed(true)
+  }
+  // Filet de sécurité MJ : débloque la séquence si elle reste coincée en attente
+  // (jet d'attaque ou d'esquive), sans passer par une réinitialisation complète de
+  // la table qui viderait aussi les personnages.
+  async function cancelAttack() {
+    await api.cancelAttack()
   }
   async function rollDodge() {
     if (!myCharacterId || dodging) return
@@ -224,6 +268,30 @@ export function useTableState() {
       await new Promise((resolve) => setTimeout(resolve, 900))
     } finally {
       setDodging(false)
+    }
+  }
+  // MJ lance l'esquive à la place d'un PNJ visé (V3 §3/§5) — pas de client PNJ à
+  // distance pour cliquer son propre "LANCER".
+  async function rollNpcDodge() {
+    if (npcDodging) return
+    setNpcDodging(true)
+    try {
+      await api.rollNpcDodge()
+      await new Promise((resolve) => setTimeout(resolve, 900))
+    } finally {
+      setNpcDodging(false)
+    }
+  }
+  // Le personnage attaquant lance lui-même son jet d'attaque (V3 §5 v2) —
+  // symétrique de rollDodge côté défenseur.
+  async function rollAttack() {
+    if (!myCharacterId || rollingAttack) return
+    setRollingAttack(true)
+    try {
+      await api.rollAttack(myCharacterId)
+      await new Promise((resolve) => setTimeout(resolve, 900))
+    } finally {
+      setRollingAttack(false)
     }
   }
 
@@ -317,19 +385,78 @@ export function useTableState() {
     }
   })
 
+  // Barre de PV pour les PNJ dans la vue MJ (V3 §6) — même modèle pv que les
+  // personnages, jamais branché à l'affichage jusqu'ici faute d'usage (V2 §11).
+  const npcRoster = npcs.map((n) => {
+    const status = pvStatus(n.pv)
+    return {
+      id: n.id,
+      name: n.name,
+      pvCurrent: n.pv.current,
+      pvMax: n.pv.max,
+      pvRatio: n.pv.max > 0 ? Math.max(0, Math.min(1, n.pv.current / n.pv.max)) : 0,
+      pvStatusLabel: status.label,
+      pvStatusKey: status.key,
+      isDown: n.pv.current <= 0,
+    }
+  })
+
   const myPvStatus = myCharacter ? pvStatus(myCharacter.pv) : null
   const myPvRatio = myCharacter && myCharacter.pv.max > 0 ? Math.max(0, Math.min(1, myCharacter.pv.current / myCharacter.pv.max)) : 0
   const myArmorList = myCharacter ? HIT_LOCATIONS.map((l) => ({ key: l.key, label: l.label, value: myCharacter.armor[l.key] || 0 })) : []
   const damageNoticeText = damageNotice
     ? `Vous encaissez ${damageNotice.rawDamage} dégâts${damageNotice.armor > 0 ? ` (${Math.min(damageNotice.armor, damageNotice.rawDamage)} absorbés)` : ''}`
     : ''
+  const attackAttackerNoticeText = attackAttackerNotice?.text ?? ''
 
-  const attackTargetCharacter = attack ? characters.find((c) => c.id === attack.targetCharacterId) || null : null
+  const attackAttackerEntity = attack ? entityOfType(attack.attacker.type, attack.attacker.id) : null
+  const attackDefenderEntity = attack ? entityOfType(attack.defender.type, attack.defender.id) : null
   const attackOutcomeText = attackOutcomeLabel(attack)
-  const meIsAttackTarget = !!attack && myCharacterId != null && attack.targetCharacterId === myCharacterId
+  const attackRollDegreeText = attackRollDegreeLabel(attack)
+  const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
+  const meIsAttacker = !!attack && myCharacterId != null && attack.attacker.type === 'character' && attack.attacker.id === myCharacterId
+  // "Resolved" veut dire un des trois états terminaux — pas juste "différent de
+  // pending-dodge" (bug V3 §5 v2 : avec pending-attack-roll comme état intermédiaire
+  // supplémentaire, cette ancienne condition marquait à tort la cible comme
+  // "résolue" avant même que l'attaquant ait lancé son dé).
+  const attackIsTerminal = attack && ['miss', 'dodged', 'hit'].includes(attack.outcome)
   const attackPendingForMe = meIsAttackTarget && attack.outcome === 'pending-dodge'
-  const attackResolvedForMe = meIsAttackTarget && attack.outcome !== 'pending-dodge' && !attackDismissed
-  const showAttackCard = !!attack && (attack.outcome === 'pending-dodge' || !attackDismissed)
+  const attackResolvedForMe = meIsAttackTarget && attackIsTerminal && !attackDismissed
+  const attackPendingForNpcDefender = !!attack && attack.outcome === 'pending-dodge' && attack.defender.type === 'npc'
+  // Le personnage attaquant lance lui-même son jet (V3 §5 v2) — symétrique de
+  // attackPendingForMe côté défenseur, pas d'écran de résultat dédié une fois le
+  // jet fait : la séquence continue sans plus rien demander à l'attaquant.
+  const attackPendingForMeAsAttacker = meIsAttacker && attack.outcome === 'pending-attack-roll'
+  // L'attaquant a touché mais n'a plus rien à faire : la cible teste son esquive
+  // (elle-même ou le MJ pour un PNJ) — sans ça, l'attaquant restait sans nouvelle
+  // entre son propre jet et la notification finale (améliore le wording, retour MJ).
+  const attackWaitingForDodgeAsAttacker = meIsAttacker && attack.outcome === 'pending-dodge'
+  const attackWaitingOnAttacker = !!attack && attack.outcome === 'pending-attack-roll'
+  const showAttackCard = !!attack && (attack.outcome === 'pending-attack-roll' || attack.outcome === 'pending-dodge' || !attackDismissed)
+  // Même encart que la vue MJ ("Garde Impérial attaque Djoko"), repris sur tous les
+  // écrans joueur liés à l'attaque pour que le sens du combat soit toujours clair,
+  // même quand ce n'est pas au joueur d'agir.
+  const attackDirectionText = attack ? `${attackAttackerEntity?.name ?? '?'} attaque ${attackDefenderEntity?.name ?? '?'}` : ''
+
+  // Notification passive du résultat pour l'attaquant (V3 §7, confirmé utile à
+  // l'usage) : contrairement au défenseur (déjà notifié via son propre écran de
+  // résultat), l'attaquant n'a plus rien à faire une fois son jet lancé et n'aurait
+  // sinon jamais su si sa cible a esquivé ou encaissé des dégâts. Transitoire comme
+  // le bandeau de dégâts encaissés, plutôt qu'un écran dédié : l'attaquant a déjà
+  // quitté la séquence à ce stade.
+  useEffect(() => {
+    if (seenAttackerNoticeIdRef.current === undefined) {
+      seenAttackerNoticeIdRef.current = meIsAttacker && attackIsTerminal ? attack.id : null
+      return
+    }
+    if (!meIsAttacker || !attackIsTerminal || attack.id === seenAttackerNoticeIdRef.current) return
+    seenAttackerNoticeIdRef.current = attack.id
+    // Même encart "X attaque Y" que la vue MJ (retour MJ), pour rester cohérent avec
+    // les autres écrans joueur de la séquence plutôt qu'une phrase différente ici.
+    setAttackAttackerNotice({ id: attack.id, text: `${attackDirectionText} — ${attackOutcomeText}` })
+    const timer = setTimeout(() => setAttackAttackerNotice(null), 6000)
+    return () => clearTimeout(timer)
+  }, [attack, meIsAttacker, attackIsTerminal, attackOutcomeText, attackDirectionText])
 
   function buildSkillGroupsWithChips(items) {
     return groupSkillsByCharacteristic(items).map((group) => ({
@@ -352,24 +479,57 @@ export function useTableState() {
   const malusOpts = MALUS_OPTIONS.map((m) => ({ label: m, isActive: m === malus, set: () => setMalus(malus === m ? null : m) }))
   const connectedCharacters = characters.filter((c) => c.connected)
   const selectable = connectedCharacters.map((c) => ({ id: c.id, name: c.name, isChosen: !!chosen[c.id], toggle: () => togglePlayer(c.id) }))
-  // Cible restreinte aux personnages connectés (V2 §10/§11) — pas de mode de
-  // secours pour un joueur absent.
-  const attackTargetOptions = connectedCharacters.map((c) => ({ id: c.id, name: c.name, isActive: c.id === attackTargetId, select: () => setAttackTargetId(c.id) }))
-  const npcOptions = npcs.map((n) => ({ id: n.id, name: n.name, isActive: n.id === attackNpcId, select: () => selectAttackNpc(n.id) }))
-  const attackNpc = npcs.find((n) => n.id === attackNpcId) || null
-  const weaponOptions = (attackNpc?.weapons || []).map((w) => ({
+
+  // Modale d'attaque (V3 §3/§6) : listes complètes PNJ + Joueurs, pour l'attaquant
+  // comme pour la cible — un attaquant peut être un joueur non connecté (§6) ; côté
+  // cible, le serveur bloque lui-même un Joueur non connecté (message affiché via
+  // attackError), donc pas de filtre ici non plus.
+  function buildSideOptions(type, currentType, currentId, onSelect) {
+    const items = type === 'npc' ? npcs : characters
+    return items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      connected: type === 'character' ? item.connected : true,
+      isActive: currentType === type && currentId === item.id,
+      select: () => onSelect(type, item.id),
+    }))
+  }
+  const attackerNpcOptions = buildSideOptions('npc', attackerType, attackerId, selectAttacker)
+  const attackerCharacterOptions = buildSideOptions('character', attackerType, attackerId, selectAttacker)
+  const defenderNpcOptions = buildSideOptions('npc', defenderType, defenderId, selectDefender)
+  const defenderCharacterOptions = buildSideOptions('character', defenderType, defenderId, selectDefender)
+
+  const attackerEntity = entityOfType(attackerType, attackerId)
+  const weaponOptions = (attackerEntity?.weapons || []).map((w) => ({
     name: w.name,
     isActive: w.name === attackWeaponName,
     select: () => selectAttackWeapon(w.name),
   }))
-  const attackWeapon = attackNpc?.weapons.find((w) => w.name === attackWeaponName) || null
+  const attackWeapon = attackerEntity?.weapons.find((w) => w.name === attackWeaponName) || null
   const fireModeOptions = [
+    { key: 'melee', label: 'Corps à corps', available: !!attackWeapon?.mode.melee },
     { key: 'single', label: 'Coup par coup', available: !!attackWeapon?.mode.single },
     { key: 'semi', label: 'Semi-auto', available: attackWeapon?.mode.semiCapacity != null },
     { key: 'auto', label: 'Auto', available: attackWeapon?.mode.autoCapacity != null },
   ]
     .filter((m) => m.available)
     .map((m) => ({ key: m.key, label: m.label, isActive: m.key === attackFireMode, select: () => setAttackFireMode(m.key) }))
+  const defenderCharacterDisconnected = defenderType === 'character' && defenderId != null && !characters.find((c) => c.id === defenderId)?.connected
+  // Un personnage attaquant doit désormais rester connecté (V3 §5 v2) : lui seul
+  // peut cliquer son propre jet, contrairement au PNJ dont le jet reste automatique.
+  const attackerCharacterDisconnected = attackerType === 'character' && attackerId != null && !characters.find((c) => c.id === attackerId)?.connected
+  // Un combattant contre lui-même n'a pas de sens (aucune règle ne le résout) —
+  // bloqué au même endroit que les autres cas invalides plutôt que côté serveur
+  // uniquement, pour ne pas laisser le bouton "Lancer l'attaque" cliquable.
+  const attackerIsDefender = attackerType != null && attackerId != null && attackerType === defenderType && attackerId === defenderId
+  const attackLaunchDisabled =
+    attackerId == null ||
+    defenderId == null ||
+    weaponOptions.length === 0 ||
+    fireModeOptions.length === 0 ||
+    defenderCharacterDisconnected ||
+    attackerCharacterDisconnected ||
+    attackerIsDefender
 
   return {
     loading: !snapshot,
@@ -398,9 +558,28 @@ export function useTableState() {
     receivedText: `${received} / ${concernedCharacters.length} jets reçus`,
     mySkillGroups,
     characteristicTendencies: myCharacter ? characteristicTendencies(myCharacter.skills) : [],
-    pScreenMain: (!request || !meConcerned || dismissed) && !attackPendingForMe && !attackResolvedForMe,
-    pScreenRequest: meConcerned && !myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe,
-    pScreenResult: meConcerned && myRolled && !dismissed && !attackPendingForMe && !attackResolvedForMe,
+    pScreenMain:
+      (!request || !meConcerned || dismissed) &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
+    pScreenRequest:
+      meConcerned &&
+      !myRolled &&
+      !dismissed &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
+    pScreenResult:
+      meConcerned &&
+      myRolled &&
+      !dismissed &&
+      !attackPendingForMe &&
+      !attackResolvedForMe &&
+      !attackPendingForMeAsAttacker &&
+      !attackWaitingForDodgeAsAttacker,
     showRollBtn: meConcerned && !myRolled && !rolling,
     rolling,
     myLabel: myMeta.label,
@@ -431,26 +610,47 @@ export function useTableState() {
     myArmorList,
     isMeDown: !!myCharacter && myCharacter.pv.current <= 0,
     damageNoticeText,
+    attackAttackerNoticeText,
     npcs,
+    npcRoster,
     uploadNpc,
     deleteNpc,
+    updateNpcDodgeBonus,
     showAttack,
     openAttack,
     closeAttack,
-    attackTargetOptions,
-    npcOptions,
+    attackerNpcOptions,
+    attackerCharacterOptions,
+    defenderNpcOptions,
+    defenderCharacterOptions,
     weaponOptions,
     fireModeOptions,
     attackError,
+    attackLaunchDisabled,
+    defenderCharacterDisconnected,
+    attackerCharacterDisconnected,
+    attackerIsDefender,
     launchAttack,
     attack,
-    attackTargetCharacter,
+    attackAttackerEntity,
+    attackDefenderEntity,
     attackOutcomeText,
+    attackRollDegreeText,
     showAttackCard,
     dismissAttack,
+    cancelAttack,
     attackPendingForMe,
     attackResolvedForMe,
+    attackPendingForNpcDefender,
+    attackPendingForMeAsAttacker,
+    attackWaitingForDodgeAsAttacker,
+    attackWaitingOnAttacker,
+    attackDirectionText,
     dodging,
     rollDodge,
+    npcDodging,
+    rollNpcDodge,
+    rollingAttack,
+    rollAttack,
   }
 }

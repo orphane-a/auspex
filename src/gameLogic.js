@@ -94,10 +94,11 @@ export function parseWeaponMode(modeStr) {
   }
 }
 
-// Bullets that connect (V2 §10/§11): 1 in coup-par-coup ; in semi/auto, capped by
-// the weapon's actual burst capacity for that mode, not a universal fixed cap.
+// Bullets that connect (V2 §10/§11): 1 in coup-par-coup ou corps à corps (V3, pas
+// de rafale à mains nues/à l'arme blanche) ; en semi/auto, capé par la capacité de
+// rafale réelle de l'arme pour ce mode, pas un plafond universel.
 export function bulletsHit(fireMode, degrees, weapon) {
-  if (fireMode === 'single') return 1
+  if (fireMode === 'single' || fireMode === 'melee') return 1
   const capacity = fireMode === 'semi' ? weapon.mode.semiCapacity : weapon.mode.autoCapacity
   return Math.min(degrees, capacity || 1)
 }
@@ -148,19 +149,45 @@ export function effectiveSkillScore(character, skillName, linkedCharacteristic) 
   return carac ? Math.round(carac / 2) : 0
 }
 
-// Single source of truth for the attack-sequence outcome text (V2 §10/§11) — the
-// wording must be strictly identical on the player's and the MJ's screens.
+// Score d'esquive d'un défenseur PNJ (V3 §3/§5) : un PNJ n'a jamais de grille de
+// compétences, donc jamais de score d'Esquive formé — contrairement à
+// effectiveSkillScore, pas de recherche dans une liste de compétences, uniquement
+// le repli non formé (Agi ÷ 2) plus son dodgeBonus manuel (§4).
+export function npcDodgeScore(npc) {
+  const base = npc.characteristics.Agi ? Math.round(npc.characteristics.Agi / 2) : 0
+  return base + npc.dodgeBonus
+}
+
+// Texte de degrés partagé par les jets de compétence (statusMeta) et la séquence
+// d'attaque (attackOutcomeLabel/attackRollDegreeLabel), pour garder un seul endroit
+// qui pluralise "degré(s)" et choisisse "de réussite"/"d'échec".
+export function degreeLabel(degrees, isSuccess) {
+  return `${degrees} degré${degrees > 1 ? 's' : ''}${isSuccess ? ' de réussite' : ' d’échec'}`
+}
+
+// Single source of truth for the attack-sequence outcome text (V2 §10/§11, degrés
+// ajoutés en V3) — the wording must be strictly identical on the player's and the
+// MJ's screens.
 export function attackOutcomeLabel(attack) {
   if (!attack) return ''
-  if (attack.outcome === 'miss') return 'Attaque ratée'
-  if (attack.outcome === 'dodged') return 'Esquivé'
+  if (attack.outcome === 'miss') return `Attaque ratée (${degreeLabel(attack.degrees, false)})`
+  if (attack.outcome === 'dodged') return `Esquivé (${degreeLabel(attack.dodgeDegrees, true)})`
   if (attack.outcome === 'hit' && attack.damage) {
     const { totalDamage, locationLabel } = attack.damage
     const bullets = attack.bullets || 1
-    const bulletsText = bullets > 1 ? `${bullets} balles touchent` : '1 balle touche'
-    return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis`
+    // Corps à corps (V3) : "balle(s)" n'a pas de sens pour une arme blanche.
+    const bulletsText = attack.fireMode === 'melee' ? 'Le coup touche' : bullets > 1 ? `${bullets} balles touchent` : '1 balle touche'
+    return `${bulletsText} (${locationLabel.toLowerCase()}) — ${totalDamage} dégâts subis (esquive ratée, ${degreeLabel(attack.dodgeDegrees, false)})`
   }
   return ''
+}
+
+// Degrés du jet d'attaque lui-même (V3), affichés pendant l'attente de l'esquive —
+// à ce stade l'attaque a forcément touché (un jet raté part directement en 'miss',
+// §5), donc toujours "de réussite".
+export function attackRollDegreeLabel(attack) {
+  if (!attack || attack.outcome === 'miss') return ''
+  return degreeLabel(attack.degrees, true)
 }
 
 export function statusMeta(r) {
@@ -171,7 +198,7 @@ export function statusMeta(r) {
     isSuccess: suc,
     isFail: fail,
     isPending: !r,
-    degreeText: r ? `${r.degrees} degré${r.degrees > 1 ? 's' : ''}${suc ? ' de réussite' : ' d’échec'}` : '',
+    degreeText: r ? degreeLabel(r.degrees, suc) : '',
     borderCol: r ? (suc ? 'rgba(123,163,111,.5)' : 'rgba(198,90,79,.5)') : 'rgba(255,255,255,.1)',
     bgCol: r ? (suc ? 'rgba(123,163,111,.1)' : 'rgba(198,90,79,.1)') : 'rgba(255,255,255,.02)',
     textCol: r ? (suc ? '#8fbf87' : '#c65a4f') : 'rgba(230,224,212,.4)',

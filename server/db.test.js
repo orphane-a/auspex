@@ -45,6 +45,17 @@ describe('table state', () => {
     const rolls = db.patchRoll(2, { roll: 20 })
     expect(rolls).toEqual({ 1: { roll: 10 }, 2: { roll: 20 } })
   })
+
+  it('round-trips a V3 attack (attacker/defender shape)', () => {
+    const attack = { id: 1, attacker: { type: 'npc', id: 1 }, defender: { type: 'character', id: 2 }, outcome: 'pending-dodge' }
+    db.setAttack(attack)
+    expect(db.getTableState().attack).toEqual(attack)
+  })
+
+  it('reads a stale V2-shaped attack (npcId/targetCharacterId) back as null instead of crashing clients', () => {
+    db.setAttack({ id: 1, npcId: 1, targetCharacterId: 2, outcome: 'hit' })
+    expect(db.getTableState().attack).toBeNull()
+  })
 })
 
 describe('character CRUD', () => {
@@ -56,9 +67,17 @@ describe('character CRUD', () => {
     expect(created.pv).toEqual({ max: 10, current: 10, base: 10, bonuses: [] })
     expect(created.armor).toEqual({})
     expect(created.characteristics).toEqual({})
+    expect(created.weapons).toEqual([])
 
     expect(db.getCharacter(created.id)).toEqual(created)
     expect(db.listCharacters().map((c) => c.id)).toContain(created.id)
+  })
+
+  it('stores a character weapons list (V3) and reads it back unchanged', () => {
+    const weapons = [{ name: 'Lasgun', modeRaw: 'C/2/-', mode: { single: true, semiCapacity: 2, autoCapacity: null }, damage: 5 }]
+    const created = db.addCharacter({ name: 'Armed', skills: [], weapons })
+    expect(created.weapons).toEqual(weapons)
+    expect(db.getCharacter(created.id).weapons).toEqual(weapons)
   })
 
   it('removes a character', () => {
@@ -116,10 +135,30 @@ describe('NPCs', () => {
   it('round-trips through addNpc/getNpc/removeNpc', () => {
     const created = db.addNpc({ name: 'Culiste', characteristics: { For: 30 }, weapons: [], pvBase: 12 })
     expect(created.pv).toEqual({ max: 12, current: 12, base: 12, bonuses: [] })
+    expect(created.dodgeBonus).toBe(0)
     expect(db.getNpc(created.id).name).toBe('Culiste')
 
     db.removeNpc(created.id)
     expect(db.getNpc(created.id)).toBeNull()
+  })
+
+  it('clamps updateNpcPvCurrent to [0, pv.max]', () => {
+    const created = db.addNpc({ name: 'Fragile', pvBase: 10 })
+
+    expect(db.updateNpcPvCurrent(created.id, -5).pv.current).toBe(0)
+    expect(db.updateNpcPvCurrent(created.id, 999).pv.current).toBe(10)
+    expect(db.updateNpcPvCurrent(created.id, 4).pv.current).toBe(4)
+  })
+
+  it('merges new armor locations into an NPC without dropping the others', () => {
+    const created = db.addNpc({ name: 'Armored', armor: { tete: 2 } })
+    const updated = db.updateNpcArmor(created.id, { abdomen: 5 })
+    expect(updated.armor).toEqual({ tete: 2, abdomen: 5 })
+  })
+
+  it('sets an NPC dodge bonus, manual-only and independent from the sheet import', () => {
+    const created = db.addNpc({ name: 'Boss' })
+    expect(db.updateNpcDodgeBonus(created.id, 20).dodgeBonus).toBe(20)
   })
 })
 

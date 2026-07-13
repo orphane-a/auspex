@@ -16,8 +16,8 @@ export async function seedIfEmpty() {
   if (!fs.existsSync(SEED_FILE)) return
   try {
     const buffer = fs.readFileSync(SEED_FILE)
-    const { skills, avatar, pvBase, pvCurrent, armor, characteristics } = await parseCharacterSheet(buffer)
-    addCharacter({ name: 'Djoko', cls: 'Maître stellaire', skills, avatar, pvBase, pvCurrent, armor, characteristics })
+    const { skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons } = await parseCharacterSheet(buffer)
+    addCharacter({ name: 'Djoko', cls: 'Maître stellaire', skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons })
     const { code } = getTableState()
     console.log(`Seed dev : "Djoko" ajouté automatiquement — table ${code}`)
   } catch (err) {

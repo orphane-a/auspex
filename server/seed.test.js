@@ -22,6 +22,16 @@ afterAll(() => {
   rmSync(tmpDir, { recursive: true, force: true })
 })
 
+describe('seedIfEmpty', () => {
+  it('imports Djoko with a non-empty weapons list (V3 §3/§4)', async () => {
+    await seed.seedIfEmpty()
+
+    const [djoko] = db.listCharacters()
+    expect(djoko.name).toBe('Djoko')
+    expect(djoko.weapons.length).toBeGreaterThan(0)
+  })
+})
+
 describe('seedNpcsIfEmpty', () => {
   it('imports the three PNJ_test enemies when the npcs table is empty', async () => {
     await seed.seedNpcsIfEmpty()

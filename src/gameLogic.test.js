@@ -12,7 +12,9 @@ import {
   pvMax,
   applyDamage,
   effectiveSkillScore,
+  npcDodgeScore,
   attackOutcomeLabel,
+  attackRollDegreeLabel,
   statusMeta,
 } from './gameLogic.js'
 
@@ -111,6 +113,11 @@ describe('bulletsHit', () => {
   it('falls back to 1 bullet when the weapon has no capacity for that mode', () => {
     expect(bulletsHit('auto', 5, weapon)).toBe(1)
   })
+
+  it('always lands exactly one hit in melee, regardless of degrees (V3)', () => {
+    const melee = { mode: { melee: true, semiCapacity: null, autoCapacity: null } }
+    expect(bulletsHit('melee', 5, melee)).toBe(1)
+  })
 })
 
 describe('resolveWeaponDamage', () => {
@@ -197,24 +204,69 @@ describe('effectiveSkillScore', () => {
   })
 })
 
+describe('npcDodgeScore', () => {
+  it('falls back to half Agilité when there is no dodge bonus', () => {
+    expect(npcDodgeScore({ characteristics: { Agi: 41 }, dodgeBonus: 0 })).toBe(21) // round(41/2)
+  })
+
+  it('adds the manual dodge bonus on top of the fallback', () => {
+    expect(npcDodgeScore({ characteristics: { Agi: 40 }, dodgeBonus: 20 })).toBe(40) // round(40/2) + 20
+  })
+
+  it('falls back to 0 when Agilité itself is missing', () => {
+    expect(npcDodgeScore({ characteristics: {}, dodgeBonus: 10 })).toBe(10)
+  })
+})
+
 describe('attackOutcomeLabel', () => {
   it('returns an empty string for no attack', () => {
     expect(attackOutcomeLabel(null)).toBe('')
   })
 
-  it('labels a miss and a dodge', () => {
-    expect(attackOutcomeLabel({ outcome: 'miss' })).toBe('Attaque ratée')
-    expect(attackOutcomeLabel({ outcome: 'dodged' })).toBe('Esquivé')
+  it('labels a miss with the attack roll degrees', () => {
+    expect(attackOutcomeLabel({ outcome: 'miss', degrees: 2 })).toBe('Attaque ratée (2 degrés d’échec)')
+    expect(attackOutcomeLabel({ outcome: 'miss', degrees: 1 })).toBe('Attaque ratée (1 degré d’échec)')
   })
 
-  it('pluralizes "balle(s)" based on the bullet count and reports damage/location', () => {
+  it('labels a dodge with the dodge roll degrees', () => {
+    expect(attackOutcomeLabel({ outcome: 'dodged', dodgeDegrees: 3 })).toBe('Esquivé (3 degrés de réussite)')
+    expect(attackOutcomeLabel({ outcome: 'dodged', dodgeDegrees: 1 })).toBe('Esquivé (1 degré de réussite)')
+  })
+
+  it('pluralizes "balle(s)" based on the bullet count and reports damage/location/dodge degrees', () => {
     expect(
-      attackOutcomeLabel({ outcome: 'hit', bullets: 1, damage: { totalDamage: 7, locationLabel: 'Abdomen' } }),
-    ).toBe('1 balle touche (abdomen) — 7 dégâts subis')
+      attackOutcomeLabel({ outcome: 'hit', bullets: 1, dodgeDegrees: 2, damage: { totalDamage: 7, locationLabel: 'Abdomen' } }),
+    ).toBe('1 balle touche (abdomen) — 7 dégâts subis (esquive ratée, 2 degrés d’échec)')
 
     expect(
-      attackOutcomeLabel({ outcome: 'hit', bullets: 3, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
-    ).toBe('3 balles touchent (tête) — 14 dégâts subis')
+      attackOutcomeLabel({ outcome: 'hit', bullets: 3, dodgeDegrees: 1, damage: { totalDamage: 14, locationLabel: 'Tête' } }),
+    ).toBe('3 balles touchent (tête) — 14 dégâts subis (esquive ratée, 1 degré d’échec)')
+  })
+
+  it('uses melee wording instead of "balle(s)" for a melee fire mode (V3)', () => {
+    expect(
+      attackOutcomeLabel({ outcome: 'hit', fireMode: 'melee', bullets: 1, dodgeDegrees: 2, damage: { totalDamage: 12, locationLabel: 'Poitrine' } }),
+    ).toBe('Le coup touche (poitrine) — 12 dégâts subis (esquive ratée, 2 degrés d’échec)')
+  })
+})
+
+describe('attackRollDegreeLabel', () => {
+  it('returns an empty string for no attack', () => {
+    expect(attackRollDegreeLabel(null)).toBe('')
+  })
+
+  it('returns an empty string for a miss (already reported by attackOutcomeLabel)', () => {
+    expect(attackRollDegreeLabel({ outcome: 'miss', degrees: 2 })).toBe('')
+  })
+
+  it('reports the attack roll degrees as a success while the dodge is pending', () => {
+    expect(attackRollDegreeLabel({ outcome: 'pending-dodge', degrees: 3 })).toBe('3 degrés de réussite')
+    expect(attackRollDegreeLabel({ outcome: 'pending-dodge', degrees: 1 })).toBe('1 degré de réussite')
+  })
+
+  it('still reports the attack roll degrees once the sequence resolves', () => {
+    expect(attackRollDegreeLabel({ outcome: 'dodged', degrees: 2 })).toBe('2 degrés de réussite')
+    expect(attackRollDegreeLabel({ outcome: 'hit', degrees: 4 })).toBe('4 degrés de réussite')
   })
 })
 
