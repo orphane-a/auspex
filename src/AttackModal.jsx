@@ -28,12 +28,12 @@ function EntityPickRow({ label, options, emptyHint }) {
 export default function AttackModal({ vals }) {
   return (
     <div className="modal-overlay">
-      <div className="modal-sheet hud-corners">
+      <div className="modal-sheet">
         <div className="panel-stripe" />
         <div className="modal-titlebar">
           <span>◈ Engager le combat</span>
           <button className="modal-close" onClick={vals.closeAttack}>
-            ✕
+            [X]
           </button>
         </div>
         <div className="modal-content">

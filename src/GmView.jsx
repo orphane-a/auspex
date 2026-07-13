@@ -5,7 +5,7 @@ import AttackModal from './AttackModal.jsx'
 export default function GmView({ vals, onManageCharacters }) {
   return (
     <>
-      <div className="panel hud-corners">
+      <div className="panel">
         <div className="panel-stripe" />
         <div className="panel-titlebar">
           <div className="panel-titlebar-title">
@@ -103,7 +103,7 @@ export default function GmView({ vals, onManageCharacters }) {
                   {/* Filet de sécurité (V3 §5 v2) : débloque une séquence coincée en attente,
                       même sans résolution — sinon plus aucune attaque n'est possible. */}
                   <button className="modal-close" onClick={vals.cancelAttack} title="Annuler l'attaque">
-                    ✕
+                    [X]
                   </button>
                 </div>
                 {vals.attack.outcome === 'pending-attack-roll' ? (

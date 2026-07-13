@@ -3,12 +3,12 @@
 }
 body {
   margin: 0;
-  background: #04070a;
-  font-family: Oswald, system-ui, sans-serif;
-  color: #e6efe8;
+  background: #020604;
+  font-family: 'Share Tech Mono', monospace;
+  color: #38e07b;
 }
 a {
-  color: #39d98a;
+  color: #38e07b;
 }
 a:hover {
   color: #9dffc4;
@@ -45,10 +45,10 @@ a:hover {
 @keyframes pulseG {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(57, 217, 138, 0.45);
+    box-shadow: 0 0 0 0 rgba(47, 158, 90, 0.45);
   }
   50% {
-    box-shadow: 0 0 0 14px rgba(57, 217, 138, 0);
+    box-shadow: 0 0 0 14px rgba(47, 158, 90, 0);
   }
 }
 @keyframes pulseAmber {
@@ -73,8 +73,8 @@ a:hover {
 .app-shell {
   min-height: 100vh;
   padding: clamp(18px, 4vw, 34px) clamp(14px, 4vw, 32px) 54px;
-  background: repeating-linear-gradient(0deg, rgba(90, 230, 150, 0.028) 0 1px, transparent 1px 3px),
-    radial-gradient(130% 90% at 50% -12%, #0b1712 0%, #070d0b 46%, #04070a 100%);
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 80% at 50% 0%, rgba(20, 60, 35, 0.35) 0%, rgba(3, 10, 6, 1) 60%);
 }
 
 .stage-header {
@@ -84,7 +84,7 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border-bottom: 1px solid rgba(57, 217, 138, 0.22);
+  border-bottom: 1px solid rgba(47, 158, 90, 0.22);
   padding-bottom: 18px;
   flex-wrap: wrap;
 }
@@ -102,13 +102,13 @@ a:hover {
 .brand-mark .diamond {
   position: absolute;
   inset: 0;
-  border: 1.5px solid rgba(57, 217, 138, 0.7);
+  border: 1.5px solid rgba(47, 158, 90, 0.7);
   transform: rotate(45deg);
 }
 .brand-mark .ring {
   position: absolute;
   inset: 11px;
-  border: 1.5px solid rgba(57, 217, 138, 0.55);
+  border: 1.5px solid rgba(47, 158, 90, 0.55);
   border-radius: 50%;
 }
 .brand-mark .dot {
@@ -117,34 +117,35 @@ a:hover {
   left: 50%;
   width: 6px;
   height: 6px;
-  background: #39d98a;
+  background: #7dffb0;
   border-radius: 50%;
   transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px 2px rgba(125, 255, 176, 0.9);
 }
 .brand-title {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: 22px;
   letter-spacing: 0.14em;
-  color: #c9ffe0;
+  color: #7dffb0;
   line-height: 1;
 }
 .brand-subtitle {
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: rgba(214, 228, 218, 0.42);
+  color: rgba(31, 122, 69, 0.42);
   margin-top: 3px;
 }
 .reset-btn {
   cursor: pointer;
-  font: 500 11px Oswald;
+  font: 500 11px 'Share Tech Mono';
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(214, 228, 218, 0.6);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
+  color: rgba(31, 122, 69, 0.6);
+  background: rgba(26, 77, 44, 0.03);
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  border-radius: 0;
   padding: 9px 16px;
 }
 
@@ -157,55 +158,55 @@ a:hover {
 .view-tab {
   cursor: pointer;
   flex: 1;
-  font: 500 12px Oswald;
+  font: 500 12px 'Share Tech Mono';
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 12px 10px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.6);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.6);
 }
 .view-tab.active {
-  border-color: #39d98a;
-  background: linear-gradient(180deg, rgba(57, 217, 138, 0.2), rgba(57, 217, 138, 0.08));
+  border-color: #38e07b;
+  background: linear-gradient(180deg, rgba(47, 158, 90, 0.2), rgba(47, 158, 90, 0.08));
   color: #9dffc4;
 }
 
 .route-banner {
   max-width: 720px;
   margin: 0 auto 26px;
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: rgba(214, 228, 218, 0.6);
-  background: rgba(57, 217, 138, 0.06);
-  border: 1px solid rgba(57, 217, 138, 0.25);
-  border-radius: 4px;
+  color: rgba(31, 122, 69, 0.6);
+  background: rgba(47, 158, 90, 0.06);
+  border: 1px solid rgba(47, 158, 90, 0.25);
+  border-radius: 0;
   padding: 10px 14px;
   line-height: 1.5;
 }
 .route-hint {
   max-width: 720px;
   margin: -14px auto 26px;
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: rgba(214, 228, 218, 0.4);
+  color: rgba(31, 122, 69, 0.4);
 }
 
 .panel {
   max-width: 720px;
   margin: 0 auto;
   position: relative;
-  background: linear-gradient(180deg, #0c1712 0%, #06100c 100%);
-  border: 1px solid rgba(57, 217, 138, 0.28);
-  border-radius: 5px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(57, 217, 138, 0.4),
+  background: rgba(4, 14, 8, 0.92);
+  border: 1px solid rgba(47, 158, 90, 0.28);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(47, 158, 90, 0.4),
     0 24px 60px -20px rgba(0, 0, 0, 0.8);
   overflow: hidden;
 }
 .panel-stripe {
   height: 3px;
-  background: repeating-linear-gradient(45deg, #39d98a 0 12px, #06100c 12px 24px);
+  background: repeating-linear-gradient(45deg, #2f9e5a 0 12px, #020604 12px 24px);
   opacity: 0.55;
 }
 .panel-titlebar {
@@ -214,8 +215,8 @@ a:hover {
   justify-content: space-between;
   gap: 10px;
   padding: 14px 20px;
-  background: linear-gradient(180deg, #101d16, #0b140f);
-  border-bottom: 1px solid rgba(57, 217, 138, 0.18);
+  background: #0a2013;
+  border-bottom: 1px solid rgba(47, 158, 90, 0.18);
   flex-wrap: wrap;
 }
 .panel-titlebar-title {
@@ -224,16 +225,16 @@ a:hover {
   gap: 11px;
 }
 .panel-titlebar-title span {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 14px;
   letter-spacing: 0.06em;
-  color: #e6efe8;
+  color: #7dffb0;
 }
 .panel-titlebar-tag {
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.1em;
-  color: rgba(214, 228, 218, 0.4);
+  color: rgba(31, 122, 69, 0.4);
 }
 .icon-diamond {
   width: 20px;
@@ -244,19 +245,19 @@ a:hover {
 .icon-diamond .d {
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(57, 217, 138, 0.6);
+  border: 1px solid rgba(47, 158, 90, 0.6);
   transform: rotate(45deg);
 }
 .icon-diamond .c {
   position: absolute;
   inset: 6px;
   border-radius: 50%;
-  background: rgba(57, 217, 138, 0.6);
+  background: rgba(47, 158, 90, 0.6);
 }
 .helper-text {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.35);
+  color: rgba(31, 122, 69, 0.35);
   margin-top: 12px;
   text-align: center;
   max-width: 720px;
@@ -278,31 +279,31 @@ a:hover {
 .code-card {
   flex: 1 1 260px;
   position: relative;
-  border: 1px solid rgba(57, 217, 138, 0.45);
-  background: linear-gradient(180deg, rgba(57, 217, 138, 0.1), rgba(57, 217, 138, 0.03));
-  border-radius: 4px;
+  border: 1px solid rgba(47, 158, 90, 0.45);
+  background: linear-gradient(180deg, rgba(47, 158, 90, 0.1), rgba(47, 158, 90, 0.03));
+  border-radius: 0;
   padding: 18px 20px;
   text-align: center;
 }
 .code-card-label {
-  font: 500 10px Oswald;
+  font: 500 10px 'Share Tech Mono';
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(57, 217, 138, 0.8);
+  color: rgba(47, 158, 90, 0.8);
   margin-bottom: 9px;
 }
 .code-card-value {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: clamp(30px, 6vw, 40px);
   letter-spacing: 0.2em;
   color: #9dffc4;
-  text-shadow: 0 0 22px rgba(57, 217, 138, 0.3);
+  text-shadow: 0 0 22px rgba(47, 158, 90, 0.3);
 }
 .code-card-hint {
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.08em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
   margin-top: 8px;
 }
 .count-card {
@@ -313,35 +314,39 @@ a:hover {
   gap: 12px;
 }
 .count-card-value {
-  font: 600 30px Oswald;
-  color: #e6efe8;
+  font: 600 30px 'Share Tech Mono';
+  color: #9dffc4;
   line-height: 1;
 }
 .count-card-value span {
-  color: rgba(214, 228, 218, 0.4);
+  color: rgba(31, 122, 69, 0.4);
   font-size: 15px;
   font-weight: 300;
 }
 .count-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: 3px;
+  background: rgba(26, 77, 44, 0.07);
+  border-radius: 0;
   overflow: hidden;
 }
 .count-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2f9e6a, #5ffca8);
+  background: linear-gradient(90deg, #2f9e5a, #4dff8f);
 }
 .section-label {
-  font: 500 10px Oswald;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(214, 228, 218, 0.42);
+  font: 500 11px 'Share Tech Mono';
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: #2f9e5a;
   margin-bottom: 11px;
 }
+.section-label::before {
+  content: '$ ';
+  color: #38e07b;
+}
 .roster-list {
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 4px;
+  border: 1px solid rgba(26, 77, 44, 0.09);
+  border-radius: 0;
   overflow: hidden;
   margin-bottom: 24px;
 }
@@ -351,7 +356,7 @@ a:hover {
   justify-content: space-between;
   gap: 10px;
   padding: 13px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(26, 77, 44, 0.06);
   flex-wrap: wrap;
 }
 .roster-row-left {
@@ -362,8 +367,8 @@ a:hover {
 .avatar {
   width: 32px;
   height: 32px;
-  background: rgba(57, 217, 138, 0.08);
-  border: 1px solid rgba(57, 217, 138, 0.25);
+  background: rgba(47, 158, 90, 0.08);
+  border: 1px solid rgba(47, 158, 90, 0.25);
   border-radius: 50%;
   flex: none;
   object-fit: cover;
@@ -373,20 +378,20 @@ a:hover {
   height: 26px;
 }
 .roster-name {
-  font: 500 14px Oswald;
+  font: 500 14px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: #e6efe8;
+  color: #9dffc4;
 }
 .roster-cls {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.42);
+  color: rgba(31, 122, 69, 0.42);
 }
 .roster-status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.08em;
 }
 .status-dot {
@@ -402,30 +407,30 @@ a:hover {
   justify-content: center;
   gap: 11px;
   padding: 15px;
-  border: 1px solid #39d98a;
-  background: linear-gradient(180deg, rgba(57, 217, 138, 0.2), rgba(57, 217, 138, 0.08));
-  border-radius: 4px;
+  border: 1px solid #38e07b;
+  background: linear-gradient(180deg, rgba(47, 158, 90, 0.2), rgba(47, 158, 90, 0.08));
+  border-radius: 0;
   color: #9dffc4;
-  font: 600 14px Oswald;
+  font: 600 14px 'Share Tech Mono';
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  box-shadow: 0 0 26px -6px rgba(57, 217, 138, 0.7);
+  box-shadow: 0 0 26px -6px rgba(47, 158, 90, 0.7);
 }
 .primary-btn:disabled {
   cursor: not-allowed;
   opacity: 0.4;
-  border-color: rgba(57, 217, 138, 0.3);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.4);
+  border-color: rgba(47, 158, 90, 0.3);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.4);
 }
 .secondary-btn {
   cursor: pointer;
   padding: 12px 22px;
-  border: 1px solid #39d98a;
-  background: linear-gradient(180deg, rgba(57, 217, 138, 0.18), rgba(57, 217, 138, 0.06));
-  border-radius: 4px;
+  border: 1px solid #38e07b;
+  background: linear-gradient(180deg, rgba(47, 158, 90, 0.18), rgba(47, 158, 90, 0.06));
+  border-radius: 0;
   color: #9dffc4;
-  font: 600 12px Oswald;
+  font: 600 12px 'Share Tech Mono';
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -440,32 +445,32 @@ a:hover {
   flex-wrap: wrap;
 }
 .results-title {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 19px;
-  color: #e6efe8;
+  color: #9dffc4;
 }
 .results-subtitle {
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.06em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
   margin-top: 2px;
 }
 .live-tag {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.1em;
-  color: #5ffca8;
+  color: #4dff8f;
   white-space: nowrap;
 }
 .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #5ffca8;
-  box-shadow: 0 0 8px 1px rgba(90, 255, 160, 0.8);
+  background: #4dff8f;
+  box-shadow: 0 0 8px 1px rgba(77, 255, 143, 0.8);
   animation: blink 1.4s ease-in-out infinite;
 }
 .rolls-list {
@@ -477,35 +482,35 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 15px;
-  border-radius: 5px;
+  border-radius: 0;
   padding: 15px 17px;
   border: 1px solid;
   transition: border-color 0.45s ease, background-color 0.45s ease;
 }
 .roll-row-name {
-  font: 500 15px Oswald;
+  font: 500 15px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: #e6efe8;
+  color: #9dffc4;
 }
 .roll-row-cls {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.45);
+  color: rgba(31, 122, 69, 0.45);
 }
 .roll-row-result {
   text-align: right;
 }
 .roll-row-label {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.05em;
   transition: color 0.45s ease;
 }
 .roll-row-degree {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
 }
 
 /* Launch modal */
@@ -527,10 +532,10 @@ a:hover {
   max-width: 440px;
   max-height: 100vh;
   overflow-y: auto;
-  background: linear-gradient(180deg, #0c1712, #06100c);
-  border: 1px solid rgba(57, 217, 138, 0.4);
-  border-radius: 5px;
-  box-shadow: 0 0 46px -14px rgba(57, 217, 138, 0.4), 0 30px 70px -20px rgba(0, 0, 0, 0.9);
+  background: rgba(4, 14, 8, 0.92);
+  border: 1px solid rgba(47, 158, 90, 0.4);
+  border-radius: 0;
+  box-shadow: 0 0 46px -14px rgba(47, 158, 90, 0.4), 0 30px 70px -20px rgba(0, 0, 0, 0.9);
 }
 @media (max-width: 620px) {
   .modal-overlay {
@@ -540,7 +545,7 @@ a:hover {
   .modal-sheet {
     max-width: 100%;
     max-height: 92vh;
-    border-radius: 12px 12px 0 0;
+    border-radius: 0;
     border-bottom: none;
   }
 }
@@ -549,19 +554,19 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(57, 217, 138, 0.16);
+  border-bottom: 1px solid rgba(47, 158, 90, 0.16);
 }
 .modal-titlebar span {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 15px;
-  color: #e6efe8;
+  color: #7dffb0;
 }
 .modal-close {
   cursor: pointer;
   background: none;
   border: none;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
   font-size: 18px;
   line-height: 1;
 }
@@ -572,10 +577,10 @@ a:hover {
   margin-bottom: 14px;
 }
 .char-group-label {
-  font: 500 10px Oswald;
+  font: 500 10px 'Share Tech Mono';
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(57, 217, 138, 0.6);
+  color: rgba(47, 158, 90, 0.6);
   margin-bottom: 6px;
 }
 .skill-tab-row {
@@ -586,17 +591,17 @@ a:hover {
 }
 .skill-tab {
   cursor: pointer;
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.04em;
   padding: 7px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.6);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.6);
 }
 .skill-tab.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.16);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.16);
   color: #9dffc4;
 }
 .chip-row {
@@ -607,17 +612,17 @@ a:hover {
 }
 .chip {
   cursor: pointer;
-  font: 400 12px Oswald;
+  font: 400 12px 'Share Tech Mono';
   letter-spacing: 0.06em;
   padding: 8px 14px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.7);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.7);
 }
 .chip.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.16);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.16);
   color: #9dffc4;
 }
 .malus-row {
@@ -629,17 +634,17 @@ a:hover {
   cursor: pointer;
   flex: 1;
   min-width: 0;
-  font: 400 12px Oswald;
+  font: 400 12px 'Share Tech Mono';
   letter-spacing: 0.03em;
   padding: 11px 0;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.12);
   background: transparent;
-  color: rgba(214, 228, 218, 0.55);
+  color: rgba(31, 122, 69, 0.55);
 }
 .malus-btn.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.16);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.16);
   color: #9dffc4;
 }
 .who-row {
@@ -650,34 +655,34 @@ a:hover {
 .who-btn {
   cursor: pointer;
   flex: 1;
-  font: 400 12px Oswald;
+  font: 400 12px 'Share Tech Mono';
   letter-spacing: 0.05em;
   padding: 11px 0;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.12);
   background: transparent;
-  color: rgba(214, 228, 218, 0.55);
+  color: rgba(31, 122, 69, 0.55);
 }
 .who-btn.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.16);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.16);
   color: #9dffc4;
 }
 .text-input {
   width: 100%;
-  font: 400 14px Oswald;
+  font: 400 14px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: #e6efe8;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
+  color: #9dffc4;
+  background: rgba(26, 77, 44, 0.03);
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  border-radius: 0;
   padding: 11px 13px;
 }
 .text-input::placeholder {
-  color: rgba(214, 228, 218, 0.35);
+  color: rgba(31, 122, 69, 0.35);
 }
 .form-error {
-  font: 400 12px Oswald;
+  font: 400 12px 'Share Tech Mono';
   letter-spacing: 0.03em;
   color: #e08a7d;
   margin-top: 8px;
@@ -694,39 +699,39 @@ a:hover {
   align-items: center;
   gap: 11px;
   padding: 10px 13px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.1);
+  background: rgba(26, 77, 44, 0.02);
   text-align: left;
   width: 100%;
 }
 .selectable-row.chosen {
-  border-color: rgba(57, 217, 138, 0.45);
-  background: rgba(57, 217, 138, 0.08);
+  border-color: rgba(47, 158, 90, 0.45);
+  background: rgba(47, 158, 90, 0.08);
 }
 .checkbox {
   width: 16px;
   height: 16px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.25);
   flex: none;
 }
 .checkbox.chosen {
-  border-color: #39d98a;
-  background: #39d98a;
+  border-color: #38e07b;
+  background: #38e07b;
 }
 .selectable-label {
-  font: 400 13px Oswald;
+  font: 400 13px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(214, 228, 218, 0.6);
+  color: rgba(31, 122, 69, 0.6);
 }
 .selectable-label.chosen {
-  color: #e6efe8;
+  color: #9dffc4;
 }
 .whoall-hint {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.4);
+  color: rgba(31, 122, 69, 0.4);
   margin-bottom: 22px;
 }
 
@@ -734,12 +739,12 @@ a:hover {
 .player-card {
   max-width: 480px;
   margin: 0 auto;
-  background: linear-gradient(180deg, #0c1712 0%, #06100c 100%);
-  border: 1px solid rgba(57, 217, 138, 0.3);
-  border-radius: 12px;
+  background: rgba(4, 14, 8, 0.92);
+  border: 1px solid rgba(47, 158, 90, 0.3);
+  border-radius: 0;
   overflow: hidden;
-  border-top: 1px solid rgba(57, 217, 138, 0.28);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(57, 217, 138, 0.35),
+  border-top: 1px solid rgba(47, 158, 90, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(47, 158, 90, 0.35),
     0 24px 60px -20px rgba(0, 0, 0, 0.85);
 }
 .player-header {
@@ -748,7 +753,7 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border-bottom: 1px solid rgba(57, 217, 138, 0.14);
+  border-bottom: 1px solid rgba(47, 158, 90, 0.14);
   flex-wrap: wrap;
 }
 .player-header-left {
@@ -757,39 +762,39 @@ a:hover {
   gap: 9px;
 }
 .player-header-name {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 13px;
-  color: #e6efe8;
+  color: #9dffc4;
   line-height: 1.1;
 }
 .player-header-cls {
-  font: 300 10px Oswald;
+  font: 300 10px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.42);
+  color: rgba(31, 122, 69, 0.42);
 }
 .player-header-code {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font: 400 9px Oswald;
+  font: 400 9px 'Share Tech Mono';
   letter-spacing: 0.1em;
-  color: #5ffca8;
+  color: #4dff8f;
 }
 .player-header-code .status-dot {
   width: 6px;
   height: 6px;
-  background: #5ffca8;
-  box-shadow: 0 0 6px 1px rgba(90, 255, 160, 0.7);
+  background: #4dff8f;
+  box-shadow: 0 0 6px 1px rgba(77, 255, 143, 0.7);
 }
 .player-body {
   padding: 16px 18px 22px;
   animation: fadeUp 0.4s ease both;
 }
 .radar-card {
-  border: 1px solid rgba(57, 217, 138, 0.22);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(47, 158, 90, 0.22);
+  border-radius: 0;
+  background: rgba(26, 77, 44, 0.015);
   padding: 12px 4px 4px;
   margin-bottom: 16px;
 }
@@ -802,16 +807,16 @@ a:hover {
 }
 .radar-grid {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: rgba(26, 77, 44, 0.08);
   stroke-width: 1;
 }
 .radar-axis {
-  stroke: rgba(255, 255, 255, 0.1);
+  stroke: rgba(26, 77, 44, 0.1);
   stroke-width: 1;
 }
 .radar-shape {
-  fill: rgba(57, 217, 138, 0.22);
-  stroke: #39d98a;
+  fill: rgba(47, 158, 90, 0.22);
+  stroke: #38e07b;
   stroke-width: 1.5;
   stroke-linejoin: round;
 }
@@ -819,38 +824,38 @@ a:hover {
   fill: #9dffc4;
 }
 .radar-label-char {
-  font: 700 10px Cinzel, serif;
+  font: 700 10px 'VT323', monospace;
   letter-spacing: 0.08em;
   fill: #9dffc4;
 }
 .radar-label-skill {
-  font: 400 8px Oswald;
+  font: 400 8px 'Share Tech Mono';
   letter-spacing: 0.02em;
-  fill: rgba(214, 228, 218, 0.5);
+  fill: rgba(31, 122, 69, 0.5);
 }
 
 .search-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  border: 1px solid rgba(26, 77, 44, 0.1);
+  border-radius: 0;
   padding: 9px 14px;
   margin-bottom: 13px;
-  color: rgba(214, 228, 218, 0.32);
-  font: 300 12px Oswald;
+  color: rgba(31, 122, 69, 0.32);
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.04em;
 }
 .pending-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 300 10px Oswald;
+  font: 300 10px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(57, 217, 138, 0.7);
-  background: rgba(57, 217, 138, 0.06);
-  border: 1px solid rgba(57, 217, 138, 0.2);
-  border-radius: 4px;
+  color: rgba(47, 158, 90, 0.7);
+  background: rgba(47, 158, 90, 0.06);
+  border: 1px solid rgba(47, 158, 90, 0.2);
+  border-radius: 0;
   padding: 9px 12px;
   margin-bottom: 15px;
 }
@@ -863,10 +868,10 @@ a:hover {
 }
 .skill-row {
   padding: 12px 2px;
-  border-bottom: 1px solid rgba(57, 217, 138, 0.1);
-  font: 400 14px Oswald;
+  border-bottom: 1px solid rgba(47, 158, 90, 0.1);
+  font: 400 14px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(214, 228, 218, 0.72);
+  color: rgba(31, 122, 69, 0.72);
 }
 .request-screen {
   position: relative;
@@ -874,10 +879,10 @@ a:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #0c1712, #06100c);
-  border: 1px solid rgba(57, 217, 138, 0.28);
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(57, 217, 138, 0.4),
+  background: rgba(4, 14, 8, 0.92);
+  border: 1px solid rgba(47, 158, 90, 0.28);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(47, 158, 90, 0.4),
     0 26px 60px -20px rgba(0, 0, 0, 0.85);
   overflow: hidden;
   padding: 38px 26px 40px;
@@ -888,26 +893,26 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font: 400 10px Oswald;
+  font: 400 10px 'Share Tech Mono';
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #39d98a;
-  border: 1px solid rgba(57, 217, 138, 0.4);
-  border-radius: 20px;
+  color: #38e07b;
+  border: 1px solid rgba(47, 158, 90, 0.4);
+  border-radius: 0;
   padding: 6px 13px;
   margin-bottom: 24px;
 }
 .request-skill {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 26px;
-  color: #e6efe8;
+  color: #4dff8f;
   margin-bottom: 8px;
 }
 .request-flavor {
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
   font-style: italic;
   margin-bottom: 44px;
   line-height: 1.5;
@@ -916,10 +921,10 @@ a:hover {
   cursor: pointer;
   width: 158px;
   height: 158px;
-  border: 2px solid #39d98a;
-  background: radial-gradient(circle at 50% 35%, rgba(57, 217, 138, 0.22), rgba(57, 217, 138, 0.06));
-  border-radius: 50%;
-  box-shadow: 0 0 30px -4px rgba(90, 255, 160, 0.55);
+  border: 2px solid #38e07b;
+  background: radial-gradient(circle at 50% 35%, rgba(47, 158, 90, 0.22), rgba(47, 158, 90, 0.06));
+  border-radius: 0;
+  box-shadow: 0 0 30px -4px rgba(77, 255, 143, 0.55);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -932,7 +937,7 @@ a:hover {
   line-height: 1;
 }
 .roll-button .label {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.1em;
@@ -941,8 +946,8 @@ a:hover {
 .rolling-circle {
   width: 158px;
   height: 158px;
-  border: 2px solid rgba(57, 217, 138, 0.5);
-  border-radius: 50%;
+  border: 2px solid rgba(47, 158, 90, 0.5);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -954,38 +959,38 @@ a:hover {
   animation: spin40 0.6s linear infinite;
 }
 .request-hint {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.4);
+  color: rgba(31, 122, 69, 0.4);
   margin-top: 24px;
 }
 .result-card {
   position: relative;
-  border-radius: 10px;
+  border-radius: 0;
   padding: 26px 18px;
   text-align: center;
   margin-bottom: 22px;
   border: 1px solid;
-  box-shadow: 0 0 34px -8px rgba(90, 255, 160, 0.55);
+  box-shadow: 0 0 34px -8px rgba(77, 255, 143, 0.55);
   overflow: hidden;
   animation: pop 0.5s ease both;
 }
 .result-card-skill {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.06em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
   margin-bottom: 9px;
 }
 .result-card-label {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: 34px;
   letter-spacing: 0.05em;
 }
 .result-card-degree {
-  font: 400 13px Oswald;
+  font: 400 13px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(214, 228, 218, 0.62);
+  color: rgba(31, 122, 69, 0.62);
   margin-top: 7px;
 }
 .teammates-list {
@@ -997,7 +1002,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 7px;
+  border-radius: 0;
   padding: 12px 14px;
   border: 1px solid;
   transition: border-color 0.45s ease, background-color 0.45s ease;
@@ -1008,21 +1013,21 @@ a:hover {
   gap: 9px;
 }
 .teammate-name {
-  font: 400 13px Oswald;
+  font: 400 13px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: #e6efe8;
+  color: #9dffc4;
 }
 .teammate-result {
   text-align: right;
 }
 .teammate-label {
-  font: 500 12px Oswald;
+  font: 500 12px 'Share Tech Mono';
   letter-spacing: 0.04em;
   transition: color 0.45s ease;
 }
 .teammate-degree {
-  font: 300 10px Oswald;
-  color: rgba(214, 228, 218, 0.45);
+  font: 300 10px 'Share Tech Mono';
+  color: rgba(31, 122, 69, 0.45);
 }
 /* PV / armor / damage (V2) */
 .roster-row-wrap {
@@ -1030,7 +1035,7 @@ a:hover {
   row-gap: 10px;
 }
 .roster-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(26, 77, 44, 0.06);
 }
 .roster-item .roster-row {
   border-bottom: none;
@@ -1041,8 +1046,8 @@ a:hover {
 }
 .roster-pv-bar {
   height: 7px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.07);
+  border-radius: 0;
+  background: rgba(26, 77, 44, 0.07);
   overflow: hidden;
   margin-bottom: 5px;
 }
@@ -1051,33 +1056,33 @@ a:hover {
   transition: width 0.4s ease;
 }
 .roster-pv-bar-fill.pv-sain {
-  background: linear-gradient(90deg, #2f9e6a, #5ffca8);
+  background: linear-gradient(90deg, #2f9e5a, #4dff8f);
 }
 .roster-pv-bar-fill.pv-blesse {
   background: linear-gradient(90deg, #b6903f, #e3c987);
 }
 .roster-pv-bar-fill.pv-critique {
-  background: linear-gradient(90deg, #a85a3f, #d98a5e);
+  background: linear-gradient(90deg, #8a4a2c, #ff9d6f);
 }
 .roster-pv-bar-fill.pv-horsCombat {
   background: #c65a4f;
 }
 .roster-pv-label {
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(214, 228, 218, 0.55);
+  color: rgba(31, 122, 69, 0.55);
 }
 .pv-tag {
   font-weight: 600;
 }
 .pv-tag.pv-sain {
-  color: #5ffca8;
+  color: #4dff8f;
 }
 .pv-tag.pv-blesse {
   color: #e3c987;
 }
 .pv-tag.pv-critique {
-  color: #d98a5e;
+  color: #ff9d6f;
 }
 .pv-tag.pv-horsCombat {
   color: #c65a4f;
@@ -1089,17 +1094,17 @@ a:hover {
 }
 .roster-action-btn {
   cursor: pointer;
-  font: 400 11px Oswald;
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.04em;
   padding: 7px 11px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.7);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.14);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.7);
   white-space: nowrap;
 }
 .roster-action-btn:hover {
-  border-color: #39d98a;
+  border-color: #38e07b;
   color: #9dffc4;
 }
 
@@ -1110,11 +1115,11 @@ a:hover {
   margin: 12px 18px 0;
   text-align: center;
   padding: 10px;
-  border-radius: 4px;
-  border: 1px solid rgba(198, 90, 79, 0.5);
-  background: rgba(198, 90, 79, 0.12);
+  border-radius: 0;
+  border: 1px solid rgba(192, 96, 58, 0.5);
+  background: rgba(192, 96, 58, 0.12);
   color: #e08a7d;
-  font: 600 12px Oswald;
+  font: 600 12px 'Share Tech Mono';
   letter-spacing: 0.1em;
   animation: blink 1.6s ease-in-out infinite;
 }
@@ -1122,11 +1127,11 @@ a:hover {
   margin: 12px 18px 0;
   text-align: center;
   padding: 10px;
-  border-radius: 4px;
-  border: 1px solid rgba(57, 217, 138, 0.4);
-  background: rgba(57, 217, 138, 0.1);
+  border-radius: 0;
+  border: 1px solid rgba(47, 158, 90, 0.4);
+  background: rgba(47, 158, 90, 0.1);
   color: #9dffc4;
-  font: 400 12px Oswald;
+  font: 400 12px 'Share Tech Mono';
   letter-spacing: 0.04em;
   animation: fadeUp 0.3s ease both;
 }
@@ -1135,8 +1140,8 @@ a:hover {
   cursor: pointer;
   background: none;
   border: none;
-  color: rgba(57, 217, 138, 0.75);
-  font: 400 11px Oswald;
+  color: rgba(47, 158, 90, 0.75);
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0;
@@ -1144,18 +1149,18 @@ a:hover {
 }
 .armor-list {
   margin-bottom: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 4px;
+  border: 1px solid rgba(26, 77, 44, 0.09);
+  border-radius: 0;
   overflow: hidden;
 }
 .armor-row {
   display: flex;
   justify-content: space-between;
   padding: 9px 13px;
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: rgba(214, 228, 218, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(31, 122, 69, 0.6);
+  border-bottom: 1px solid rgba(26, 77, 44, 0.06);
 }
 .armor-row:last-child {
   border-bottom: none;
@@ -1163,8 +1168,8 @@ a:hover {
 
 .char-edit-panel {
   padding: 16px 16px 20px;
-  background: rgba(255, 255, 255, 0.015);
-  border-top: 1px solid rgba(57, 217, 138, 0.15);
+  background: rgba(26, 77, 44, 0.015);
+  border-top: 1px solid rgba(47, 158, 90, 0.15);
 }
 .char-edit-row {
   display: flex;
@@ -1174,9 +1179,9 @@ a:hover {
 }
 .char-edit-label {
   flex: 1 1 auto;
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.03em;
-  color: rgba(214, 228, 218, 0.6);
+  color: rgba(31, 122, 69, 0.6);
 }
 .char-edit-input {
   flex: 0 0 90px;
@@ -1196,19 +1201,19 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
-  font: 300 12px Oswald;
-  color: rgba(214, 228, 218, 0.65);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.1);
+  background: rgba(26, 77, 44, 0.02);
+  font: 300 12px 'Share Tech Mono';
+  color: rgba(31, 122, 69, 0.65);
 }
 
 .attack-card {
   margin-bottom: 20px;
   padding: 16px 18px;
-  border-radius: 5px;
-  border: 1px solid rgba(57, 217, 138, 0.4);
-  background: rgba(57, 217, 138, 0.06);
+  border-radius: 0;
+  border: 1px solid rgba(47, 158, 90, 0.4);
+  background: rgba(47, 158, 90, 0.06);
   animation: fadeUp 0.3s ease both;
 }
 .attack-card-title {
@@ -1216,19 +1221,19 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 600;
   font-size: 14px;
-  color: #e6efe8;
+  color: #9dffc4;
   margin-bottom: 8px;
 }
 .attack-card-status {
-  font: 300 12px Oswald;
+  font: 300 12px 'Share Tech Mono';
   letter-spacing: 0.05em;
-  color: rgba(214, 228, 218, 0.55);
+  color: rgba(31, 122, 69, 0.55);
 }
 .attack-card-result {
-  font: 500 13px Oswald;
+  font: 500 13px 'Share Tech Mono';
   letter-spacing: 0.04em;
   color: #9dffc4;
   margin-bottom: 12px;
@@ -1239,32 +1244,14 @@ a:hover {
   width: 100%;
   margin-top: 22px;
   padding: 13px;
-  border: 1px solid #39d98a;
-  background: linear-gradient(180deg, rgba(57, 217, 138, 0.18), rgba(57, 217, 138, 0.06));
-  border-radius: 5px;
+  border: 1px solid #38e07b;
+  background: linear-gradient(180deg, rgba(47, 158, 90, 0.18), rgba(47, 158, 90, 0.06));
+  border-radius: 0;
   color: #9dffc4;
-  box-shadow: 0 0 26px -6px rgba(57, 217, 138, 0.7);
-  font: 600 12px Oswald;
+  box-shadow: 0 0 26px -6px rgba(47, 158, 90, 0.7);
+  font: 600 12px 'Share Tech Mono';
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-/* HUD corner brackets — CSS-only decoration, no extra markup */
-.hud-corners::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0.85;
-  background: linear-gradient(to right, #5ffca8 1.5px, transparent 1.5px) no-repeat top left / 15px 1.5px,
-    linear-gradient(to bottom, #5ffca8 1.5px, transparent 1.5px) no-repeat top left / 1.5px 15px,
-    linear-gradient(to left, #5ffca8 1.5px, transparent 1.5px) no-repeat top right / 15px 1.5px,
-    linear-gradient(to bottom, #5ffca8 1.5px, transparent 1.5px) no-repeat top right / 1.5px 15px,
-    linear-gradient(to right, #5ffca8 1.5px, transparent 1.5px) no-repeat bottom left / 15px 1.5px,
-    linear-gradient(to top, #5ffca8 1.5px, transparent 1.5px) no-repeat bottom left / 1.5px 15px,
-    linear-gradient(to left, #5ffca8 1.5px, transparent 1.5px) no-repeat bottom right / 15px 1.5px,
-    linear-gradient(to top, #5ffca8 1.5px, transparent 1.5px) no-repeat bottom right / 1.5px 15px;
 }
 
 /* Attack-sequence stat pills (écrans F/G) */
@@ -1276,33 +1263,43 @@ a:hover {
 .stat-pill {
   flex: 1;
   padding: 8px 11px;
-  border: 1px solid rgba(90, 230, 150, 0.25);
-  border-radius: 2px;
-  background: rgba(57, 217, 138, 0.05);
+  border: 1px solid rgba(77, 255, 143, 0.25);
+  border-radius: 0;
+  background: rgba(47, 158, 90, 0.05);
 }
 .stat-pill-highlight {
-  border-color: rgba(90, 230, 150, 0.4);
-  background: rgba(57, 217, 138, 0.1);
+  border-color: rgba(77, 255, 143, 0.4);
+  background: rgba(47, 158, 90, 0.1);
 }
 .stat-pill-label {
-  font: 600 9px Oswald;
+  font: 600 9px 'Share Tech Mono';
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(90, 230, 150, 0.6);
+  color: rgba(77, 255, 143, 0.6);
 }
 .stat-pill-value {
-  font-family: Cinzel, serif;
+  font-family: 'VT323', monospace;
   font-weight: 700;
   font-size: 16px;
   color: #9dffc4;
-  text-shadow: 0 0 10px rgba(90, 255, 160, 0.4);
+  text-shadow: 0 0 10px rgba(77, 255, 143, 0.4);
   margin-top: 2px;
 }
 .roll-button-sub {
-  font: 400 9px Oswald;
+  font: 400 9px 'Share Tech Mono';
   letter-spacing: 0.2em;
-  color: rgba(90, 230, 150, 0.6);
+  color: rgba(77, 255, 143, 0.6);
   margin-top: 3px;
+}
+.dice-art {
+  margin: 0 0 14px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  line-height: 1;
+  color: #2f9e5a;
+}
+.dice-art.danger {
+  color: #8a4a2c;
 }
 
 /* Incoming-attack warning (écran G) — distinct amber variant of .request-screen,
@@ -1312,33 +1309,23 @@ a:hover {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 0 46px -14px rgba(224, 138, 74, 0.35),
     0 26px 60px -20px rgba(0, 0, 0, 0.85);
 }
-.incoming-attack.hud-corners::before {
-  background: linear-gradient(to right, #e3a45e 1.5px, transparent 1.5px) no-repeat top left / 15px 1.5px,
-    linear-gradient(to bottom, #e3a45e 1.5px, transparent 1.5px) no-repeat top left / 1.5px 15px,
-    linear-gradient(to left, #e3a45e 1.5px, transparent 1.5px) no-repeat top right / 15px 1.5px,
-    linear-gradient(to bottom, #e3a45e 1.5px, transparent 1.5px) no-repeat top right / 1.5px 15px,
-    linear-gradient(to right, #e3a45e 1.5px, transparent 1.5px) no-repeat bottom left / 15px 1.5px,
-    linear-gradient(to top, #e3a45e 1.5px, transparent 1.5px) no-repeat bottom left / 1.5px 15px,
-    linear-gradient(to left, #e3a45e 1.5px, transparent 1.5px) no-repeat bottom right / 15px 1.5px,
-    linear-gradient(to top, #e3a45e 1.5px, transparent 1.5px) no-repeat bottom right / 1.5px 15px;
-}
 .incoming-attack-banner {
   margin: -38px -26px 22px;
   padding: 11px;
   background: rgba(224, 138, 74, 0.14);
   border-bottom: 1px solid rgba(224, 138, 74, 0.4);
-  font: 600 12px Oswald;
+  font: 600 12px 'Share Tech Mono';
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-align: center;
-  color: #f0b276;
+  color: #ffb184;
   animation: blink 1.6s ease-in-out infinite;
 }
 .roll-button.danger {
-  border-color: #e3a45e;
+  border-color: #c0603a;
   background: radial-gradient(circle at 50% 35%, rgba(224, 138, 74, 0.22), rgba(224, 138, 74, 0.05));
   box-shadow: 0 0 30px -4px rgba(224, 138, 74, 0.55);
-  color: #f0b276;
+  color: #ffb184;
   animation: pulseAmber 2s ease-out infinite;
 }
 .roll-button.danger .roll-button-sub {
@@ -1346,7 +1333,7 @@ a:hover {
 }
 .rolling-circle.danger {
   border-color: rgba(224, 138, 74, 0.5);
-  color: #f0b276;
+  color: #ffb184;
 }
 
 /* Duel preview header (écran E, modale d'attaque) */
@@ -1362,42 +1349,42 @@ a:hover {
   flex-direction: column;
   align-items: center;
   border: 1px solid;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 14px 12px;
   text-align: center;
 }
 .duel-card-attacker {
-  border-color: rgba(90, 230, 150, 0.55);
-  background: rgba(57, 217, 138, 0.1);
-  box-shadow: 0 0 18px -6px rgba(90, 255, 160, 0.5);
+  border-color: rgba(77, 255, 143, 0.55);
+  background: rgba(47, 158, 90, 0.1);
+  box-shadow: 0 0 18px -6px rgba(77, 255, 143, 0.5);
 }
 .duel-card-defender {
-  border-color: rgba(198, 90, 79, 0.45);
-  background: rgba(198, 90, 79, 0.08);
+  border-color: rgba(192, 96, 58, 0.45);
+  background: rgba(192, 96, 58, 0.08);
 }
 .duel-card-label {
-  font: 600 9px Oswald;
+  font: 600 9px 'Share Tech Mono';
   letter-spacing: 0.2em;
   text-transform: uppercase;
   margin-bottom: 9px;
-  color: rgba(90, 230, 150, 0.7);
+  color: rgba(77, 255, 143, 0.7);
 }
 .duel-card-defender .duel-card-label {
-  color: rgba(255, 136, 119, 0.8);
+  color: rgba(255, 157, 111, 0.8);
 }
 .duel-card-name {
-  font: 500 14px Oswald;
-  color: #e6efe8;
+  font: 500 14px 'Share Tech Mono';
+  color: #9dffc4;
   margin-top: 9px;
 }
 .duel-card-stat {
-  font: 400 10px Oswald;
+  font: 400 10px 'Share Tech Mono';
   letter-spacing: 0.14em;
   color: #9dffc4;
   margin-top: 4px;
 }
 .duel-card-defender .duel-card-stat {
-  color: #ff8877;
+  color: #ff9d6f;
 }
 .duel-arrow {
   flex: none;
@@ -1405,17 +1392,17 @@ a:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #5ffca8;
+  color: #4dff8f;
 }
 .duel-arrow span:first-child {
   font-size: 22px;
   line-height: 1;
-  text-shadow: 0 0 14px rgba(90, 255, 160, 0.7);
+  text-shadow: 0 0 14px rgba(77, 255, 143, 0.7);
 }
 .duel-arrow span:last-child {
-  font: 400 8px Oswald;
+  font: 400 8px 'Share Tech Mono';
   letter-spacing: 0.18em;
-  color: rgba(90, 230, 150, 0.55);
+  color: rgba(77, 255, 143, 0.55);
   margin-top: 6px;
 }
 
@@ -1434,19 +1421,19 @@ a:hover {
   align-items: center;
   gap: 7px;
   padding: 11px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(214, 228, 218, 0.65);
-  font: 400 11px Oswald;
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.12);
+  background: rgba(26, 77, 44, 0.03);
+  color: rgba(31, 122, 69, 0.65);
+  font: 400 11px 'Share Tech Mono';
   letter-spacing: 0.04em;
   text-align: center;
 }
 .entity-pick.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.12);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.12);
   color: #9dffc4;
-  box-shadow: 0 0 12px -4px rgba(57, 217, 138, 0.55);
+  box-shadow: 0 0 12px -4px rgba(47, 158, 90, 0.55);
 }
 
 /* Weapon row list (écran E, remplace les chips d'arme) */
@@ -1465,38 +1452,38 @@ a:hover {
   width: 100%;
   text-align: left;
   padding: 12px 14px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0;
+  border: 1px solid rgba(26, 77, 44, 0.12);
+  background: rgba(26, 77, 44, 0.03);
 }
 .weapon-row.active {
-  border-color: #39d98a;
-  background: rgba(57, 217, 138, 0.12);
-  box-shadow: 0 0 14px -4px rgba(57, 217, 138, 0.55);
+  border-color: #38e07b;
+  background: rgba(47, 158, 90, 0.12);
+  box-shadow: 0 0 14px -4px rgba(47, 158, 90, 0.55);
 }
 .weapon-row-name {
   display: block;
-  font: 500 14px Oswald;
-  color: #e6efe8;
+  font: 500 14px 'Share Tech Mono';
+  color: #9dffc4;
 }
 .weapon-row.active .weapon-row-name {
-  color: #c9ffe0;
+  color: #7dffb0;
 }
 .weapon-row-modes {
-  font: 300 11px Oswald;
+  font: 300 11px 'Share Tech Mono';
   letter-spacing: 0.04em;
-  color: rgba(214, 228, 218, 0.5);
+  color: rgba(31, 122, 69, 0.5);
 }
 .weapon-row-damage {
   flex: none;
   padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-  font: 600 11px Oswald;
+  border: 1px solid rgba(26, 77, 44, 0.15);
+  border-radius: 0;
+  font: 600 11px 'Share Tech Mono';
   letter-spacing: 0.06em;
-  color: rgba(214, 228, 218, 0.65);
+  color: rgba(31, 122, 69, 0.65);
 }
 .weapon-row.active .weapon-row-damage {
-  border-color: rgba(90, 230, 150, 0.4);
+  border-color: rgba(77, 255, 143, 0.4);
   color: #9dffc4;
 }

@@ -94,7 +94,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMeAsAttacker && (
-        <div className="request-screen hud-corners">
+        <div className="request-screen">
           <div className="order-badge">➤ Vous attaquez</div>
           <div className="request-skill">Test de Dextérité</div>
 
@@ -114,11 +114,14 @@ export default function PlayerView({ vals }) {
           </div>
 
           {!vals.rollingAttack && (
-            <button className="roll-button" onClick={vals.rollAttack}>
-              <div className="glyph">➤</div>
-              <div className="label">LANCER</div>
-              <div className="roll-button-sub">1d100</div>
-            </button>
+            <>
+              <pre className="dice-art">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│  > ROLL <  │\n└───────────┘'}</pre>
+              <button className="roll-button" onClick={vals.rollAttack}>
+                <div className="glyph">➤</div>
+                <div className="label">LANCER</div>
+                <div className="roll-button-sub">1d100</div>
+              </button>
+            </>
           )}
           {vals.rollingAttack && (
             <div className="rolling-circle">
@@ -130,7 +133,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackWaitingForDodgeAsAttacker && (
-        <div className="request-screen hud-corners">
+        <div className="request-screen">
           <div className="order-badge">⚔ Touché ! ({vals.attackRollDegreeText})</div>
           <div className="attack-card-status" style={{ marginTop: 12 }}>
             En attente de l'esquive de {vals.attackDefenderEntity?.name}…
@@ -139,7 +142,7 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.attackPendingForMe && (
-        <div className="request-screen hud-corners incoming-attack">
+        <div className="request-screen incoming-attack">
           <div className="incoming-attack-banner">⚠ Attaque entrante</div>
           <div className="order-badge">
             {vals.attackAttackerEntity?.name} · {vals.attack.weaponName} · {vals.attackFireModeLabel}
@@ -162,11 +165,14 @@ export default function PlayerView({ vals }) {
           </div>
 
           {!vals.dodging && (
-            <button className="roll-button danger" onClick={vals.rollDodge}>
-              <div className="glyph">↯</div>
-              <div className="label">ESQUIVER</div>
-              <div className="roll-button-sub">1d100</div>
-            </button>
+            <>
+              <pre className="dice-art danger">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│ > DODGE <  │\n└───────────┘'}</pre>
+              <button className="roll-button danger" onClick={vals.rollDodge}>
+                <div className="glyph">↯</div>
+                <div className="label">ESQUIVER</div>
+                <div className="roll-button-sub">1d100</div>
+              </button>
+            </>
           )}
           {vals.dodging && (
             <div className="rolling-circle danger">
@@ -179,9 +185,9 @@ export default function PlayerView({ vals }) {
 
       {vals.attackResolvedForMe && (
         <div className="player-body">
-          <div className="result-card hud-corners" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(198,90,79,.5)' : 'rgba(90,230,150,.5)' }}>
+          <div className="result-card" style={{ borderColor: vals.attack.outcome === 'hit' ? 'rgba(192,96,58,.5)' : 'rgba(77,255,143,.5)' }}>
             {vals.attack.outcome !== 'hit' && <div className="result-card-skill">Esquive</div>}
-            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#ff8877' : '#5ffca8' }}>
+            <div className="result-card-label" style={{ color: vals.attack.outcome === 'hit' ? '#ff9d6f' : '#4dff8f' }}>
               {vals.attackOutcomeText}
             </div>
           </div>
@@ -192,16 +198,19 @@ export default function PlayerView({ vals }) {
       )}
 
       {vals.pScreenRequest && (
-        <div className="request-screen hud-corners">
+        <div className="request-screen">
           <div className="order-badge">✦ Ordre du MJ</div>
           <div className="request-skill">{vals.reqSkill}</div>
           {vals.reqMalus && <div className="request-flavor">Malus {vals.reqMalus}</div>}
 
           {vals.showRollBtn && (
-            <button className="roll-button" onClick={vals.rollDice}>
-              <div className="glyph">⚄</div>
-              <div className="label">LANCER</div>
-            </button>
+            <>
+              <pre className="dice-art">{'┌───────────┐\n│  ▖ 1d100 ▗ │\n│  ░░▓██▓░░  │\n│  > ROLL <  │\n└───────────┘'}</pre>
+              <button className="roll-button" onClick={vals.rollDice}>
+                <div className="glyph">⚄</div>
+                <div className="label">LANCER</div>
+              </button>
+            </>
           )}
           {vals.rolling && (
             <div className="rolling-circle">
@@ -214,7 +223,7 @@ export default function PlayerView({ vals }) {
 
       {vals.pScreenResult && (
         <div className="player-body">
-          <div className="result-card hud-corners" style={{ borderColor: vals.myBorder, background: vals.myBg }}>
+          <div className="result-card" style={{ borderColor: vals.myBorder, background: vals.myBg }}>
             <div className="result-card-skill">{vals.reqSkill}</div>
             <div className="result-card-label" style={{ color: vals.myText }}>
               {vals.myLabel}
