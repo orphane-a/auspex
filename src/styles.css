@@ -1116,23 +1116,56 @@ a:hover {
   padding: 0;
   margin-bottom: 12px;
 }
-.armor-list {
-  margin-bottom: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 4px;
-  overflow: hidden;
+.armor-diagram {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto 16px;
 }
-.armor-row {
+.armor-diagram-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.armor-shape {
+  fill: #c9a24a;
+  stroke: rgba(201, 162, 74, 0.55);
+  stroke-width: 1.5;
+}
+.armor-shape-neck {
+  fill: rgba(201, 162, 74, 0.2);
+  stroke: none;
+}
+.armor-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
   display: flex;
-  justify-content: space-between;
-  padding: 9px 13px;
-  font: 300 12px Oswald;
-  letter-spacing: 0.03em;
-  color: rgba(230, 224, 212, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  pointer-events: none;
 }
-.armor-row:last-child {
-  border-bottom: none;
+.armor-badge-label {
+  font: 400 7px Oswald;
+  letter-spacing: 0.03em;
+  color: rgba(230, 224, 212, 0.55);
+  white-space: nowrap;
+}
+.armor-badge-value {
+  font: 600 13px Oswald;
+  color: #e3c987;
+}
+.armor-badge-input {
+  pointer-events: auto;
+  width: 34px;
+  padding: 1px 2px;
+  text-align: center;
+  font: 600 12px Oswald;
+  color: #e3c987;
+  background: rgba(20, 18, 14, 0.75);
+  border: 1px solid rgba(201, 162, 74, 0.4);
+  border-radius: 3px;
 }
 
 .char-edit-panel {
@@ -1155,9 +1188,6 @@ a:hover {
 .char-edit-input {
   flex: 0 0 90px;
   width: 90px;
-}
-.armor-edit-grid {
-  margin-bottom: 4px;
 }
 .pv-bonus-list {
   margin-bottom: 10px;

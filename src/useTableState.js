@@ -6,7 +6,6 @@ import {
   groupSkillsByCharacteristic,
   statusMeta,
   pvStatus,
-  HIT_LOCATIONS,
   attackOutcomeLabel,
   attackRollDegreeLabel,
 } from './gameLogic'
@@ -403,7 +402,6 @@ export function useTableState() {
 
   const myPvStatus = myCharacter ? pvStatus(myCharacter.pv) : null
   const myPvRatio = myCharacter && myCharacter.pv.max > 0 ? Math.max(0, Math.min(1, myCharacter.pv.current / myCharacter.pv.max)) : 0
-  const myArmorList = myCharacter ? HIT_LOCATIONS.map((l) => ({ key: l.key, label: l.label, value: myCharacter.armor[l.key] || 0 })) : []
   const damageNoticeText = damageNotice
     ? `Vous encaissez ${damageNotice.rawDamage} dégâts${damageNotice.armor > 0 ? ` (${Math.min(damageNotice.armor, damageNotice.rawDamage)} absorbés)` : ''}`
     : ''
@@ -607,7 +605,6 @@ export function useTableState() {
     updateDodgeBonus,
     myPvStatus,
     myPvRatio,
-    myArmorList,
     isMeDown: !!myCharacter && myCharacter.pv.current <= 0,
     damageNoticeText,
     attackAttackerNoticeText,
