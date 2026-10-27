@@ -12,6 +12,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
 COPY server ./server
+COPY src ./src
 COPY PNJ_test ./PNJ_test
 COPY PJ_Djoko_mk4.xlsx ./
 VOLUME /data
