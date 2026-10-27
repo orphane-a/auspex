@@ -51,7 +51,7 @@ function CharacterEditPanel({ vals, character }) {
                 {b.label} · +{b.amount}
               </span>
               <button className="modal-close" onClick={() => vals.removePvBonus(character.id, i)}>
-                ✕
+                [X]
               </button>
             </div>
           ))}
@@ -239,7 +239,7 @@ export default function MjHome({ vals, onGoToDashboard }) {
                       {expandedId === c.id ? '▾' : '▸'} PV / Armure
                     </button>
                     <button className="modal-close" onClick={() => vals.deleteCharacter(c.id)}>
-                      ✕
+                      [X]
                     </button>
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export default function MjHome({ vals, onGoToDashboard }) {
                     </div>
                   </div>
                   <button className="modal-close" onClick={() => vals.deleteNpc(n.id)}>
-                    ✕
+                    [X]
                   </button>
                 </div>
                 <div className="char-edit-panel">

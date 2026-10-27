@@ -1,5 +1,22 @@
 export const MALUS_OPTIONS = ['+10', '+20', '+30', '+40', '+50']
 
+// Wording shared between the weapon-mode picker (AttackModal) and any other
+// place a fire mode needs a human label (V3) — one source of truth so the two
+// never drift apart.
+export const FIRE_MODE_LABELS = {
+  melee: 'Corps à corps',
+  single: 'Coup par coup',
+  semi: 'Semi-auto',
+  auto: 'Auto',
+}
+
+// Terminal-style "PV[▓▓▓░░]" readout (Auspex Ecrans.dc.html) — a fixed number of
+// block segments rather than a smooth width, since that's the whole visual point.
+export function asciiBar(ratio, size = 10) {
+  const filled = Math.max(0, Math.min(size, Math.round(ratio * size)))
+  return { filled: '▓'.repeat(filled), empty: '░'.repeat(size - filled) }
+}
+
 // Character sheets only carry the short form (T column: "Agi", "Cha"...) — spelled
 // out here since that abbreviation means nothing to a player mid-game. Falls back
 // to the raw abbreviation for anything outside this homebrew's usual seven.
@@ -199,8 +216,8 @@ export function statusMeta(r) {
     isFail: fail,
     isPending: !r,
     degreeText: r ? degreeLabel(r.degrees, suc) : '',
-    borderCol: r ? (suc ? 'rgba(123,163,111,.5)' : 'rgba(198,90,79,.5)') : 'rgba(255,255,255,.1)',
-    bgCol: r ? (suc ? 'rgba(123,163,111,.1)' : 'rgba(198,90,79,.1)') : 'rgba(255,255,255,.02)',
-    textCol: r ? (suc ? '#8fbf87' : '#c65a4f') : 'rgba(230,224,212,.4)',
+    borderCol: r ? (suc ? 'rgba(77,255,143,.4)' : 'rgba(192,96,58,.45)') : 'rgba(26,77,44,.1)',
+    bgCol: r ? (suc ? 'rgba(47,158,90,.07)' : 'rgba(192,96,58,.08)') : 'rgba(26,77,44,.02)',
+    textCol: r ? (suc ? '#7dffb0' : '#ff9d6f') : 'rgba(31,122,69,.4)',
   }
 }
