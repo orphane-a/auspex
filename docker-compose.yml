@@ -1,0 +1,28 @@
+# Déploiement derrière le Traefik de Coolify (réseau « coolify », certificat Let's Encrypt).
+services:
+  auspex:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - auspex-data:/data
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.auspex-http.entrypoints=http
+      - traefik.http.routers.auspex-http.rule=Host(`auspex.orphane.fr`)
+      - traefik.http.routers.auspex-http.middlewares=auspex-https
+      - traefik.http.middlewares.auspex-https.redirectscheme.scheme=https
+      - traefik.http.routers.auspex.entrypoints=https
+      - traefik.http.routers.auspex.rule=Host(`auspex.orphane.fr`)
+      - traefik.http.routers.auspex.tls=true
+      - traefik.http.routers.auspex.tls.certresolver=letsencrypt
+      - traefik.http.services.auspex.loadbalancer.server.port=3001
+
+volumes:
+  auspex-data:
+
+networks:
+  coolify:
+    external: true

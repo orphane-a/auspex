@@ -4,10 +4,19 @@ import GmView from './GmView.jsx'
 import PlayerView from './PlayerView.jsx'
 import MjHome from './screens/MjHome.jsx'
 import JoinTable from './screens/JoinTable.jsx'
+import SplitScreen from './SplitScreen.jsx'
 
 const ROUTES = { '/mj': 'mj', '/joueur': 'joueur' }
+// Dans une iframe de l'écran partagé, le bandeau « ouvrir l'autre vue » est inutile.
+const isEmbedded = window.self !== window.top
 
 export default function App() {
+  // La racine affiche les deux vues côte à côte ; /mj et /joueur restent des vues seules.
+  if (window.location.pathname === '/') return <SplitScreen />
+  return <TableApp />
+}
+
+function TableApp() {
   const routeView = ROUTES[window.location.pathname]
   const [view, setView] = useState(routeView ?? 'mj')
   const [mjSubView, setMjSubView] = useState(null) // null = decide from data; 'home' | 'dashboard' once the MJ picks
@@ -33,7 +42,7 @@ export default function App() {
       </div>
 
       {routeView ? (
-        <div className="route-banner">
+        !isEmbedded && <div className="route-banner">
           Fenêtre dédiée · <strong>{routeView === 'mj' ? 'Vue MJ' : 'Vue Joueur'}</strong> — ouvrir{' '}
           <a href={routeView === 'mj' ? '/joueur' : '/mj'} target="_blank" rel="noreferrer">
             la {routeView === 'mj' ? 'vue Joueur' : 'vue MJ'} dans une autre fenêtre
