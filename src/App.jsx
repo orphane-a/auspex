@@ -18,6 +18,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <div className="terminal-statusbar">
+        <span>
+          AUSPEX_TERM // NŒUD:{activeView === 'mj' ? 'MJ' : 'JOUEUR'} <span className="blink">█</span>
+        </span>
+        <span className="blink">● EN LIGNE</span>
+      </div>
       <div className="stage-header">
         <div className="brand">
           <div className="brand-mark">
