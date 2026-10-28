@@ -1493,3 +1493,46 @@ a:hover {
   border-color: rgba(77, 255, 143, 0.4);
   color: #9dffc4;
 }
+
+/* Écran partagé (racine) : MJ et Joueur côte à côte, empilés sur mobile */
+.split-screen {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: rgba(47, 158, 90, 0.35);
+}
+.split-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: #020604;
+}
+.split-pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 14px;
+  font: 600 11px 'Share Tech Mono';
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9dffc4;
+  border-bottom: 1px solid rgba(47, 158, 90, 0.35);
+}
+.split-pane-header a {
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+.split-pane-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+}
+@media (max-width: 900px) {
+  .split-screen {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}

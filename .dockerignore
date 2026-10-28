@@ -1,0 +1,6 @@
+node_modules
+dist
+server/table.sqlite*
+.git
+.claude
+*.docx
