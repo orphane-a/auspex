@@ -27,25 +27,22 @@ function TableApp() {
 
   return (
     <div className="app-shell">
-      <div className="terminal-statusbar">
-        <span>
-          AUSPEX_TERM // NŒUD:{activeView === 'mj' ? 'MJ' : 'JOUEUR'} <span className="blink">█</span>
-        </span>
-        <span className="blink">● EN LIGNE</span>
-      </div>
-      <div className="stage-header">
+      <header className="stage-header">
         <div className="brand">
-          <div className="brand-mark">
-            <div className="diamond" />
-            <div className="ring" />
-            <div className="dot" />
-          </div>
+          <svg className="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--accent)' }}>
+            <rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)" />
+            <circle cx="28" cy="28" r="7" />
+          </svg>
           <div>
-            <div className="brand-title">AUSPEX</div>
-            <div className="brand-subtitle">Companion de partie · M41</div>
+            <h1 className="brand-title" style={{ margin: 0 }}>AUSPEX</h1>
+            <div className="brand-subtitle">{activeView === 'mj' ? 'Maître de jeu' : 'Joueur'}</div>
           </div>
         </div>
-      </div>
+        <span className="online-chip">
+          <span className="status-dot" aria-hidden="true" />
+          En ligne
+        </span>
+      </header>
 
       {routeView ? (
         !isEmbedded && <div className="route-banner">

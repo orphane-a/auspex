@@ -1,10 +1,14 @@
 import { characteristicLabel } from './gameLogic'
 
-const SIZE = 300
-const CENTER = SIZE / 2
-const RADIUS = 88
-const LABEL_RADIUS = 108
-const SKILL_LINE_MAX_CHARS = 13
+const WIDTH = 360
+const HEIGHT = 360
+const CENTER_X = WIDTH / 2
+// Centre abaissé : l'étiquette de l'axe du haut s'empile au-dessus du sommet.
+const CENTER_Y = 190
+const RADIUS = 92
+const LABEL_RADIUS = 112
+const SKILL_LINE_MAX_CHARS = 16
+const SKILL_LINE_HEIGHT = 15
 
 function axisAngle(index, count) {
   return (Math.PI * 2 * index) / count - Math.PI / 2
@@ -40,8 +44,8 @@ export default function CharacteristicsRadar({ tendencies }) {
     .map((t, i) => {
       const angle = axisAngle(i, n)
       const fraction = Math.max(0.08, Math.min(1, t.score / 100))
-      const x = CENTER + Math.cos(angle) * RADIUS * fraction
-      const y = CENTER + Math.sin(angle) * RADIUS * fraction
+      const x = CENTER_X + Math.cos(angle) * RADIUS * fraction
+      const y = CENTER_Y + Math.sin(angle) * RADIUS * fraction
       return `${x},${y}`
     })
     .join(' ')
@@ -50,13 +54,13 @@ export default function CharacteristicsRadar({ tendencies }) {
     tendencies
       .map((_, i) => {
         const angle = axisAngle(i, n)
-        return `${CENTER + Math.cos(angle) * RADIUS * r},${CENTER + Math.sin(angle) * RADIUS * r}`
+        return `${CENTER_X + Math.cos(angle) * RADIUS * r},${CENTER_Y + Math.sin(angle) * RADIUS * r}`
       })
       .join(' '),
   )
 
   return (
-    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="radar-svg" role="img" aria-label="Tendances des caractéristiques">
+    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="radar-svg" role="img" aria-label="Tendances des caractéristiques">
       {gridRings.map((ring, i) => (
         <polygon key={i} points={ring} className="radar-grid" />
       ))}
@@ -65,10 +69,10 @@ export default function CharacteristicsRadar({ tendencies }) {
         return (
           <line
             key={i}
-            x1={CENTER}
-            y1={CENTER}
-            x2={CENTER + Math.cos(angle) * RADIUS}
-            y2={CENTER + Math.sin(angle) * RADIUS}
+            x1={CENTER_X}
+            y1={CENTER_Y}
+            x2={CENTER_X + Math.cos(angle) * RADIUS}
+            y2={CENTER_Y + Math.sin(angle) * RADIUS}
             className="radar-axis"
           />
         )
@@ -77,21 +81,24 @@ export default function CharacteristicsRadar({ tendencies }) {
       {tendencies.map((t, i) => {
         const angle = axisAngle(i, n)
         const fraction = Math.max(0.08, Math.min(1, t.score / 100))
-        const x = CENTER + Math.cos(angle) * RADIUS * fraction
-        const y = CENTER + Math.sin(angle) * RADIUS * fraction
+        const x = CENTER_X + Math.cos(angle) * RADIUS * fraction
+        const y = CENTER_Y + Math.sin(angle) * RADIUS * fraction
         return <circle key={i} cx={x} cy={y} r="3" className="radar-dot" />
       })}
       {tendencies.map((t, i) => {
         const angle = axisAngle(i, n)
         const cos = Math.cos(angle)
-        const x = CENTER + cos * LABEL_RADIUS
-        const y = CENTER + Math.sin(angle) * LABEL_RADIUS
+        const sin = Math.sin(angle)
+        const x = CENTER_X + cos * LABEL_RADIUS
+        const skillLines = wrapSkillLabel(t.topSkill)
+        // Axe du haut : tout le bloc remonte pour ne pas recouvrir la forme.
+        const y = CENTER_Y + sin * LABEL_RADIUS - (sin < -0.9 ? skillLines.length * SKILL_LINE_HEIGHT + 4 : 0)
         const anchor = cos > 0.3 ? 'start' : cos < -0.3 ? 'end' : 'middle'
         return (
           <text key={i} x={x} y={y} textAnchor={anchor} className="radar-label-char">
             {characteristicLabel(t.characteristic)}
-            {wrapSkillLabel(t.topSkill).map((line, li) => (
-              <tspan key={li} x={x} dy={li === 0 ? 18 : 14} className="radar-label-skill">
+            {skillLines.map((line, li) => (
+              <tspan key={li} x={x} dy={li === 0 ? 18 : SKILL_LINE_HEIGHT} className="radar-label-skill">
                 {line}
               </tspan>
             ))}
