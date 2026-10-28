@@ -90,7 +90,7 @@ Propose the change and the files it touches, then wait for explicit approval bef
 3. If the change touches the DB schema, the socket protocol, or `gameLogic.js`, flag it and wait
    for the owner's go-ahead before implementing (see "Mandatory human review").
 4. `npm test` and `npm run build` before considering a change done — CI runs both on every push
-   to `main`, so a broken one here means Railway is about to auto-deploy a broken build.
+   to `main`, and a green run on `main` auto-deploys to auspex.orphane.fr (the `deploy` job).
 
 ## Forbidden shortcuts
 

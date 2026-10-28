@@ -18,3 +18,25 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+  # Déploie sur auspex.orphane.fr une fois tests + build verts sur main. La clé n'ouvre pas de
+  # shell : authorized_keys la force sur /home/ubuntu/deploy-auspex.sh (git pull + compose up).
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    steps:
+      - name: Déployer via SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes ubuntu@148.113.144.242
+      - name: Vérifier la prod
+        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 --retry-all-errors https://auspex.orphane.fr/api/table
