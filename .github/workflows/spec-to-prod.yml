@@ -1,0 +1,151 @@
+# Pipeline lancé par le kanban Spec to prod, jamais à la main.
+# Préprod : pousse la branche du ticket sur la branche preprod, que Coolify déploie sur preprod.auspex.orphane.fr.
+# Prod : fusionne la branche du ticket dans main, puis déploie en SSH sur le VPS comme le fait ci.yml.
+# Dans les deux cas, le pipeline vérifie que l'application répond, puis prévient le kanban.
+#
+# Réglages du dépôt (Settings, Secrets and variables, Actions) :
+#   secret   SPEC_TO_PROD_SECRET  secret partagé avec le kanban (WEBHOOK_SECRET)
+#   variable SPEC_TO_PROD_URL     adresse du kanban, par exemple https://kanban.orphane.fr
+#   secrets  DEPLOY_SSH_KEY et DEPLOY_KNOWN_HOSTS : déjà utilisés par ci.yml pour la prod
+
+name: Spec to prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      environnement:
+        description: preprod ou prod
+        required: true
+        type: choice
+        options: [preprod, prod]
+      branche:
+        description: Branche du ticket
+        required: true
+        type: string
+      ticket:
+        description: Numéro du ticket
+        required: true
+        type: string
+      run_id:
+        description: Identifiant du run côté kanban
+        required: true
+        type: string
+      webhook:
+        description: Webhook du kanban
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Un seul déploiement à la fois par environnement.
+concurrency:
+  group: spec-to-prod-${{ inputs.environnement }}
+  cancel-in-progress: false
+
+jobs:
+  deployer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Les entrées passent par l'environnement, jamais directement dans les scripts.
+      ENVIRONNEMENT: ${{ inputs.environnement }}
+      BRANCHE: ${{ inputs.branche }}
+      TICKET: ${{ inputs.ticket }}
+      RUN_ID: ${{ inputs.run_id }}
+      WEBHOOK: ${{ inputs.webhook }}
+      SPEC_TO_PROD_SECRET: ${{ secrets.SPEC_TO_PROD_SECRET }}
+      SPEC_TO_PROD_URL: ${{ vars.SPEC_TO_PROD_URL }}
+      OUTIL: ${{ github.workspace }}/.spec-to-prod/taches-cloud/pipeline.mjs
+      URL_PREPROD: https://preprod.auspex.orphane.fr
+      URL_PROD: https://auspex.orphane.fr
+    steps:
+      - name: Vérifier les entrées
+        run: |
+          [[ "$BRANCHE" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] || { echo "Branche refusée : $BRANCHE"; exit 1; }
+          [[ "$BRANCHE" != "main" && "$BRANCHE" != "preprod" ]] || { echo "La branche du ticket ne peut pas être $BRANCHE."; exit 1; }
+          [[ "$TICKET" =~ ^[0-9]+$ ]] || { echo "Ticket refusé : $TICKET"; exit 1; }
+          [ -n "$SPEC_TO_PROD_URL" ] || { echo "La variable SPEC_TO_PROD_URL manque."; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Récupérer l'outil du kanban
+        uses: actions/checkout@v4
+        with:
+          repository: orphane-a/spec-to-prod
+          ref: main
+          path: .spec-to-prod
+          sparse-checkout: taches-cloud
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Préparer git
+        run: |
+          git config user.name "Spec to prod"
+          git config user.email "spec-to-prod@users.noreply.github.com"
+          git fetch origin "$BRANCHE"
+
+      # ---------- Préprod ----------
+      - name: Publier la préprod
+        if: inputs.environnement == 'preprod'
+        run: |
+          echo "VERSION=$(git rev-parse "origin/$BRANCHE")" >> "$GITHUB_ENV"
+          # La branche preprod est écrasée à chaque passage : elle ne sert qu'à ça.
+          git push --force origin "origin/$BRANCHE:refs/heads/preprod"
+
+      - name: Vérifier la préprod et prévenir le kanban
+        if: inputs.environnement == 'preprod'
+        run: |
+          # Laisse à Coolify le temps de lancer le build, sinon l'ancienne version répondrait encore.
+          sleep 90
+          curl -fsS -o /dev/null --retry 20 --retry-delay 15 --retry-all-errors "$URL_PREPROD/api/table"
+          node "$OUTIL" signaler PREPROD_DEPLOYEE "{\"urlPreprod\":\"$URL_PREPROD\",\"version\":\"${VERSION:0:7}\"}"
+
+      # ---------- Prod ----------
+      - name: Fusionner dans main
+        if: inputs.environnement == 'prod'
+        run: |
+          node "$OUTIL" signaler ETAPE_DEPLOIEMENT '{"etapes":{"fusion":"en_cours","envoi":"en_attente","verification":"en_attente"}}'
+          git checkout main
+          git merge --no-ff "origin/$BRANCHE" -m "Fusionne $BRANCHE (ticket $TICKET)"
+          npm ci
+          npm test
+          npm run build
+          git push origin main
+          echo "VERSION=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          node "$OUTIL" signaler ETAPE_DEPLOIEMENT '{"etapes":{"fusion":"vert","envoi":"en_cours","verification":"en_attente"}}'
+
+      # Un push fait avec le jeton du workflow ne déclenche pas ci.yml : le déploiement se fait donc ici.
+      - name: Déployer en prod via SSH
+        if: inputs.environnement == 'prod'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes ubuntu@148.113.144.242
+
+      - name: Vérifier la prod et prévenir le kanban
+        if: inputs.environnement == 'prod'
+        run: |
+          curl -fsS -o /dev/null --retry 10 --retry-delay 5 --retry-all-errors "$URL_PROD/api/table"
+          node "$OUTIL" signaler ETAPE_DEPLOIEMENT '{"etapes":{"fusion":"vert","envoi":"vert","verification":"vert"}}'
+          node "$OUTIL" signaler DEPLOIEMENT_TERMINE "{\"version\":\"${VERSION:0:7}\"}"
+
+      # ---------- Échec ----------
+      - name: Signaler l'échec au kanban
+        if: failure()
+        run: |
+          MOTIF="Le pipeline $ENVIRONNEMENT a échoué. Détail : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          node "$OUTIL" signaler ECHEC "$(node -e 'console.log(JSON.stringify({ motif: process.argv[1] }))' "$MOTIF")"
+
+      - name: Effacer la clé SSH
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
