@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, preprod]
   pull_request:
-    branches: [main]
+    branches: [main, preprod]
 
 jobs:
   test:
@@ -40,3 +40,25 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o BatchMode=yes ubuntu@148.113.144.242
       - name: Vérifier la prod
         run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 --retry-all-errors https://auspex.orphane.fr/api/table
+
+  # Déploie sur preprod.auspex.orphane.fr après un push vert sur la branche preprod. Clé dédiée,
+  # forcée côté serveur sur /home/ubuntu/deploy-auspex-preprod.sh.
+  deploy-preprod:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/preprod'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-preprod
+      cancel-in-progress: false
+    steps:
+      - name: Déployer via SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_PREPROD_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes ubuntu@148.113.144.242
+      - name: Vérifier la préprod
+        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 --retry-all-errors https://preprod.auspex.orphane.fr/api/table
