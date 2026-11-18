@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket 94, personnages joueurs fictifs</title>
+<style>
+:root{
+  --bg:#07120c;--surface:#0e1f16;--surface-2:#133022;--border:#2a5c40;--border-soft:#1d3f2c;--border-strong:#4f8f69;
+  --text:#eaf6ee;--text-2:#b3d1bd;--accent:#5ef29c;--accent-ink:#04140b;--warn:#f2c94c;--danger:#ff9a70;
+  --danger-bg:#2a1712;--danger-border:#a8573a;--focus:#ffe14d;--radius:12px;--radius-sm:8px;
+  --font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#030805;color:var(--text);font-family:var(--font-sans);font-size:16px;line-height:1.5}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* Page de maquette */
+.doc{max-width:1240px;margin:0 auto;padding:32px 16px 80px}
+.doc-head{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:40px}
+.doc-head h1{margin:0 0 6px;font-family:var(--font-mono);color:var(--accent);font-size:24px;letter-spacing:.06em}
+.doc-head p{margin:0;color:var(--text-2);max-width:820px}
+.screen{margin-bottom:64px}
+.screen>h2{margin:0 0 4px;font-size:22px}
+.screen>.note{margin:0 0 20px;color:var(--text-2);max-width:820px;font-size:15px}
+.frames{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap}
+.frame{flex:0 1 auto;max-width:100%;min-width:0}
+.frame-label{font-family:var(--font-mono);font-size:13px;color:var(--text-2);margin-bottom:8px}
+.device{background:var(--bg);border:1px solid var(--border-soft);border-radius:16px;overflow:hidden}
+.desk{width:760px;max-width:100%}
+.phone{width:375px;max-width:100%}
+.app{padding:24px 20px 32px}
+.phone .app{padding:16px 16px 24px}
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.state-title{font-family:var(--font-mono);font-size:13px;color:var(--text-2);margin:0 0 8px}
+
+/* En tête de l'application */
+.stage-header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:24px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-title{font-family:var(--font-mono);font-weight:600;font-size:22px;letter-spacing:.14em;color:var(--accent);line-height:1.1;margin:0}
+.brand-sub{font-size:14px;color:var(--text-2);margin:2px 0 0}
+.online-chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.dot.off{background:transparent;border:2px solid var(--text-2)}
+
+/* Composants repris de styles.css */
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 14px}
+.section-label{margin:0;font-size:22px;font-weight:600}
+.section-count{margin:0;font-size:15px;color:var(--text-2)}
+.section-count strong{color:var(--text)}
+.sub-label{font-size:15px;font-weight:600;color:var(--text-2);margin:20px 0 10px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.row-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.who{flex:1;min-width:0}
+.name{margin:0;font-size:19px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cls{margin:0;font-size:15px;color:var(--text-2)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500}
+.status.off{color:var(--text-2)}
+.avatar{width:56px;height:56px;border-radius:50%;border:2px solid var(--accent);background:var(--surface-2);flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;color:var(--text)}
+.avatar.sm{width:36px;height:36px;font-size:13px}
+.avatar.off{border-color:var(--border);filter:grayscale(.8);color:var(--text-2)}
+/* Avatar générique d'un fictif : contour pointillé, silhouette au trait */
+.avatar.fictif{border:2px dashed var(--text-2);background:var(--bg);color:var(--text-2)}
+/* Badge fictif : pointillé comme l'avatar, lisible sans la couleur */
+.badge-fictif{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;line-height:1;color:var(--text);border:1px dashed var(--text-2);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.pv{display:flex;flex-direction:column;gap:6px}
+.pv-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--text-2)}
+.pv-val{font-family:var(--font-mono);font-size:17px;font-weight:600;color:var(--text)}
+.pv-val span{color:var(--text-2);font-weight:500}
+.track{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:999px}
+.fill.warn{background:var(--warn)}
+.pv-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--accent);background:var(--surface-2);border-radius:6px;padding:4px 10px;margin:0}
+.pv-badge.warn{color:var(--warn)}
+.btn{cursor:pointer;min-height:48px;padding:0 20px;border-radius:var(--radius-sm);font:inherit;font-size:16px;font-weight:600;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.block{width:100%}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border);font-weight:500}
+.btn.danger{background:transparent;color:var(--danger);border-color:var(--danger-border);font-weight:600}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+.code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:32px}
+.code-card h3{margin:0;font-size:15px;font-weight:500;color:var(--text-2)}
+.code-val{margin:4px 0;font-family:var(--font-mono);font-size:40px;letter-spacing:.08em;font-weight:600;line-height:1.1}
+.hint{font-size:15px;color:var(--text-2);margin:0}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.panel h3{margin:0 0 6px;font-size:19px}
+.msg{display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;margin:14px 0 0}
+.msg.ok{background:var(--surface-2);border:1px solid var(--accent);color:var(--text)}
+.msg.err{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--text)}
+.msg.info{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.msg svg{flex:none;margin-top:2px}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite;flex:none}
+.skeleton{background:var(--surface-2);border-radius:6px;height:14px;animation:blink 1.4s ease-in-out infinite}
+
+/* Modale */
+.sheet{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.sheet-title{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:19px}
+.close{min-width:44px;min-height:44px;background:none;border:none;color:var(--text-2);font:inherit;font-family:var(--font-mono);cursor:pointer}
+.sheet-body{padding:20px}
+.who-row{display:flex;gap:8px}
+.who-btn{flex:1;min-height:48px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-weight:500}
+.who-btn.on{border-color:var(--accent);background:var(--surface-2);color:var(--text)}
+.sel{display:flex;flex-direction:column;gap:8px;margin:12px 0 18px}
+.sel-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;text-align:left;width:100%;cursor:pointer;flex-wrap:wrap}
+.sel-row.on{border-color:var(--accent);background:var(--surface-2)}
+.check{width:20px;height:20px;border:2px solid var(--border-strong);border-radius:4px;flex:none;display:flex;align-items:center;justify-content:center}
+.sel-row.on .check{background:var(--accent);border-color:var(--accent)}
+.sel-name{font-weight:600}
+.sel-meta{margin-left:auto;font-size:14px;color:var(--text-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:15px}
+.chip.on{border-color:var(--accent);background:var(--surface-2)}
+
+/* Résultats */
+.results-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.results-title{font-size:24px;font-weight:600;margin:0}
+.results-sub{color:var(--text-2);font-size:15px;margin:0}
+.live{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--accent);white-space:nowrap}
+.roll{display:flex;align-items:center;gap:14px;border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);background:var(--surface);flex-wrap:wrap}
+.roll .who{min-width:140px}
+.roll-res{text-align:right;margin-left:auto}
+.roll-label{font-weight:600;font-size:17px;color:var(--text-2)}
+.roll-deg{font-size:14px;color:var(--text-2)}
+.roll.ok{border-color:var(--accent)}.roll.ok .roll-label{color:var(--accent)}
+.roll.ko{border-color:var(--danger-border);background:var(--danger-bg)}.roll.ko .roll-label{color:var(--danger)}
+.auto{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2)}
+
+/* Attaque */
+.attack{background:var(--surface);border:1px solid var(--warn);border-radius:var(--radius);padding:16px 18px;margin:0 0 16px}
+.attack-title{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:600;font-size:17px}
+.attack-steps{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.attack-steps li{display:flex;gap:8px;align-items:center}
+.pick{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.pick-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;width:100%;text-align:left;flex-wrap:wrap}
+.pick-row.on{border-color:var(--accent);background:var(--surface-2)}
+.pick-stats{margin-left:auto;font-family:var(--font-mono);font-size:13px;color:var(--text-2)}
+
+/* Écran Personnages */
+.mj-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.mj-title h2{margin:0;font-size:22px}
+.tag{font-family:var(--font-mono);font-size:14px;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:4px 10px}
+.char-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.icon-btn{min-width:44px;min-height:44px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-2);font:inherit;font-family:var(--font-mono)}
+.input{width:100%;min-height:48px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font:inherit;padding:0 14px}
+.input.err{border-color:var(--danger-border)}
+.field-label{display:block;font-size:15px;font-weight:600;color:var(--text-2);margin:0 0 8px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="doc-head">
+  <h1>Ticket 94 : personnages joueurs fictifs</h1>
+  <p>Trois personnages fictifs, Vex, Soeur Ilia et Kael, ont déjà rejoint la table. Le MJ voit une table complète, lance des tests et des attaques sans vrais joueurs, puis retire les fictifs quand la vraie partie commence. Chaque écran est montré en version ordinateur puis en version téléphone (375 pixels).</p>
+</header>
+
+<!-- ===================== ÉCRAN 1 ===================== -->
+<section class="screen" aria-labelledby="e1">
+  <h2 id="e1">1. Vue MJ : la table avec les personnages fictifs</h2>
+  <p class="note">Au démarrage avec une base vide, les trois fictifs sont présents d'office. Djoko n'est pas encore rejoint. Le compteur affiche 3 présents sur 4. Chaque fictif porte un badge « fictif » et un avatar générique en pointillé.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur</div>
+      <div class="device desk"><div class="app">
+        <div class="stage-header">
+          <div class="brand">
+            <svg aria-hidden="true" width="36" height="36" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg>
+            <div><p class="brand-title">AUSPEX</p><p class="brand-sub">Maître de jeu</p></div>
+          </div>
+          <span class="online-chip"><span class="dot"></span>En ligne</span>
+        </div>
+        <section class="code-card">
+          <h3>Code d'accès de la table</h3>
+          <p class="code-val">HK-3527</p>
+          <p class="hint" style="margin-bottom:14px">À transmettre à vos joueurs</p>
+          <div class="btn-row" style="justify-content:center"><button class="btn" type="button">Copier le code</button><button class="btn ghost" type="button">Personnages</button></div>
+        </section>
+        <div class="section-head"><h3 class="section-label">Joueurs</h3><p class="section-count"><strong>3</strong> présents sur 4</p></div>
+        <ul class="list">
+          <li class="row">
+            <div class="row-top">
+              <div class="avatar off">DJ</div>
+              <div class="who"><h4 class="name">Djoko</h4><p class="cls">Maître stellaire</p></div>
+              <span class="status off"><span class="dot off"></span>Pas encore rejoint</span>
+            </div>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">130<span> / 130</span></span></div><div class="track" role="progressbar" aria-label="Points de vie de Djoko" aria-valuenow="130" aria-valuemin="0" aria-valuemax="130"><div class="fill" style="width:100%"></div></div></div>
+            <p class="pv-badge">Sain</p>
+          </li>
+          <li class="row">
+            <div class="row-top">
+              <div class="avatar fictif"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div>
+              <div class="who"><h4 class="name">Vex <span class="badge-fictif">fictif</span></h4><p class="cls">Garde impérial</p></div>
+              <span class="status"><span class="dot"></span>Toujours présent</span>
+            </div>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">110<span> / 110</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+            <p class="pv-badge">Sain</p>
+          </li>
+          <li class="row">
+            <div class="row-top">
+              <div class="avatar fictif"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div>
+              <div class="who"><h4 class="name">Soeur Ilia <span class="badge-fictif">fictif</span></h4><p class="cls">Soeur hospitalière</p></div>
+              <span class="status"><span class="dot"></span>Toujours présent</span>
+            </div>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">95<span> / 95</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+            <p class="pv-badge">Sain</p>
+          </li>
+          <li class="row">
+            <div class="row-top">
+              <div class="avatar fictif"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div>
+              <div class="who"><h4 class="name">Kael <span class="badge-fictif">fictif</span></h4><p class="cls">Explorateur technique</p></div>
+              <span class="status"><span class="dot"></span>Toujours présent</span>
+            </div>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">120<span> / 120</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+            <p class="pv-badge">Sain</p>
+          </li>
+        </ul>
+        <div class="btn-row" style="margin-top:24px"><button class="btn" type="button" style="flex:1">Ordonner un test</button><button class="btn ghost" type="button" style="flex:1">Lancer une attaque</button></div>
+      </div></div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-label">Téléphone, 375 pixels</div>
+      <div class="device phone"><div class="app">
+        <div class="stage-header">
+          <div class="brand"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><p class="brand-title" style="font-size:19px">AUSPEX</p><p class="brand-sub">Maître de jeu</p></div></div>
+          <span class="online-chip"><span class="dot"></span>En ligne</span>
+        </div>
+        <div class="section-head"><h3 class="section-label" style="font-size:20px">Joueurs</h3><p class="section-count"><strong>3</strong> présents sur 4</p></div>
+        <ul class="list">
+          <li class="row" style="padding:14px">
+            <div class="row-top"><div class="avatar off sm">DJ</div><div class="who"><h4 class="name" style="font-size:17px">Djoko</h4><p class="cls" style="font-size:14px">Maître stellaire</p></div></div>
+            <span class="status off"><span class="dot off"></span>Pas encore rejoint</span>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">130<span> / 130</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+          </li>
+          <li class="row" style="padding:14px">
+            <div class="row-top"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><h4 class="name" style="font-size:17px">Vex <span class="badge-fictif">fictif</span></h4><p class="cls" style="font-size:14px">Garde impérial</p></div></div>
+            <span class="status"><span class="dot"></span>Toujours présent</span>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">110<span> / 110</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+          </li>
+          <li class="row" style="padding:14px">
+            <div class="row-top"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><h4 class="name" style="font-size:17px">Soeur Ilia <span class="badge-fictif">fictif</span></h4><p class="cls" style="font-size:14px">Soeur hospitalière</p></div></div>
+            <span class="status"><span class="dot"></span>Toujours présent</span>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">95<span> / 95</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+          </li>
+          <li class="row" style="padding:14px">
+            <div class="row-top"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><h4 class="name" style="font-size:17px">Kael <span class="badge-fictif">fictif</span></h4><p class="cls" style="font-size:14px">Explorateur technique</p></div></div>
+            <span class="status"><span class="dot"></span>Toujours présent</span>
+            <div class="pv"><div class="pv-top">Points de vie <span class="pv-val">120<span> / 120</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+          </li>
+        </ul>
+        <button class="btn block" type="button" style="margin-top:20px">Ordonner un test</button>
+        <button class="btn ghost block" type="button" style="margin-top:10px">Lancer une attaque</button>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="states" style="margin-top:24px">
+    <div>
+      <p class="state-title">État chargement</p>
+      <div class="device"><div class="app">
+        <div class="section-head"><h3 class="section-label" style="font-size:19px">Joueurs</h3><p class="section-count">Chargement…</p></div>
+        <div class="row" style="flex-direction:row;align-items:center"><div class="avatar off sm"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:40%"></div></div></div>
+        <p class="msg info" role="status"><span class="spinner"></span>Connexion à la table en cours.</p>
+      </div></div>
+    </div>
+    <div>
+      <p class="state-title">État vide (fictifs retirés, aucune fiche)</p>
+      <div class="device"><div class="app">
+        <div class="section-head"><h3 class="section-label" style="font-size:19px">Joueurs</h3><p class="section-count"><strong>0</strong> présent sur 0</p></div>
+        <p class="hint">Aucun personnage à la table. Importez une fiche ou ajoutez les personnages fictifs depuis l'écran Personnages.</p>
+        <button class="btn ghost" type="button" style="margin-top:14px">Personnages</button>
+      </div></div>
+    </div>
+    <div>
+      <p class="state-title">État erreur (connexion perdue)</p>
+      <div class="device"><div class="app">
+        <p class="msg err" role="alert" style="margin:0"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Connexion au serveur perdue. La liste des joueurs se mettra à jour dès le retour du réseau.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉCRAN 2 ===================== -->
+<section class="screen" aria-labelledby="e2">
+  <h2 id="e2">2. Ordonner un test : choisir les joueurs concernés</h2>
+  <p class="note">Les fictifs sont proposés comme les vrais personnages, avec la mention « fictif ». Une phrase rappelle que leurs jets sont lancés automatiquement. En mode « Toute l'équipe », le décompte inclut les fictifs.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur</div>
+      <div class="device desk" style="padding:24px;background:rgba(2,6,4,.9)">
+        <div class="sheet" style="max-width:460px;margin:0 auto">
+          <div class="sheet-title">Ordonner un test<button class="close" type="button" aria-label="Fermer">[X]</button></div>
+          <div class="sheet-body">
+            <p class="sub-label" style="margin-top:0">Compétence à tester</p>
+            <div class="chips"><button class="chip on" type="button">Vigilance</button><button class="chip" type="button">Psychologie</button><button class="chip" type="button">Pilotage</button></div>
+            <p class="sub-label">Malus</p>
+            <div class="chips"><button class="chip on" type="button">Aucun</button><button class="chip" type="button">-10</button><button class="chip" type="button">-20</button></div>
+            <p class="sub-label">Joueurs concernés</p>
+            <div class="who-row"><button class="who-btn" type="button">Toute l'équipe</button><button class="who-btn on" type="button">Sélection</button></div>
+            <div class="sel">
+              <button class="sel-row on" type="button" aria-pressed="true"><span class="check"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#04140b" stroke-width="3"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="sel-name">Djoko</span><span class="sel-meta">Pas encore rejoint</span></button>
+              <button class="sel-row on" type="button" aria-pressed="true"><span class="check"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#04140b" stroke-width="3"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="sel-name">Vex</span><span class="badge-fictif">fictif</span></button>
+              <button class="sel-row on" type="button" aria-pressed="true"><span class="check"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#04140b" stroke-width="3"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="sel-name">Soeur Ilia</span><span class="badge-fictif">fictif</span></button>
+              <button class="sel-row" type="button" aria-pressed="false"><span class="check"></span><span class="sel-name">Kael</span><span class="badge-fictif">fictif</span></button>
+            </div>
+            <p class="hint" style="margin-bottom:14px">Les personnages fictifs lancent leur jet automatiquement.</p>
+            <button class="btn block" type="button">Transmettre l'ordre</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-label">Téléphone, 375 pixels</div>
+      <div class="device phone" style="background:rgba(2,6,4,.9);padding-top:60px">
+        <div class="sheet" style="border-radius:12px 12px 0 0;border-bottom:none">
+          <div class="sheet-title" style="padding:10px 16px">Ordonner un test<button class="close" type="button" aria-label="Fermer">[X]</button></div>
+          <div class="sheet-body" style="padding:16px">
+            <p class="sub-label" style="margin-top:0">Joueurs concernés</p>
+            <div class="who-row"><button class="who-btn on" type="button">Toute l'équipe</button><button class="who-btn" type="button">Sélection</button></div>
+            <p class="hint" style="margin:14px 0">Concerne toute l'équipe présente (3 joueurs, dont 3 fictifs). Les personnages fictifs lancent leur jet automatiquement.</p>
+            <button class="btn block" type="button">Transmettre l'ordre</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉCRAN 3 ===================== -->
+<section class="screen" aria-labelledby="e3">
+  <h2 id="e3">3. Résultats du test : jets automatiques des fictifs</h2>
+  <p class="note">Juste après la création du test, chaque fictif affiche « Jet automatique… » pendant une à deux secondes, puis son résultat. Djoko reste « En attente » jusqu'à son propre jet.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur, une seconde après l'envoi (chargement)</div>
+      <div class="device desk"><div class="app">
+        <div class="results-head"><div><p class="results-title">Vigilance</p><p class="results-sub">Aucun malus</p></div><div class="live"><span class="dot"></span>En direct · 0 sur 3 reçus</div></div>
+        <div class="list">
+          <div class="roll"><div class="avatar off sm">DJ</div><div class="who"><div class="sel-name">Djoko</div><div class="cls" style="font-size:14px">Maître stellaire</div></div><div class="roll-res"><div class="roll-label">En attente</div><div class="roll-deg">Jet du joueur attendu</div></div></div>
+          <div class="roll"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Vex <span class="badge-fictif">fictif</span></div><div class="cls" style="font-size:14px">Garde impérial</div></div><div class="roll-res"><div class="roll-label auto" style="font-size:16px"><span class="spinner"></span>Jet automatique…</div></div></div>
+          <div class="roll"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Soeur Ilia <span class="badge-fictif">fictif</span></div><div class="cls" style="font-size:14px">Soeur hospitalière</div></div><div class="roll-res"><div class="roll-label auto" style="font-size:16px"><span class="spinner"></span>Jet automatique…</div></div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="frame">
+      <div class="frame-label">Téléphone, deux secondes après (succès)</div>
+      <div class="device phone"><div class="app">
+        <div class="results-head"><div><p class="results-title" style="font-size:21px">Vigilance</p><p class="results-sub">Aucun malus</p></div><div class="live"><span class="dot"></span>En direct · 2 sur 3 reçus</div></div>
+        <div class="list">
+          <div class="roll"><div class="avatar off sm">DJ</div><div class="who"><div class="sel-name">Djoko</div><div class="roll-deg">En attente de son jet</div></div></div>
+          <div class="roll ok"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Vex <span class="badge-fictif">fictif</span></div><div class="roll-label">Réussite</div><div class="roll-deg">34 sur 45, 1 degré · jet automatique</div></div></div>
+          <div class="roll ko"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Soeur Ilia <span class="badge-fictif">fictif</span></div><div class="roll-label">Échec</div><div class="roll-deg">71 sur 38, 3 degrés · jet automatique</div></div></div>
+        </div>
+        <button class="btn ghost block" type="button" style="margin-top:18px">Nouveau test</button>
+      </div></div>
+    </div>
+  </div>
+  <div class="states" style="margin-top:24px">
+    <div>
+      <p class="state-title">État après retrait des fictifs pendant un test</p>
+      <div class="device"><div class="app">
+        <div class="results-head"><div><p class="results-title" style="font-size:20px">Vigilance</p></div><div class="live"><span class="dot"></span>En direct · 0 sur 1 reçu</div></div>
+        <div class="roll"><div class="avatar off sm">DJ</div><div class="who"><div class="sel-name">Djoko</div></div><div class="roll-res"><div class="roll-label">En attente</div></div></div>
+        <p class="msg info" role="status">Les personnages fictifs ont été retirés. Le test continue pour les autres personnages.</p>
+      </div></div>
+    </div>
+    <div>
+      <p class="state-title">État erreur (jet automatique impossible)</p>
+      <div class="device"><div class="app">
+        <div class="roll"><div class="avatar fictif sm"></div><div class="who"><div class="sel-name">Kael <span class="badge-fictif">fictif</span></div></div><div class="roll-res"><div class="roll-label" style="color:var(--danger)">Jet non lancé</div></div></div>
+        <p class="msg err" role="alert">Le jet automatique de Kael n'a pas pu être lancé. Relancez le test.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉCRAN 4 ===================== -->
+<section class="screen" aria-labelledby="e4">
+  <h2 id="e4">4. Lancer une attaque avec un personnage fictif</h2>
+  <p class="note">Un fictif peut être cible ou attaquant. Il n'est jamais « non connecté », donc aucune alerte de connexion ne bloque l'attaque. Ses jets d'attaque et d'esquive sont lancés par le serveur, la carte d'attaque avance seule jusqu'au résultat.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur, choix de la cible</div>
+      <div class="device desk" style="padding:24px;background:rgba(2,6,4,.9)">
+        <div class="sheet" style="max-width:460px;margin:0 auto">
+          <div class="sheet-title">Engager le combat<button class="close" type="button" aria-label="Fermer">[X]</button></div>
+          <div class="sheet-body">
+            <p class="sub-label" style="margin-top:0">Attaquant, PNJ</p>
+            <div class="pick"><button class="pick-row on" type="button">Culiste armé</button><button class="pick-row" type="button">Garde impérial</button></div>
+            <p class="sub-label">Cible, joueurs</p>
+            <div class="pick">
+              <button class="pick-row" type="button">Djoko <span class="cls" style="font-size:14px">(non connecté)</span><span class="pick-stats">esq 42 · pv 130</span></button>
+              <button class="pick-row on" type="button">Vex <span class="badge-fictif">fictif</span><span class="pick-stats">esq 38 · pv 110</span></button>
+              <button class="pick-row" type="button">Soeur Ilia <span class="badge-fictif">fictif</span><span class="pick-stats">esq 35 · pv 95</span></button>
+              <button class="pick-row" type="button">Kael <span class="badge-fictif">fictif</span><span class="pick-stats">esq 40 · pv 120</span></button>
+            </div>
+            <p class="hint" style="margin-bottom:14px">Vex est fictif : son esquive sera lancée automatiquement.</p>
+            <button class="btn block" type="button">Engager le combat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-label">Téléphone, déroulé de la séquence</div>
+      <div class="device phone"><div class="app">
+        <p class="state-title">Chargement : esquive en cours</p>
+        <div class="attack">
+          <div class="attack-title">Culiste armé attaque Vex<button class="close" type="button" aria-label="Annuler l'attaque">[X]</button></div>
+          <ul class="attack-steps"><li>Touché, 2 degrés de réussite</li><li class="auto"><span class="spinner"></span>Esquive automatique de Vex…</li></ul>
+        </div>
+        <p class="state-title">Succès : séquence terminée</p>
+        <div class="attack" style="border-color:var(--accent)">
+          <div class="attack-title">Culiste armé attaque Vex</div>
+          <ul class="attack-steps"><li>Touché, 2 degrés de réussite</li><li>Esquive de Vex ratée (jet automatique)</li><li><strong>Vex perd 8 PV au torse. Il lui reste 102 PV.</strong></li></ul>
+          <button class="btn ghost block" type="button" style="margin-top:12px">OK</button>
+        </div>
+        <p class="state-title">Erreur</p>
+        <p class="msg err" role="alert" style="margin:0">L'esquive automatique de Vex n'a pas pu être lancée. Annulez l'attaque puis relancez la.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉCRAN 5 ===================== -->
+<section class="screen" aria-labelledby="e5">
+  <h2 id="e5">5. Écran Personnages : retirer ou ajouter les fictifs</h2>
+  <p class="note">Un encart « Personnages fictifs » est placé en haut de l'écran, avant l'import de fiche. Le retrait ne touche ni aux vrais personnages, ni aux PNJ, ni au code de table. Le bouton d'ajout n'apparaît que lorsqu'aucun fictif n'est présent.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur, fictifs présents</div>
+      <div class="device desk"><div class="app">
+        <div class="mj-title"><h2>Accueil MJ</h2><span class="tag">Code HK-3527</span></div>
+        <section class="panel" aria-labelledby="h-fictifs">
+          <h3 id="h-fictifs">Personnages fictifs</h3>
+          <p class="hint">Trois personnages fictifs sont à la table pour tester seul. Retirez les avant une vraie partie.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0"><span class="badge-fictif">Vex</span><span class="badge-fictif">Soeur Ilia</span><span class="badge-fictif">Kael</span></div>
+          <button class="btn danger" type="button">Retirer les personnages fictifs</button>
+        </section>
+        <p class="sub-label" style="font-size:19px;color:var(--text);margin-top:28px">Fiches importées</p>
+        <div class="list">
+          <div class="row"><div class="char-row"><div class="avatar sm">DJ</div><div class="who"><div class="sel-name">Djoko</div><div class="cls" style="font-size:14px">Maître stellaire · 48 compétences importées · 130/130 PV</div></div><button class="icon-btn" type="button" aria-label="Supprimer Djoko">[X]</button></div></div>
+          <div class="row"><div class="char-row"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Vex <span class="badge-fictif">fictif</span></div><div class="cls" style="font-size:14px">Garde impérial · 48 compétences · 110/110 PV</div></div><button class="icon-btn" type="button" aria-label="Supprimer Vex">[X]</button></div></div>
+          <div class="row"><div class="char-row"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Soeur Ilia <span class="badge-fictif">fictif</span></div><div class="cls" style="font-size:14px">Soeur hospitalière · 48 compétences · 95/95 PV</div></div><button class="icon-btn" type="button" aria-label="Supprimer Soeur Ilia">[X]</button></div></div>
+          <div class="row"><div class="char-row"><div class="avatar fictif sm"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div><div class="who"><div class="sel-name">Kael <span class="badge-fictif">fictif</span></div><div class="cls" style="font-size:14px">Explorateur technique · 48 compétences · 120/120 PV</div></div><button class="icon-btn" type="button" aria-label="Supprimer Kael">[X]</button></div></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="frame">
+      <div class="frame-label">Téléphone, après le retrait (succès)</div>
+      <div class="device phone"><div class="app">
+        <div class="mj-title"><h2 style="font-size:20px">Accueil MJ</h2><span class="tag">Code HK-3527</span></div>
+        <section class="panel" style="padding:16px">
+          <h3>Personnages fictifs</h3>
+          <p class="msg ok" role="status" style="margin:6px 0 12px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#5ef29c" stroke-width="2.2" stroke-linecap="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>Les 3 personnages fictifs ont été retirés. Les autres personnages, les PNJ et le code de table sont inchangés.</p>
+          <p class="hint" style="margin-bottom:12px">Aucun personnage fictif à la table.</p>
+          <button class="btn ghost block" type="button">Ajouter les personnages fictifs</button>
+        </section>
+        <p class="sub-label" style="font-size:18px;color:var(--text);margin-top:24px">Fiches importées</p>
+        <div class="row" style="padding:14px"><div class="char-row"><div class="avatar sm">DJ</div><div class="who"><div class="sel-name">Djoko</div><div class="cls" style="font-size:14px">Maître stellaire · 130/130 PV</div></div><button class="icon-btn" type="button" aria-label="Supprimer Djoko">[X]</button></div></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="states" style="margin-top:24px">
+    <div>
+      <p class="state-title">État chargement</p>
+      <div class="device"><div class="app"><section class="panel"><h3>Personnages fictifs</h3><button class="btn danger block" type="button" disabled><span class="spinner"></span>Retrait en cours…</button></section></div></div>
+    </div>
+    <div>
+      <p class="state-title">État erreur</p>
+      <div class="device"><div class="app"><section class="panel"><h3>Personnages fictifs</h3><p class="msg err" role="alert" style="margin:0 0 12px">Impossible de retirer les personnages fictifs. Vérifiez la connexion puis réessayez.</p><button class="btn danger block" type="button">Retirer les personnages fictifs</button></section></div></div>
+    </div>
+    <div>
+      <p class="state-title">État vide (fictifs désactivés en prod)</p>
+      <div class="device"><div class="app"><section class="panel"><h3>Personnages fictifs</h3><p class="hint">Les personnages fictifs sont désactivés sur ce serveur.</p></section></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉCRAN 6 ===================== -->
+<section class="screen" aria-labelledby="e6">
+  <h2 id="e6">6. Vue Joueur : choisir son personnage</h2>
+  <p class="note">Les fictifs ne sont jamais proposés. Seuls les vrais personnages apparaissent. Si un appel force un fictif, le serveur refuse avec un message clair.</p>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label">Ordinateur</div>
+      <div class="device desk"><div class="app" style="max-width:520px;margin:0 auto">
+        <label class="field-label" for="code-d">Code de la table</label>
+        <input class="input" id="code-d" value="HK-3527">
+        <p class="field-label" style="margin-top:20px">Choisir son personnage</p>
+        <div class="sel" style="margin-top:0"><button class="sel-row" type="button"><span class="avatar sm">DJ</span><span class="sel-name">Djoko</span><span class="sel-meta" style="margin-left:8px">Maître stellaire</span></button></div>
+      </div></div>
+    </div>
+    <div class="frame">
+      <div class="frame-label">Téléphone, refus d'un fictif (erreur 403)</div>
+      <div class="device phone"><div class="app">
+        <label class="field-label" for="code-m">Code de la table</label>
+        <input class="input err" id="code-m" value="HK-3527" aria-describedby="err-m">
+        <p class="msg err" id="err-m" role="alert">Ce personnage fictif ne peut pas être choisi par un joueur.</p>
+        <p class="field-label" style="margin-top:20px">Choisir son personnage</p>
+        <div class="sel" style="margin-top:0"><button class="sel-row" type="button"><span class="avatar sm">DJ</span><span class="sel-name">Djoko</span></button></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="states" style="margin-top:24px">
+    <div>
+      <p class="state-title">État vide (seulement des fictifs à la table)</p>
+      <div class="device"><div class="app"><p class="field-label">Choisir son personnage</p><p class="hint">Aucune fiche n'a encore été importée par le MJ.</p></div></div>
+    </div>
+    <div>
+      <p class="state-title">État chargement</p>
+      <div class="device"><div class="app"><p class="field-label">Choisir son personnage</p><button class="sel-row" type="button" disabled><span class="spinner"></span><span class="sel-name">Connexion à la table…</span></button></div></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
