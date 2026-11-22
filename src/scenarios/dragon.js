@@ -31,6 +31,7 @@ export const dragonScenario = {
     {
       name: 'Aldric',
       cls: 'Chevalier',
+      role: 'héros de la démo',
       played: true,
       color: '#2f5fb8',
       avatar: avatarDataUri({ color: '#2f5fb8', initial: 'A' }),
@@ -43,6 +44,7 @@ export const dragonScenario = {
     {
       name: 'Ysolde',
       cls: 'Rôdeuse',
+      role: 'jouée par le MJ',
       played: false,
       color: '#2c6b44',
       avatar: avatarDataUri({ color: '#2c6b44', initial: 'Y' }),
@@ -58,6 +60,7 @@ export const dragonScenario = {
     {
       name: 'Brannoc',
       cls: 'Mage',
+      role: 'joué par le MJ',
       played: false,
       color: '#6a43a8',
       avatar: avatarDataUri({ color: '#6a43a8', initial: 'B' }),

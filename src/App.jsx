@@ -5,6 +5,7 @@ import PlayerView from './PlayerView.jsx'
 import MjHome from './screens/MjHome.jsx'
 import JoinTable from './screens/JoinTable.jsx'
 import SplitScreen from './SplitScreen.jsx'
+import { useScenario } from './useScenario'
 
 const ROUTES = { '/mj': 'mj', '/joueur': 'joueur' }
 // Dans une iframe de l'écran partagé, le bandeau « ouvrir l'autre vue » est inutile.
@@ -21,12 +22,16 @@ function TableApp() {
   const [view, setView] = useState(routeView ?? 'mj')
   const [mjSubView, setMjSubView] = useState(null) // null = decide from data; 'home' | 'dashboard' once the MJ picks
   const vals = useTableState()
+  const { scenario } = useScenario()
   const activeView = routeView ?? view
+  const demoMj = !!scenario && activeView === 'mj'
 
-  const showMjHome = mjSubView === 'home' || (mjSubView === null && vals.characters.length === 0)
+  // En démo, une table vide reste sur la vue MJ : le panneau guidé propose alors
+  // de recommencer la démo plutôt que d'importer des fiches.
+  const showMjHome = mjSubView === 'home' || (mjSubView === null && vals.characters.length === 0 && !scenario)
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${demoMj && !showMjHome ? ' app-shell-demo' : ''}`}>
       <header className="stage-header">
         <div className="brand">
           <svg className="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--accent)' }}>
@@ -38,10 +43,17 @@ function TableApp() {
             <div className="brand-subtitle">{activeView === 'mj' ? 'Maître de jeu' : 'Joueur'}</div>
           </div>
         </div>
-        <span className="online-chip">
-          <span className="status-dot" aria-hidden="true" />
-          En ligne
-        </span>
+        <div className="stage-header-chips">
+          {scenario && (
+            <span className="demo-chip" title="Table de démonstration, distincte de la vraie table">
+              Démo
+            </span>
+          )}
+          <span className="online-chip">
+            <span className="status-dot" aria-hidden="true" />
+            En ligne
+          </span>
+        </div>
       </header>
 
       {routeView ? (
@@ -69,7 +81,7 @@ function TableApp() {
         showMjHome ? (
           <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} />
         ) : (
-          <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />
+          <GmView vals={vals} scenario={scenario} onManageCharacters={() => setMjSubView('home')} />
         )
       ) : vals.myCharacter ? (
         <PlayerView vals={vals} />

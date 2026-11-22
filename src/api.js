@@ -12,6 +12,8 @@ async function request(path, options) {
 
 export const api = {
   getTable: () => request('/table'),
+  // Mode démo (ticket 97) : { scenario: 'dragon' } ou { scenario: null }.
+  getScenario: () => request('/scenario'),
   resetTable: () => request('/table/reset', { method: 'POST' }),
   endTest: () => request('/table/end-test', { method: 'POST' }),
   createRequest: (body) => request('/table/request', { method: 'POST', body: JSON.stringify(body) }),
