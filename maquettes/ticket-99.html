@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket 99, informations lisibles sans défilement</title>
+<style>
+:root{
+  --bg:#07120c;--surface:#0e1f16;--surface-2:#133022;--border:#2a5c40;--border-soft:#1d3f2c;--border-strong:#4f8f69;
+  --text:#eaf6ee;--text-2:#b3d1bd;--accent:#5ef29c;--accent-ink:#04140b;--warn:#f2c94c;--danger:#ff9a70;
+  --danger-bg:#2a1712;--danger-border:#a8573a;--focus:#ffe14d;--radius:12px;--radius-sm:8px;
+  --font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#030805;color:var(--text);font-family:var(--font-sans);font-size:16px;line-height:1.5}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+h1,h2,h3,h4,p{margin:0}
+
+/* Page de maquette */
+.doc{max-width:1440px;margin:0 auto;padding:32px 16px 80px}
+.doc-head{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:40px}
+.doc-head h1{margin:0 0 6px;font-family:var(--font-mono);color:var(--accent);font-size:24px;letter-spacing:.06em}
+.doc-head p{color:var(--text-2);max-width:900px}
+.doc-head ul{color:var(--text-2);max-width:900px;margin:10px 0 0;padding-left:20px}
+.screen{margin-bottom:72px}
+.screen>h2{font-size:24px;margin-bottom:4px}
+.screen>.note{margin:0 0 20px;color:var(--text-2);max-width:900px;font-size:15px}
+.frame-label{font-family:var(--font-mono);font-size:13px;color:var(--text-2);margin:0 0 8px}
+.desk-wrap{overflow-x:auto;padding-bottom:8px;margin-bottom:28px}
+/* Cadre fixe 1366 x 768 : ce qui dépasse est coupé, comme la ligne de flottaison */
+.desk{width:1366px;height:768px;background:var(--bg);border:1px solid var(--border-soft);border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.desk.small{width:1280px;height:650px}
+.phones{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.phone{width:375px;max-width:100%;background:var(--bg);border:1px solid var(--border-soft);border-radius:20px;overflow:hidden}
+.phone .app{padding:14px 16px 24px;display:flex;flex-direction:column;gap:16px}
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:20px}
+.state-title{font-family:var(--font-mono);font-size:13px;color:var(--text-2);margin:0 0 8px}
+.state-box{background:var(--bg);border:1px solid var(--border-soft);border-radius:12px;padding:16px}
+
+/* En tête de l'application */
+.topbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 24px;border-bottom:1px solid var(--border)}
+.phone .topbar{padding:12px 16px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-title{font-family:var(--font-mono);font-weight:600;font-size:20px;letter-spacing:.14em;color:var(--accent);line-height:1.1}
+.brand-sub{font-size:14px;color:var(--text-2)}
+.top-right{display:flex;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.dot.off{background:transparent;border:2px solid var(--text-2)}
+.help-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;background:transparent;border:1px solid var(--border-strong);border-radius:999px;color:var(--text);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.help-btn .q{width:20px;height:20px;border-radius:50%;border:2px solid var(--accent);color:var(--accent);font-family:var(--font-mono);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+
+/* Grille desktop */
+.grid{flex:1;min-height:0;display:grid;gap:16px;padding:16px 24px}
+.grid.mj{grid-template-columns:340px 1fr 1fr}
+.grid.pl{grid-template-columns:400px 1fr}
+.col{min-height:0;display:flex;flex-direction:column;gap:14px}
+/* Bloc avec titre fixe et liste qui défile dans le bloc */
+.block{min-height:0;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.block.grow{flex:1}
+.block-head{flex:none;display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border-soft)}
+.block-head h2{font-size:18px;font-weight:600}
+.block-head p{font-size:14px;color:var(--text-2)}
+.block-head strong{color:var(--text)}
+.block-body{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.scroll-hint{flex:none;font-size:13px;color:var(--text-2);padding:6px 16px 10px;border-top:1px solid var(--border-soft)}
+
+/* Lignes de personnages compactes */
+.row{background:var(--bg);border:1px solid var(--border-soft);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:40px 1fr auto;gap:4px 12px;align-items:center}
+.row.off{opacity:.8}
+.avatar{width:40px;height:40px;border-radius:50%;border:2px solid var(--accent);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;font-size:15px;grid-row:span 2}
+.avatar.off{border-color:var(--border);color:var(--text-2)}
+.avatar.npc{border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger)}
+.avatar.lg{width:72px;height:72px;font-size:24px}
+.name{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cls{font-size:13px;color:var(--text-2)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;white-space:nowrap}
+.status.off{color:var(--text-2)}
+.badge-fictif{display:inline-flex;align-items:center;font-size:12px;font-weight:600;line-height:1;border:1px dashed var(--text-2);border-radius:999px;padding:3px 8px}
+.pv-mini{grid-column:2 / 4;display:flex;align-items:center;gap:10px}
+.pv-mini .track{flex:1;height:8px}
+.pv-mini .pv-val{font-family:var(--font-mono);font-size:14px;font-weight:600;white-space:nowrap}
+.pv-mini .pv-val span{color:var(--text-2);font-weight:500}
+.track{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:999px}
+.fill.warn{background:var(--warn)}
+.fill.bad{background:var(--danger)}
+.pv-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:var(--surface-2);border-radius:6px;padding:2px 8px;white-space:nowrap}
+.pv-badge.warn{color:var(--warn)}
+.pv-badge.bad{color:var(--danger)}
+
+/* Boutons */
+.btn{cursor:pointer;min-height:48px;padding:0 20px;border-radius:var(--radius-sm);font:inherit;font-size:16px;font-weight:600;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.block{width:100%}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border-strong);font-weight:500}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#1a0904}
+.btn.big{min-height:60px;font-size:18px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.link-btn{background:none;border:none;padding:0;min-height:44px;color:var(--text-2);text-decoration:underline;font:inherit;font-size:15px;cursor:pointer}
+
+/* Carte code, actions, attaque */
+.code-card{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.code-label{font-size:13px;color:var(--text-2)}
+.code-value{font-family:var(--font-mono);font-size:28px;font-weight:600;letter-spacing:.08em;line-height:1.1}
+.code-actions{display:flex;gap:8px}
+.code-actions .btn{min-height:44px;padding:0 14px;font-size:15px}
+.actions{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.actions h2{font-size:14px;font-weight:600;color:var(--text-2)}
+.attack-live{padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-color:var(--border-strong)}
+.attack-live h2{font-size:14px;font-weight:600;color:var(--text-2);display:flex;justify-content:space-between;align-items:center}
+.duel-line{font-size:17px;font-weight:600}
+.steps{list-style:none;margin:0;padding:0;display:flex;gap:6px}
+.steps li{flex:1;font-size:12px;color:var(--text-2);border-top:4px solid var(--surface-2);padding-top:6px}
+.steps li.done{border-color:var(--border-strong);color:var(--text-2)}
+.steps li.now{border-color:var(--accent);color:var(--text);font-weight:600}
+.close-x{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.recap{padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.recap h2{font-size:14px;font-weight:600;color:var(--text-2)}
+.recap p{font-size:15px}
+.recap .small{font-size:13px;color:var(--text-2)}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;display:inline-block;flex:none}
+.inline-status{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--text-2)}
+
+/* Hiérarchie commune des écrans de jet : titre, explication, détails */
+.focus-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.focus-card.danger{border-color:var(--danger-border);background:linear-gradient(var(--danger-bg),var(--danger-bg))}
+.eyebrow{font-size:14px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.step-chip{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:3px 10px}
+.danger .step-chip{background:var(--danger);color:#1a0904}
+.focus-title{font-size:30px;line-height:1.15;font-weight:600}
+.focus-title.ok{color:var(--accent)}
+.focus-title.ko{color:var(--danger)}
+.explain{font-size:17px;line-height:1.5;max-width:60ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.fact{background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:6px 12px;min-width:96px}
+.fact .k{font-size:12px;color:var(--text-2);display:block}
+.fact .v{font-family:var(--font-mono);font-size:18px;font-weight:600}
+.fact.key{border-color:var(--accent)}
+.fact.key .v{color:var(--accent)}
+.danger .fact.key{border-color:var(--danger)}
+.danger .fact.key .v{color:var(--danger)}
+.calc{font-family:var(--font-mono);font-size:14px;color:var(--text-2)}
+.dice-rule{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--text-2);background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px}
+.dice-rule svg{flex:none;margin-top:2px}
+.roll-zone{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.die{width:56px;height:56px;border-radius:12px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent);flex:none}
+.danger .die{border-color:var(--danger);color:var(--danger)}
+.die.rolling{animation:spin 1.2s linear infinite}
+.big-number{font-family:var(--font-mono);font-size:56px;line-height:1;font-weight:600}
+.result-line{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.result-line .of{font-size:18px;color:var(--text-2)}
+.outcome-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.outcome-list li{background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px}
+.outcome-list .k{font-size:12px;color:var(--text-2);display:block}
+.outcome-list .v{font-size:17px;font-weight:600}
+.outcome-list .v.ko{color:var(--danger)}
+.outcome-list .v.ok{color:var(--accent)}
+.msg-error{display:flex;gap:10px;align-items:flex-start;color:var(--text);background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:8px;padding:10px 12px;font-size:15px}
+.msg-error svg{flex:none;margin-top:2px}
+.msg-info{font-size:14px;color:var(--text-2);background:var(--bg);border:1px dashed var(--border-strong);border-radius:8px;padding:8px 12px}
+.waiting{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:16px}
+
+/* Vue joueur */
+.id-card{padding:16px;display:flex;flex-direction:column;gap:12px}
+.id-top{display:flex;gap:14px;align-items:center}
+.id-name{font-size:24px;font-weight:600;line-height:1.2}
+.pv-big .pv-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--text-2)}
+.pv-big .pv-val{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--text)}
+.pv-big .pv-val span{font-size:16px;color:var(--text-2);font-weight:500}
+.armor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px 16px}
+.armor-cell{background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:6px 8px;text-align:center}
+.armor-cell .k{font-size:12px;color:var(--text-2);display:block}
+.armor-cell .v{font-family:var(--font-mono);font-size:18px;font-weight:600}
+.armor-cell.empty{border-style:dashed}
+.armor-cell.hit{border-color:var(--danger)}
+.charac{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px 16px}
+.charac div{background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:8px;text-align:center}
+.charac .k{font-size:13px;color:var(--text-2);display:block}
+.charac .v{font-family:var(--font-mono);font-size:22px;font-weight:600}
+.skills{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 18px}
+.skill-group{font-size:13px;font-weight:600;color:var(--text-2);grid-column:1/-1;margin-top:6px}
+.skill{display:flex;justify-content:space-between;gap:8px;font-size:15px;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+.skill b{font-family:var(--font-mono);font-weight:600}
+.term{border-bottom:1px dotted var(--text-2);cursor:help}
+.tip{position:relative;display:inline-block}
+.tip-box{position:absolute;left:0;top:calc(100% + 6px);width:260px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:8px;padding:10px 12px;font-size:14px;font-weight:400;color:var(--text);z-index:2}
+
+/* Modales */
+.overlay{position:absolute;inset:0;background:rgba(3,8,5,.78);display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{width:760px;max-height:100%;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border-strong);border-radius:14px;overflow:hidden}
+.modal.narrow{width:560px}
+.modal-head{flex:none;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:20px}
+.modal-body{flex:1;min-height:0;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.modal-foot{flex:none;padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.foot-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.summary{font-size:15px;color:var(--text-2)}
+.summary strong{color:var(--text)}
+.field h3{font-size:15px;font-weight:600;margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.field h3 .n{font-family:var(--font-mono);color:var(--accent);font-size:14px}
+.field .hint{font-size:13px;color:var(--text-2);font-weight:400}
+.picks{display:flex;flex-wrap:wrap;gap:8px}
+.pick{min-height:44px;display:inline-flex;align-items:center;gap:10px;padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:15px;cursor:pointer;text-align:left}
+.pick.on{border:2px solid var(--accent);background:var(--surface-2)}
+.pick .sub{font-size:13px;color:var(--text-2);display:block}
+.pick .tag{font-size:12px;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:1px 8px}
+.pick.dis{opacity:.75;border-style:dashed}
+.pick-group{font-size:13px;color:var(--text-2);margin:2px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipb{min-height:40px;padding:0 12px;background:var(--bg);border:1px solid var(--border);border-radius:999px;color:var(--text);font:inherit;font-size:15px;cursor:pointer}
+.chipb.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* Version téléphone : tout empilé, la page défile comme aujourd'hui */
+.phone .focus-title{font-size:24px}
+.phone .big-number{font-size:44px}
+.phone .outcome-list{grid-template-columns:1fr 1fr}
+.phone .skills{grid-template-columns:1fr 1fr}
+.phone .charac{grid-template-columns:repeat(5,1fr);padding:10px}
+.phone .charac .v{font-size:18px}
+.phone .modal-body,.phone .modal-foot,.phone .modal-head{padding-left:16px;padding-right:16px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="doc-head">
+  <h1>Ticket 99 : des écrans lisibles, sans faire défiler la page</h1>
+  <p>Maquette des vues MJ et Joueur sur ordinateur (cadres fixes de 1366 x 768 pixels, ce qui dépasse est coupé comme sous la ligne de flottaison) et sur téléphone (375 pixels). Mêmes couleurs, polices et composants que l'application actuelle.</p>
+  <ul>
+    <li>Ordinateur : grille en colonnes, seules les listes défilent dans leur bloc, avec un titre qui reste visible.</li>
+    <li>Chaque écran de jet suit le même ordre : l'action ou le résultat, une phrase d'explication, puis les chiffres.</li>
+    <li>Le dé ASCII et les abréviations entre crochets disparaissent. L'ambiance terminal reste dans la police et les couleurs.</li>
+  </ul>
+</header>
+
+<!-- ============================ 1. TABLEAU DE BORD MJ ============================ -->
+<section class="screen" aria-labelledby="s1">
+  <h2 id="s1">1. Vue MJ, tableau de bord</h2>
+  <p class="note">Trois colonnes. À gauche : code, actions principales, attaque en cours et dernier résultat. Au centre les joueurs, à droite les PNJ. Les boutons « Ordonner un test » et « Lancer une attaque » restent toujours visibles.</p>
+
+  <p class="frame-label">Ordinateur 1366 x 768, 4 joueurs et 3 PNJ, attaque en cours à l'étape 2</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar">
+      <div class="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div>
+      <div class="top-right">
+        <button type="button" class="help-btn" aria-expanded="false"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button>
+        <span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span>
+      </div>
+    </header>
+    <div class="grid mj">
+      <div class="col">
+        <section class="block code-card" aria-labelledby="h-code1">
+          <div><h2 id="h-code1" class="code-label">Code d'accès de la table</h2><p class="code-value">HK-3527</p></div>
+          <div class="code-actions"><button type="button" class="btn">Copier</button><button type="button" class="btn ghost">Personnages</button></div>
+        </section>
+        <section class="block actions" aria-labelledby="h-act1">
+          <h2 id="h-act1">Actions</h2>
+          <button type="button" class="btn block">Ordonner un test</button>
+          <button type="button" class="btn ghost block">Lancer une attaque</button>
+        </section>
+        <section class="block attack-live" aria-labelledby="h-atk1">
+          <h2 id="h-atk1">Attaque en cours <button type="button" class="close-x" aria-label="Annuler l'attaque"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button></h2>
+          <p class="duel-line">Hérétique armé attaque Djoko</p>
+          <ol class="steps" aria-label="Étape 2 sur 3">
+            <li class="done">1 attaque</li><li class="now" aria-current="step">2 esquive</li><li>3 dégâts</li>
+          </ol>
+          <p style="font-size:15px">Touché, 2 degrés de réussite. En attente de l'esquive de Djoko.</p>
+          <p class="calc">Jet d'attaque 22 sur un seuil de 41</p>
+        </section>
+        <section class="block recap" aria-labelledby="h-last1">
+          <h2 id="h-last1">Dernier test</h2>
+          <p>Vigilance : 3 réussites sur 4</p>
+          <p class="small">Lyra a échoué, 1 degré d'échec (52 sur 45)</p>
+        </section>
+      </div>
+
+      <section class="block" aria-labelledby="h-j1">
+        <div class="block-head"><h2 id="h-j1">Joueurs</h2><p><strong>3</strong> présents sur 4</p></div>
+        <ul class="block-body" style="list-style:none;margin:0">
+          <li class="row"><div class="avatar" aria-hidden="true">DJ</div><div><p class="name">Djoko</p><p class="cls">Maître stellaire</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connecté</span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Djoko" aria-valuemin="0" aria-valuemax="130" aria-valuenow="130"><div class="fill" style="width:100%"></div></div><span class="pv-val">130<span> / 130</span></span><span class="pv-badge">Sain</span></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">LY</div><div><p class="name">Lyra</p><p class="cls">Arbitrator</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connectée</span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Lyra" aria-valuemin="0" aria-valuemax="14" aria-valuenow="9"><div class="fill warn" style="width:64%"></div></div><span class="pv-val">9<span> / 14</span></span><span class="pv-badge warn">Blessé</span></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">TS</div><div><p class="name">Tessa <span class="badge-fictif">Fictif</span></p><p class="cls">Garde impériale</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Joué par le MJ</span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Tessa" aria-valuemin="0" aria-valuemax="12" aria-valuenow="12"><div class="fill" style="width:100%"></div></div><span class="pv-val">12<span> / 12</span></span><span class="pv-badge">Sain</span></div></li>
+          <li class="row off"><div class="avatar off" aria-hidden="true">KR</div><div><p class="name">Korvin</p><p class="cls">Tech prêtre</p></div><span class="status off"><span class="dot off" aria-hidden="true"></span>Pas encore rejoint</span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Korvin" aria-valuemin="0" aria-valuemax="16" aria-valuenow="16"><div class="fill" style="width:100%"></div></div><span class="pv-val">16<span> / 16</span></span><span class="pv-badge">Sain</span></div></li>
+        </ul>
+      </section>
+
+      <section class="block" aria-labelledby="h-p1">
+        <div class="block-head"><h2 id="h-p1">PNJ en jeu</h2><p><strong>3</strong> actifs</p></div>
+        <ul class="block-body" style="list-style:none;margin:0">
+          <li class="row"><div class="avatar npc" aria-hidden="true">HA</div><div><p class="name">Hérétique armé</p><p class="cls">Esquive 30, arme : pistolet laser</p></div><span></span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Hérétique armé" aria-valuemin="0" aria-valuemax="12" aria-valuenow="12"><div class="fill" style="width:100%"></div></div><span class="pv-val">12<span> / 12</span></span><span class="pv-badge">Sain</span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">CU</div><div><p class="name">Cultiste</p><p class="cls">Esquive 25, arme : couteau</p></div><span></span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Cultiste" aria-valuemin="0" aria-valuemax="10" aria-valuenow="3"><div class="fill bad" style="width:30%"></div></div><span class="pv-val">3<span> / 10</span></span><span class="pv-badge bad">Gravement blessé</span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">SE</div><div><p class="name">Servitor</p><p class="cls">Esquive 20, arme : poing hydraulique</p></div><span></span><div class="pv-mini"><div class="track" role="progressbar" aria-label="Points de vie de Servitor" aria-valuemin="0" aria-valuemax="18" aria-valuenow="18"><div class="fill" style="width:100%"></div></div><span class="pv-val">18<span> / 18</span></span><span class="pv-badge">Sain</span></div></li>
+        </ul>
+      </section>
+    </div>
+  </div></div>
+
+  <p class="frame-label">Cas limite : fenêtre réduite à 1280 x 650, 12 PNJ importés. Seule la liste des PNJ défile, les boutons restent visibles</p>
+  <div class="desk-wrap"><div class="desk small">
+    <header class="topbar">
+      <div class="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div>
+      <div class="top-right"><button type="button" class="help-btn" aria-expanded="false"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div>
+    </header>
+    <div class="grid mj" style="grid-template-columns:320px 1fr 1fr">
+      <div class="col">
+        <section class="block code-card" aria-labelledby="h-code2"><div><h2 id="h-code2" class="code-label">Code d'accès de la table</h2><p class="code-value">HK-3527</p></div><div class="code-actions"><button type="button" class="btn">Copier</button><button type="button" class="btn ghost">Personnages</button></div></section>
+        <section class="block actions" aria-labelledby="h-act2"><h2 id="h-act2">Actions</h2><button type="button" class="btn block">Ordonner un test</button><button type="button" class="btn ghost block">Lancer une attaque</button></section>
+        <section class="block recap" aria-labelledby="h-last2"><h2 id="h-last2">Dernière attaque</h2><p>Cultiste attaque Lyra : esquivé</p><p class="small">Esquive 18 sur un seuil de 40, 3 degrés de réussite</p></section>
+      </div>
+      <section class="block" aria-labelledby="h-j2"><div class="block-head"><h2 id="h-j2">Joueurs</h2><p><strong>4</strong> présents sur 4</p></div>
+        <ul class="block-body" style="list-style:none;margin:0">
+          <li class="row"><div class="avatar" aria-hidden="true">DJ</div><div><p class="name">Djoko</p><p class="cls">Maître stellaire</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connecté</span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">130<span> / 130</span></span></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">LY</div><div><p class="name">Lyra</p><p class="cls">Arbitrator</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connectée</span><div class="pv-mini"><div class="track"><div class="fill warn" style="width:64%"></div></div><span class="pv-val">9<span> / 14</span></span></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">TS</div><div><p class="name">Tessa <span class="badge-fictif">Fictif</span></p><p class="cls">Garde impériale</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Joué par le MJ</span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">12<span> / 12</span></span></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">KR</div><div><p class="name">Korvin</p><p class="cls">Tech prêtre</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connecté</span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">16<span> / 16</span></span></div></li>
+        </ul>
+      </section>
+      <section class="block" aria-labelledby="h-p2"><div class="block-head"><h2 id="h-p2">PNJ en jeu</h2><p><strong>12</strong> actifs</p></div>
+        <ul class="block-body" tabindex="0" aria-label="Liste des PNJ, faites défiler pour voir la suite" style="list-style:none;margin:0">
+          <li class="row"><div class="avatar npc" aria-hidden="true">H1</div><div><p class="name">Hérétique 1</p><p class="cls">Esquive 30</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">12<span> / 12</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">H2</div><div><p class="name">Hérétique 2</p><p class="cls">Esquive 30</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">12<span> / 12</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">H3</div><div><p class="name">Hérétique 3</p><p class="cls">Esquive 30</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill warn" style="width:50%"></div></div><span class="pv-val">6<span> / 12</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">C1</div><div><p class="name">Cultiste 1</p><p class="cls">Esquive 25</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">10<span> / 10</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">C2</div><div><p class="name">Cultiste 2</p><p class="cls">Esquive 25</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">10<span> / 10</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">C3</div><div><p class="name">Cultiste 3</p><p class="cls">Esquive 25</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">10<span> / 10</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">C4</div><div><p class="name">Cultiste 4</p><p class="cls">Esquive 25</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">10<span> / 10</span></span></div></li>
+          <li class="row"><div class="avatar npc" aria-hidden="true">S1</div><div><p class="name">Servitor</p><p class="cls">Esquive 20</p></div><span></span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">18<span> / 18</span></span></div></li>
+        </ul>
+        <p class="scroll-hint">Faites défiler la liste pour voir les 12 PNJ.</p>
+      </section>
+    </div>
+  </div></div>
+
+  <div class="phones">
+    <div>
+      <p class="frame-label">Téléphone 375, inchangé : les blocs s'empilent et la page défile</p>
+      <div class="phone">
+        <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div><button type="button" class="help-btn" aria-label="Comment marchent les dés ?"><span class="q" aria-hidden="true">?</span>Dés</button></header>
+        <div class="app">
+          <section class="block code-card" aria-labelledby="h-code3"><div><h2 id="h-code3" class="code-label">Code d'accès</h2><p class="code-value">HK-3527</p></div><button type="button" class="btn" style="min-height:44px">Copier</button></section>
+          <section class="block actions" aria-labelledby="h-act3"><h2 id="h-act3">Actions</h2><button type="button" class="btn block">Ordonner un test</button><button type="button" class="btn ghost block">Lancer une attaque</button></section>
+          <section class="block attack-live" aria-labelledby="h-atk3"><h2 id="h-atk3">Attaque en cours</h2><p class="duel-line">Hérétique armé attaque Djoko</p><ol class="steps" aria-label="Étape 2 sur 3"><li class="done">1 attaque</li><li class="now" aria-current="step">2 esquive</li><li>3 dégâts</li></ol><p style="font-size:15px">Touché. En attente de l'esquive de Djoko.</p></section>
+          <section class="block" aria-labelledby="h-j3"><div class="block-head"><h2 id="h-j3">Joueurs</h2><p><strong>3</strong> présents sur 4</p></div><div class="block-body">
+            <div class="row"><div class="avatar" aria-hidden="true">DJ</div><div><p class="name">Djoko</p><p class="cls">Maître stellaire</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connecté</span><div class="pv-mini"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pv-val">130<span> / 130</span></span></div></div>
+            <div class="row"><div class="avatar" aria-hidden="true">LY</div><div><p class="name">Lyra</p><p class="cls">Arbitrator</p></div><span class="status"><span class="dot" aria-hidden="true"></span>Connectée</span><div class="pv-mini"><div class="track"><div class="fill warn" style="width:64%"></div></div><span class="pv-val">9<span> / 14</span></span></div></div>
+          </div></section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div><p class="state-title">État vide : aucun personnage</p><div class="state-box"><section class="block" aria-labelledby="h-e1"><div class="block-head"><h2 id="h-e1">Joueurs</h2><p><strong>0</strong> présent sur 0</p></div><div class="block-body"><p style="color:var(--text-2);font-size:15px">Aucun personnage à la table. Importez une fiche ou ajoutez les personnages fictifs depuis l'écran Personnages.</p><button type="button" class="btn ghost">Ouvrir Personnages</button></div></section></div></div>
+    <div><p class="state-title">Chargement : connexion à la table</p><div class="state-box"><p class="inline-status" role="status"><span class="spinner" aria-hidden="true"></span>Connexion à la table en cours…</p></div></div>
+    <div><p class="state-title">Erreur : connexion perdue</p><div class="state-box"><p class="msg-error" role="alert"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><span>La connexion avec la table est perdue. Les joueurs ne reçoivent plus vos ordres. Nouvelle tentative dans quelques secondes.</span></p></div></div>
+    <div><p class="state-title">Succès : attaque résolue, rappel à gauche</p><div class="state-box"><section class="block recap" aria-labelledby="h-s1"><h2 id="h-s1">Dernière attaque</h2><p>Hérétique armé attaque Djoko : touché au bras droit, 7 dégâts subis</p><p class="small">Djoko : 123 points de vie sur 130</p><button type="button" class="btn ghost" style="min-height:44px;margin-top:6px">Fermer</button></section></div></div>
+  </div>
+</section>
+
+<!-- ============================ 2. RÉSULTATS D'UN TEST, MJ ============================ -->
+<section class="screen" aria-labelledby="s2">
+  <h2 id="s2">2. Vue MJ, résultats d'un test</h2>
+  <p class="note">Les actions restent à gauche. La liste des résultats remplace les colonnes joueurs et PNJ. Chaque ligne donne le résultat chiffré et le seuil, avec la même phrase que chez le joueur.</p>
+  <p class="frame-label">Ordinateur 1366 x 768, test de Vigilance, malus de 10, un jet en attente et un jet automatique</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid" style="grid-template-columns:340px 1fr">
+      <div class="col">
+        <section class="block code-card" aria-labelledby="h-code4"><div><h2 id="h-code4" class="code-label">Code d'accès de la table</h2><p class="code-value">HK-3527</p></div></section>
+        <section class="block actions" aria-labelledby="h-act4"><h2 id="h-act4">Actions</h2><button type="button" class="btn block">Nouveau test</button><button type="button" class="btn ghost block">Lancer une attaque</button><button type="button" class="link-btn">Revenir au tableau de bord</button></section>
+      </div>
+      <section class="block" aria-labelledby="h-r1">
+        <div class="block-head"><div><h2 id="h-r1">Test de Vigilance</h2><p>Malus de 10 appliqué au seuil de chaque joueur</p></div><p class="chip" role="status"><span class="dot" aria-hidden="true"></span>En direct, 3 jets reçus sur 4</p></div>
+        <ul class="block-body" style="list-style:none;margin:0">
+          <li class="row" style="grid-template-columns:40px 1fr auto"><div class="avatar" aria-hidden="true">DJ</div><div><p class="name">Djoko</p><p class="cls">Maître stellaire</p></div><div style="text-align:right;grid-row:span 2"><p style="font-size:18px;font-weight:600;color:var(--accent)">Réussite, 2 degrés</p><p class="calc">34 sur un seuil de 45</p></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">LY</div><div><p class="name">Lyra</p><p class="cls">Arbitrator</p></div><div style="text-align:right;grid-row:span 2"><p style="font-size:18px;font-weight:600;color:var(--danger)">Échec, 1 degré</p><p class="calc">52 sur un seuil de 45</p></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">TS</div><div><p class="name">Tessa <span class="badge-fictif">Fictif</span></p><p class="cls">Garde impériale</p></div><div style="text-align:right;grid-row:span 2"><p style="font-size:18px;font-weight:600;color:var(--accent)">Réussite, 1 degré</p><p class="calc">29 sur un seuil de 30, jet automatique</p></div></li>
+          <li class="row"><div class="avatar" aria-hidden="true">KR</div><div><p class="name">Korvin</p><p class="cls">Tech prêtre</p></div><div style="text-align:right;grid-row:span 2"><p class="inline-status" role="status"><span class="spinner" aria-hidden="true"></span>En attente du jet</p><p class="calc">Seuil de 35</p></div></li>
+        </ul>
+        <p class="scroll-hint">Réussite si le résultat du dé est inférieur ou égal au seuil. Chaque tranche de 10 points d'écart ajoute un degré.</p>
+      </section>
+    </div>
+  </div></div>
+  <div class="states">
+    <div><p class="state-title">Erreur : un joueur se déconnecte pendant le test</p><div class="state-box"><p class="msg-info" role="status">Korvin s'est déconnecté. Le test continue pour les autres joueurs.</p></div></div>
+    <div><p class="state-title">Succès : tous les jets reçus</p><div class="state-box"><p class="chip" role="status"><span class="dot" aria-hidden="true"></span>Tous les jets sont arrivés : 3 réussites sur 4</p></div></div>
+  </div>
+</section>
+
+<!-- ============================ 3. MODALE ORDONNER UN TEST ============================ -->
+<section class="screen" aria-labelledby="s3">
+  <h2 id="s3">3. Modale « Ordonner un test »</h2>
+  <p class="note">La modale tient dans la hauteur. Les compétences défilent dans le corps de la modale, le bas reste fixe avec le récapitulatif et le bouton de validation.</p>
+  <p class="frame-label">Ordinateur 1366 x 768</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div></header>
+    <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="h-m1">
+      <div class="modal">
+        <div class="modal-head"><h2 id="h-m1">Ordonner un test</h2><button type="button" class="close-x" aria-label="Fermer"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button></div>
+        <div class="modal-body">
+          <div class="field"><h3><span class="n">1</span>Compétence à tester <span class="hint">Le seuil de chaque joueur dépend de sa fiche.</span></h3>
+            <div class="chips" style="margin-bottom:8px"><button type="button" class="chipb on">Toutes</button><button type="button" class="chipb">Djoko</button><button type="button" class="chipb">Lyra</button><button type="button" class="chipb">Korvin</button></div>
+            <p class="pick-group">Agilité</p><div class="chips"><button type="button" class="chipb on">Esquive</button><button type="button" class="chipb">Acrobaties</button><button type="button" class="chipb">Pilotage</button><button type="button" class="chipb">Discrétion</button></div>
+            <p class="pick-group" style="margin-top:8px">Perception</p><div class="chips"><button type="button" class="chipb">Vigilance</button><button type="button" class="chipb">Fouille</button><button type="button" class="chipb">Pistage</button></div>
+            <p class="pick-group" style="margin-top:8px">Intelligence</p><div class="chips"><button type="button" class="chipb">Logique</button><button type="button" class="chipb">Médecine</button><button type="button" class="chipb">Technomancie</button><button type="button" class="chipb">Savoir interdit</button></div>
+          </div>
+          <div class="two">
+            <div class="field"><h3><span class="n">2</span>Malus <span class="hint">Retiré du seuil.</span></h3><div class="chips"><button type="button" class="chipb">Aucun</button><button type="button" class="chipb on">-10</button><button type="button" class="chipb">-20</button><button type="button" class="chipb">-30</button></div></div>
+            <div class="field"><h3><span class="n">3</span>Joueurs concernés</h3><div class="chips"><button type="button" class="chipb on">Toute l'équipe</button><button type="button" class="chipb">Sélection</button></div></div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <p class="msg-info">Les personnages fictifs lancent leur jet automatiquement.</p>
+          <div class="foot-row"><p class="summary">Test d'<strong>Esquive</strong>, malus de <strong>10</strong>, pour <strong>4 joueurs</strong> dont 1 fictif.</p><button type="button" class="btn">Transmettre l'ordre</button></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <div class="states">
+    <div><p class="state-title">Erreur : aucune compétence choisie</p><div class="state-box"><div class="foot-row"><p class="msg-error" role="alert">Choisissez une compétence pour transmettre l'ordre.</p><button type="button" class="btn" disabled>Transmettre l'ordre</button></div></div></div>
+    <div><p class="state-title">Chargement : envoi de l'ordre</p><div class="state-box"><button type="button" class="btn block" disabled><span class="spinner" aria-hidden="true"></span>Envoi en cours…</button></div></div>
+  </div>
+</section>
+
+<!-- ============================ 4. MODALE ENGAGER LE COMBAT ============================ -->
+<section class="screen" aria-labelledby="s4">
+  <h2 id="s4">4. Modale « Engager le combat »</h2>
+  <p class="note">Ordre du choix : attaquant, cible, arme, mode de tir. Libellés en français complet. Le récapitulatif, les messages d'erreur et le bouton sont dans le bas fixe de la modale, donc toujours visibles.</p>
+  <p class="frame-label">Ordinateur 1366 x 768, choix complet</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Maître de jeu</p></div></div></header>
+    <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="h-m2">
+      <div class="modal">
+        <div class="modal-head"><h2 id="h-m2">Engager le combat</h2><button type="button" class="close-x" aria-label="Fermer"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button></div>
+        <div class="modal-body">
+          <div class="two">
+            <div class="field"><h3><span class="n">1</span>Attaquant <span class="hint">Il lance le jet d'attaque.</span></h3>
+              <p class="pick-group">PNJ</p>
+              <div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Hérétique armé<span class="sub">Dextérité 41</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Cultiste<span class="sub">Dextérité 30</span></span></button></div>
+              <p class="pick-group" style="margin-top:8px">Joueurs</p>
+              <div class="picks"><button type="button" class="pick" aria-pressed="false"><span>Djoko<span class="sub">Dextérité 38</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Tessa <span class="tag">Fictif</span><span class="sub">Dextérité 35</span></span></button></div>
+            </div>
+            <div class="field"><h3><span class="n">2</span>Cible <span class="hint">Elle pourra tenter une esquive.</span></h3>
+              <p class="pick-group">Joueurs</p>
+              <div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Djoko<span class="sub">Esquive 35, 130 points de vie</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Lyra<span class="sub">Esquive 40, 9 points de vie</span></span></button><button type="button" class="pick dis" aria-pressed="false"><span>Korvin <span class="tag">Non connecté</span><span class="sub">Esquive 30, 16 points de vie</span></span></button></div>
+              <p class="pick-group" style="margin-top:8px">PNJ</p>
+              <div class="picks"><button type="button" class="pick" aria-pressed="false"><span>Cultiste<span class="sub">Esquive 25, 3 points de vie</span></span></button></div>
+            </div>
+          </div>
+          <div class="two">
+            <div class="field"><h3><span class="n">3</span>Arme</h3><div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Pistolet laser<span class="sub">1d10+2 dégâts, coup par coup ou rafale courte</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Couteau<span class="sub">1d5 dégâts, corps à corps</span></span></button></div></div>
+            <div class="field"><h3><span class="n">4</span>Mode de tir <span class="hint">La rafale peut toucher plusieurs fois.</span></h3><div class="chips"><button type="button" class="chipb on">Coup par coup</button><button type="button" class="chipb">Rafale courte</button></div></div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <div class="foot-row">
+            <p class="summary"><strong>Hérétique armé</strong> attaque <strong>Djoko</strong> au pistolet laser, coup par coup. Jet d'attaque sur un seuil de <strong>41</strong>, puis esquive de Djoko sur un seuil de <strong>35</strong>.</p>
+            <button type="button" class="btn" style="flex:none">Engager le combat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="phones">
+    <div><p class="frame-label">Téléphone 375 : modale plein écran, bas fixe</p>
+      <div class="phone"><div class="modal" style="width:100%;border:none;border-radius:0">
+        <div class="modal-head"><h2>Engager le combat</h2><button type="button" class="close-x" aria-label="Fermer"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button></div>
+        <div class="modal-body">
+          <div class="field"><h3><span class="n">1</span>Attaquant</h3><div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Hérétique armé<span class="sub">Dextérité 41</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Cultiste<span class="sub">Dextérité 30</span></span></button></div></div>
+          <div class="field"><h3><span class="n">2</span>Cible</h3><div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Djoko<span class="sub">Esquive 35, 130 points de vie</span></span></button><button type="button" class="pick" aria-pressed="false"><span>Lyra<span class="sub">Esquive 40, 9 points de vie</span></span></button></div></div>
+          <div class="field"><h3><span class="n">3</span>Arme</h3><div class="picks"><button type="button" class="pick on" aria-pressed="true"><span>Pistolet laser<span class="sub">1d10+2 dégâts</span></span></button></div></div>
+        </div>
+        <div class="modal-foot"><p class="summary"><strong>Hérétique armé</strong> attaque <strong>Djoko</strong>, seuil 41 puis esquive 35.</p><button type="button" class="btn block">Engager le combat</button></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div><p class="state-title">Erreur : même combattant en attaquant et en cible</p><div class="state-box"><div class="modal-foot" style="padding:0;border:none;background:none"><p class="msg-error" role="alert"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><span>Un combattant ne peut pas s'attaquer lui-même. Choisissez une autre cible.</span></p><button type="button" class="btn block" disabled>Engager le combat</button></div></div></div>
+    <div><p class="state-title">Erreur : cible non connectée</p><div class="state-box"><div class="modal-foot" style="padding:0;border:none;background:none"><p class="msg-error" role="alert"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><span>Korvin n'est pas connecté. Il ne pourrait pas lancer son esquive, l'attaque ne peut donc pas être lancée.</span></p><button type="button" class="btn block" disabled>Engager le combat</button></div></div></div>
+    <div><p class="state-title">Vide : l'attaquant n'a pas d'arme</p><div class="state-box"><div class="field"><h3><span class="n">3</span>Arme</h3><p style="color:var(--text-2);font-size:15px">Cet attaquant n'a aucune arme utilisable. Choisissez un autre attaquant ou ajoutez une arme à sa fiche.</p></div></div></div>
+    <div><p class="state-title">Information : combattant fictif</p><div class="state-box"><p class="msg-info">Tessa est un personnage fictif : son jet d'attaque sera lancé automatiquement.</p></div></div>
+  </div>
+</section>
+
+<!-- ============================ 5. VUE JOUEUR, ÉCRAN PRINCIPAL ============================ -->
+<section class="screen" aria-labelledby="s5">
+  <h2 id="s5">5. Vue Joueur, écran principal</h2>
+  <p class="note">Deux colonnes. À gauche : identité, points de vie et armure en grille par localisation. À droite : caractéristiques en chiffres et compétences avec leur valeur, la liste défile dans son bloc. Plus de pastille « Mod +00 ».</p>
+  <p class="frame-label">Ordinateur 1366 x 768, aide sur les dés ouverte</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div>
+      <div class="top-right">
+        <div class="tip"><button type="button" class="help-btn" aria-expanded="true" aria-controls="aide-des"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button>
+          <div id="aide-des" class="tip-box" style="left:auto;right:0;width:340px" role="region" aria-label="Comment marchent les dés">
+            <p style="font-weight:600;margin-bottom:6px">On lance un dé à 100 faces.</p>
+            <p style="margin-bottom:6px">Le jet réussit si le résultat est inférieur ou égal à votre seuil. Le seuil vient de votre fiche, moins un éventuel malus.</p>
+            <p style="margin-bottom:6px">Chaque tranche de 10 points d'écart ajoute un degré de réussite ou d'échec.</p>
+            <p class="calc">Exemple : seuil 45, vous faites 23. Réussite, 3 degrés (22 points d'écart).</p>
+          </div>
+        </div>
+        <span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span>
+      </div>
+    </header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id1">
+          <div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id1" class="id-name">Djoko</h2><p class="cls" style="font-size:15px">Maître stellaire</p><span class="pv-badge" style="margin-top:6px">Sain</span></div></div>
+          <div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px" role="progressbar" aria-label="Points de vie de Djoko" aria-valuemin="0" aria-valuemax="130" aria-valuenow="130"><div class="fill" style="width:100%"></div></div></div>
+        </section>
+        <p class="waiting" role="status"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5ef29c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>En attente d'un ordre du Maître de Jeu.</p>
+        <section class="block" aria-labelledby="h-ar1">
+          <div class="block-head"><h2 id="h-ar1"><span class="term" title="Points retirés aux dégâts reçus sur cette partie du corps">Armure</span></h2><p>Points retirés aux dégâts</p></div>
+          <div class="armor-grid">
+            <div class="armor-cell"><span class="k">Tête</span><span class="v">2</span></div>
+            <div class="armor-cell"><span class="k">Corps</span><span class="v">4</span></div>
+            <div class="armor-cell empty"><span class="k">Dos</span><span class="v">0</span></div>
+            <div class="armor-cell"><span class="k">Bras gauche</span><span class="v">3</span></div>
+            <div class="armor-cell"><span class="k">Bras droit</span><span class="v">3</span></div>
+            <div class="armor-cell empty"><span class="k">Jambes</span><span class="v">0</span></div>
+          </div>
+        </section>
+      </div>
+      <div class="col">
+        <section class="block" aria-labelledby="h-ca1">
+          <div class="block-head"><h2 id="h-ca1">Caractéristiques</h2><p>Base des seuils de vos compétences</p></div>
+          <div class="charac"><div><span class="k">Agilité</span><span class="v">42</span></div><div><span class="k">Dextérité</span><span class="v">38</span></div><div><span class="k">Perception</span><span class="v">45</span></div><div><span class="k">Force</span><span class="v">35</span></div><div><span class="k">Intelligence</span><span class="v">30</span></div></div>
+        </section>
+        <section class="block grow" aria-labelledby="h-co1">
+          <div class="block-head"><h2 id="h-co1">Compétences</h2><p>Valeur affichée = votre seuil sans malus</p></div>
+          <div class="block-body" tabindex="0" aria-label="Liste des compétences">
+            <div class="skills">
+              <p class="skill-group">Agilité</p>
+              <div class="skill"><span>Esquive</span><b>40</b></div><div class="skill"><span>Pilotage (vaisseau)</span><b>52</b></div><div class="skill"><span>Acrobaties</span><b>21</b></div>
+              <p class="skill-group">Perception</p>
+              <div class="skill"><span>Vigilance</span><b>45</b></div><div class="skill"><span>Fouille</span><b>35</b></div><div class="skill"><span>Pistage</span><b>23</b></div>
+              <p class="skill-group">Charisme</p>
+              <div class="skill"><span>Psychologie</span><b>38</b></div><div class="skill"><span>Commandement</span><b>40</b></div><div class="skill"><span>Marchandage</span><b>33</b></div>
+              <p class="skill-group">Intelligence</p>
+              <div class="skill"><span>Jeu</span><b>30</b></div><div class="skill"><span>Logique</span><b>30</b></div><div class="skill"><span>Navigation</span><b>40</b></div>
+              <p class="skill-group">Force</p>
+              <div class="skill"><span>Résistance aux intoxications</span><b>35</b></div><div class="skill"><span>Athlétisme</span><b>28</b></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="phones">
+    <div><p class="frame-label">Téléphone 375 : même contenu empilé, la page défile</p>
+      <div class="phone">
+        <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><button type="button" class="help-btn" aria-label="Comment marchent les dés ?"><span class="q" aria-hidden="true">?</span>Dés</button></header>
+        <div class="app">
+          <section class="block id-card" aria-labelledby="h-id2"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id2" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px"><div class="fill" style="width:100%"></div></div></div></section>
+          <p class="waiting" role="status">En attente d'un ordre du Maître de Jeu.</p>
+          <section class="block" aria-labelledby="h-ca2"><div class="block-head"><h2 id="h-ca2">Caractéristiques</h2></div><div class="charac"><div><span class="k">Agi</span><span class="v">42</span></div><div><span class="k">Dex</span><span class="v">38</span></div><div><span class="k">Per</span><span class="v">45</span></div><div><span class="k">For</span><span class="v">35</span></div><div><span class="k">Int</span><span class="v">30</span></div></div></section>
+          <section class="block" aria-labelledby="h-ar2"><div class="block-head"><h2 id="h-ar2">Armure</h2></div><div class="armor-grid"><div class="armor-cell"><span class="k">Tête</span><span class="v">2</span></div><div class="armor-cell"><span class="k">Corps</span><span class="v">4</span></div><div class="armor-cell empty"><span class="k">Dos</span><span class="v">0</span></div></div></section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px">Sur téléphone, les abréviations des caractéristiques (Agi, Dex…) restent possibles faute de place, avec le nom complet en libellé accessible.</p>
+</section>
+
+<!-- ============================ 6. TEST ORDONNÉ, JOUEUR ============================ -->
+<section class="screen" aria-labelledby="s6">
+  <h2 id="s6">6. Vue Joueur, test ordonné par le MJ</h2>
+  <p class="note">Avant le jet, le joueur voit son seuil et comment il est calculé. Après le jet, le résultat chiffré, le seuil, la mention réussite ou échec et les degrés. L'écran remplace la colonne de droite, l'identité reste à gauche.</p>
+  <p class="frame-label">Ordinateur 1366 x 768, avant le jet : test d'Esquive avec un malus de 10</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id3"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id3" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px"><div class="fill" style="width:100%"></div></div></div></section>
+        <section class="block" aria-labelledby="h-ar3"><div class="block-head"><h2 id="h-ar3">Armure</h2></div><div class="armor-grid"><div class="armor-cell"><span class="k">Tête</span><span class="v">2</span></div><div class="armor-cell"><span class="k">Corps</span><span class="v">4</span></div><div class="armor-cell empty"><span class="k">Dos</span><span class="v">0</span></div><div class="armor-cell"><span class="k">Bras gauche</span><span class="v">3</span></div><div class="armor-cell"><span class="k">Bras droit</span><span class="v">3</span></div><div class="armor-cell empty"><span class="k">Jambes</span><span class="v">0</span></div></div></section>
+      </div>
+      <div class="col">
+        <section class="focus-card" aria-labelledby="h-t1">
+          <p class="eyebrow">Ordre du Maître de Jeu</p>
+          <h2 id="h-t1" class="focus-title">Lancez un test d'Esquive</h2>
+          <p class="explain">Pour réussir, votre dé doit faire <strong>30 ou moins</strong>.</p>
+          <div class="facts">
+            <div class="fact"><span class="k">Esquive</span><span class="v">40</span></div>
+            <div class="fact"><span class="k">Malus</span><span class="v">-10</span></div>
+            <div class="fact key"><span class="k"><span class="term" title="Le nombre à ne pas dépasser avec le dé">Seuil</span></span><span class="v">30</span></div>
+          </div>
+          <p class="calc">Esquive 40, liée à l'Agilité, moins un malus de 10 = seuil de 30</p>
+          <div class="roll-zone"><div class="die" aria-hidden="true">d100</div><button type="button" class="btn big" style="min-width:260px">Lancer le dé</button></div>
+          <p class="dice-rule"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5ef29c" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>On lance un dé à 100 faces. Le jet réussit si le résultat est inférieur ou égal au seuil. Chaque tranche de 10 points d'écart donne un degré de réussite ou d'échec en plus.</span></p>
+        </section>
+      </div>
+    </div>
+  </div></div>
+
+  <p class="frame-label">Ordinateur 1366 x 768, après le jet : résultat et reste de l'escouade</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id4"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id4" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px"><div class="fill" style="width:100%"></div></div></div></section>
+        <section class="block" aria-labelledby="h-sq1"><div class="block-head"><h2 id="h-sq1">Le reste de l'escouade</h2><p>Esquive</p></div>
+          <ul class="block-body" style="list-style:none;margin:0">
+            <li class="row"><div class="avatar" aria-hidden="true">LY</div><div><p class="name">Lyra</p><p class="calc">52 sur un seuil de 30</p></div><p style="color:var(--danger);font-weight:600;grid-row:span 2">Échec, 3 degrés</p></li>
+            <li class="row"><div class="avatar" aria-hidden="true">TS</div><div><p class="name">Tessa <span class="badge-fictif">Fictif</span></p><p class="calc">12 sur un seuil de 25</p></div><p style="color:var(--accent);font-weight:600;grid-row:span 2">Réussite, 2 degrés</p></li>
+            <li class="row"><div class="avatar" aria-hidden="true">KR</div><div><p class="name">Korvin</p><p class="cls">Seuil de 20</p></div><p class="inline-status" role="status" style="grid-row:span 2"><span class="spinner" aria-hidden="true"></span>En attente</p></li>
+          </ul>
+        </section>
+      </div>
+      <div class="col">
+        <section class="focus-card" aria-labelledby="h-t2" role="status">
+          <p class="eyebrow">Test d'Esquive</p>
+          <h2 id="h-t2" class="focus-title ok">Réussite, 1 degré de réussite</h2>
+          <div class="result-line"><span class="big-number">23</span><span class="of">sur un seuil de 30</span></div>
+          <p class="explain">Votre dé fait 23, c'est 30 ou moins : le jet réussit. L'écart est de 7 points, moins d'une tranche de 10 : 1 degré.</p>
+          <div class="facts"><div class="fact"><span class="k">Dé</span><span class="v">23</span></div><div class="fact key"><span class="k">Seuil</span><span class="v">30</span></div><div class="fact"><span class="k">Écart</span><span class="v">7</span></div><div class="fact"><span class="k">Degrés</span><span class="v">1</span></div></div>
+          <button type="button" class="btn ghost" style="align-self:flex-start">Retour à ma fiche</button>
+        </section>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="phones">
+    <div><p class="frame-label">Téléphone 375, avant le jet</p>
+      <div class="phone"><div class="app">
+        <section class="focus-card" aria-labelledby="h-t3"><p class="eyebrow">Ordre du Maître de Jeu</p><h2 id="h-t3" class="focus-title">Lancez un test d'Esquive</h2><p class="explain">Pour réussir, votre dé doit faire <strong>30 ou moins</strong>.</p><div class="facts"><div class="fact"><span class="k">Esquive</span><span class="v">40</span></div><div class="fact"><span class="k">Malus</span><span class="v">-10</span></div><div class="fact key"><span class="k">Seuil</span><span class="v">30</span></div></div><button type="button" class="btn big block">Lancer le dé</button><p class="dice-rule"><span>Dé à 100 faces. Réussite si le résultat est inférieur ou égal au seuil. Chaque tranche de 10 points d'écart donne un degré en plus.</span></p></section>
+      </div></div>
+    </div>
+    <div><p class="frame-label">Téléphone 375, après le jet (échec)</p>
+      <div class="phone"><div class="app">
+        <section class="focus-card" aria-labelledby="h-t4" role="status"><p class="eyebrow">Test d'Esquive</p><h2 id="h-t4" class="focus-title ko">Échec, 2 degrés d'échec</h2><div class="result-line"><span class="big-number">47</span><span class="of">sur un seuil de 30</span></div><p class="explain">Votre dé dépasse le seuil de 17 points : le jet échoue, avec 2 degrés.</p><button type="button" class="btn ghost block">Retour à ma fiche</button></section>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div><p class="state-title">Chargement : le dé roule</p><div class="state-box"><div class="roll-zone"><div class="die rolling" aria-hidden="true">d100</div><p class="inline-status" role="status">Lancer en cours…</p></div></div></div>
+    <div><p class="state-title">Erreur : le jet n'est pas parti</p><div class="state-box"><p class="msg-error" role="alert"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><span>Votre jet n'a pas pu être envoyé. Vérifiez votre connexion puis relancez.</span></p><button type="button" class="btn block" style="margin-top:10px">Relancer le dé</button></div></div>
+    <div><p class="state-title">Vide : en attente d'un ordre</p><div class="state-box"><p class="waiting" role="status">En attente d'un ordre du Maître de Jeu.</p></div></div>
+  </div>
+</section>
+
+<!-- ============================ 7. COMBAT, ÉTAPE 1 ============================ -->
+<section class="screen" aria-labelledby="s7">
+  <h2 id="s7">7. Combat, vue Joueur : étape 1 sur 3, jet d'attaque</h2>
+  <p class="note">Le joueur attaque. Le repère d'étapes montre la séquence complète. Une phrase dit quoi faire et pourquoi. Plus de « Mod +00 ».</p>
+  <p class="frame-label">Ordinateur 1366 x 768</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id5"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id5" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px"><div class="fill" style="width:100%"></div></div></div></section>
+        <section class="block recap" aria-labelledby="h-duel1"><h2 id="h-duel1">Combat en cours</h2><p style="font-size:17px;font-weight:600">Djoko attaque Cultiste</p><p class="small">Arme : pistolet laser, coup par coup</p></section>
+      </div>
+      <div class="col">
+        <section class="focus-card" aria-labelledby="h-c1">
+          <div class="eyebrow"><span class="step-chip">Étape 1 sur 3</span><ol class="steps" aria-label="Étapes du combat" style="flex:1;max-width:420px"><li class="now" aria-current="step">1 jet d'attaque</li><li>2 esquive de la cible</li><li>3 dégâts</li></ol></div>
+          <h2 id="h-c1" class="focus-title">Vous attaquez le Cultiste</h2>
+          <p class="explain">Lancez votre jet d'attaque. Si votre dé fait <strong>38 ou moins</strong>, vous touchez, puis le Cultiste pourra tenter d'esquiver.</p>
+          <div class="facts"><div class="fact"><span class="k">Arme</span><span class="v" style="font-family:var(--font-sans);font-size:16px">Pistolet laser</span></div><div class="fact"><span class="k"><span class="term" title="Coup par coup : une balle. Rafale : plusieurs balles possibles selon vos degrés.">Mode de tir</span></span><span class="v" style="font-family:var(--font-sans);font-size:16px">Coup par coup</span></div><div class="fact key"><span class="k">Seuil (Dextérité)</span><span class="v">38</span></div></div>
+          <div class="roll-zone"><div class="die" aria-hidden="true">d100</div><button type="button" class="btn big" style="min-width:260px">Lancer l'attaque</button></div>
+          <p class="dice-rule"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5ef29c" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Dé à 100 faces. Vous touchez si le résultat est inférieur ou égal au seuil. Chaque tranche de 10 points d'écart donne un degré de réussite en plus, utile en rafale.</span></p>
+        </section>
+      </div>
+    </div>
+  </div></div>
+  <div class="states">
+    <div><p class="state-title">Chargement : attente de l'esquive de la cible (étape 2, vue attaquant)</p><div class="state-box"><section class="focus-card" aria-labelledby="h-c1b"><div class="eyebrow"><span class="step-chip">Étape 2 sur 3</span></div><h2 id="h-c1b" class="focus-title ok" style="font-size:24px">Touché, 2 degrés de réussite</h2><p class="explain" style="font-size:16px">Votre dé fait 17 sur un seuil de 38. Le Cultiste tente maintenant d'esquiver.</p><p class="inline-status" role="status"><span class="spinner" aria-hidden="true"></span>En attente de l'esquive du Cultiste…</p></section></div></div>
+    <div><p class="state-title">Résultat : attaque ratée</p><div class="state-box"><section class="focus-card" aria-labelledby="h-c1c" role="status"><p class="eyebrow">Combat terminé</p><h2 id="h-c1c" class="focus-title ko" style="font-size:24px">Attaque ratée, 2 degrés d'échec</h2><p class="explain" style="font-size:16px">Votre dé fait 55 sur un seuil de 38. Le tir manque sa cible, aucun dégât.</p><button type="button" class="btn ghost" style="align-self:flex-start">Retour à ma fiche</button></section></div></div>
+  </div>
+</section>
+
+<!-- ============================ 8. COMBAT, ÉTAPE 2 ============================ -->
+<section class="screen" aria-labelledby="s8">
+  <h2 id="s8">8. Combat, vue Joueur : étape 2 sur 3, esquive</h2>
+  <p class="note">Le joueur est la cible et l'attaque a touché. Couleur d'alerte, qui l'attaque et avec quoi, son seuil d'esquive et ce qui arrive selon le résultat.</p>
+  <p class="frame-label">Ordinateur 1366 x 768</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id6"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id6" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">130<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px"><div class="fill" style="width:100%"></div></div></div></section>
+        <section class="block" aria-labelledby="h-ar6"><div class="block-head"><h2 id="h-ar6">Armure</h2><p>Retirée des dégâts si vous êtes touché</p></div><div class="armor-grid"><div class="armor-cell"><span class="k">Tête</span><span class="v">2</span></div><div class="armor-cell"><span class="k">Corps</span><span class="v">4</span></div><div class="armor-cell empty"><span class="k">Dos</span><span class="v">0</span></div><div class="armor-cell"><span class="k">Bras gauche</span><span class="v">3</span></div><div class="armor-cell"><span class="k">Bras droit</span><span class="v">3</span></div><div class="armor-cell empty"><span class="k">Jambes</span><span class="v">0</span></div></div></section>
+      </div>
+      <div class="col">
+        <section class="focus-card danger" aria-labelledby="h-c2" role="alert">
+          <div class="eyebrow"><span class="step-chip">Étape 2 sur 3</span><ol class="steps" aria-label="Étapes du combat" style="flex:1;max-width:420px"><li class="done">1 jet d'attaque</li><li class="now" aria-current="step">2 esquive</li><li>3 dégâts</li></ol></div>
+          <h2 id="h-c2" class="focus-title">Vous êtes touché, esquivez !</h2>
+          <p class="explain">L'Hérétique armé vous a touché au pistolet laser. Lancez votre esquive pour éviter les dégâts : avec <strong>35 ou moins</strong>, vous évitez tout. Au dessus, vous subissez les dégâts, moins votre armure.</p>
+          <div class="facts"><div class="fact"><span class="k">Attaquant</span><span class="v" style="font-family:var(--font-sans);font-size:16px">Hérétique armé</span></div><div class="fact"><span class="k">Arme</span><span class="v" style="font-family:var(--font-sans);font-size:16px">Pistolet laser, coup par coup</span></div><div class="fact key"><span class="k">Seuil d'esquive</span><span class="v">35</span></div></div>
+          <p class="calc">Esquive 35, liée à l'Agilité, bonus d'esquive compris</p>
+          <div class="roll-zone"><div class="die" aria-hidden="true">d100</div><button type="button" class="btn big danger" style="min-width:260px">Lancer l'esquive</button></div>
+          <p class="dice-rule"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff9a70" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Dé à 100 faces. L'esquive réussit si le résultat est inférieur ou égal au seuil.</span></p>
+        </section>
+      </div>
+    </div>
+  </div></div>
+  <div class="phones">
+    <div><p class="frame-label">Téléphone 375</p>
+      <div class="phone"><div class="app">
+        <section class="focus-card danger" aria-labelledby="h-c2p" role="alert"><div class="eyebrow"><span class="step-chip">Étape 2 sur 3</span>Esquive</div><h2 id="h-c2p" class="focus-title">Vous êtes touché, esquivez !</h2><p class="explain">L'Hérétique armé vous a touché au pistolet laser. Avec <strong>35 ou moins</strong>, vous évitez les dégâts.</p><div class="facts"><div class="fact key"><span class="k">Seuil d'esquive</span><span class="v">35</span></div></div><button type="button" class="btn big danger block">Lancer l'esquive</button></section>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 9. COMBAT, ÉTAPE 3 ============================ -->
+<section class="screen" aria-labelledby="s9">
+  <h2 id="s9">9. Combat, vue Joueur : étape 3 sur 3, résultat</h2>
+  <p class="note">Le résultat est découpé en éléments distincts au lieu d'une seule phrase longue. La localisation touchée s'allume aussi dans la grille d'armure.</p>
+  <p class="frame-label">Ordinateur 1366 x 768, esquive ratée</p>
+  <div class="desk-wrap"><div class="desk">
+    <header class="topbar"><div class="brand"><div><h1 class="brand-title">AUSPEX</h1><p class="brand-sub">Table HK-3527</p></div></div><div class="top-right"><button type="button" class="help-btn"><span class="q" aria-hidden="true">?</span>Comment marchent les dés ?</button><span class="chip"><span class="dot" aria-hidden="true"></span>En ligne</span></div></header>
+    <div class="grid pl">
+      <div class="col">
+        <section class="block id-card" aria-labelledby="h-id7"><div class="id-top"><div class="avatar lg" aria-hidden="true">DJ</div><div><h2 id="h-id7" class="id-name">Djoko</h2><p class="cls">Maître stellaire</p><span class="pv-badge">Sain</span></div></div><div class="pv-big"><div class="pv-top"><span>Points de vie</span><span class="pv-val">123<span> / 130</span></span></div><div class="track" style="height:14px;margin-top:6px" role="progressbar" aria-label="Points de vie de Djoko" aria-valuemin="0" aria-valuemax="130" aria-valuenow="123"><div class="fill" style="width:95%"></div></div></div></section>
+        <section class="block" aria-labelledby="h-ar7"><div class="block-head"><h2 id="h-ar7">Armure</h2></div><div class="armor-grid"><div class="armor-cell"><span class="k">Tête</span><span class="v">2</span></div><div class="armor-cell"><span class="k">Corps</span><span class="v">4</span></div><div class="armor-cell empty"><span class="k">Dos</span><span class="v">0</span></div><div class="armor-cell"><span class="k">Bras gauche</span><span class="v">3</span></div><div class="armor-cell hit"><span class="k">Bras droit, touché</span><span class="v">3</span></div><div class="armor-cell empty"><span class="k">Jambes</span><span class="v">0</span></div></div></section>
+      </div>
+      <div class="col">
+        <section class="focus-card danger" aria-labelledby="h-c3" role="status">
+          <div class="eyebrow"><span class="step-chip">Étape 3 sur 3</span><ol class="steps" aria-label="Étapes du combat" style="flex:1;max-width:420px"><li class="done">1 jet d'attaque</li><li class="done">2 esquive</li><li class="now" aria-current="step">3 dégâts</li></ol></div>
+          <h2 id="h-c3" class="focus-title ko">Esquive ratée : 7 dégâts subis</h2>
+          <p class="explain">Votre dé fait 58 sur un seuil d'esquive de 35. Le tir vous atteint au bras droit, votre armure absorbe une partie des dégâts.</p>
+          <ul class="outcome-list">
+            <li><span class="k">Attaque</span><span class="v ko">Touché, 2 degrés</span></li>
+            <li><span class="k">Esquive</span><span class="v ko">Ratée, 3 degrés d'échec</span></li>
+            <li><span class="k"><span class="term" title="La partie du corps touchée, tirée du jet d'attaque">Localisation</span></span><span class="v">Bras droit</span></li>
+            <li><span class="k">Balles</span><span class="v">1 balle touche</span></li>
+            <li><span class="k">Dégâts subis, armure déduite</span><span class="v ko">7</span></li>
+            <li><span class="k">Points de vie restants</span><span class="v">123 sur 130</span></li>
+          </ul>
+          <button type="button" class="btn ghost" style="align-self:flex-start">Retour à ma fiche</button>
+        </section>
+      </div>
+    </div>
+  </div></div>
+  <div class="phones">
+    <div><p class="frame-label">Téléphone 375, esquive ratée</p>
+      <div class="phone"><div class="app">
+        <section class="focus-card danger" aria-labelledby="h-c3p" role="status"><div class="eyebrow"><span class="step-chip">Étape 3 sur 3</span>Dégâts</div><h2 id="h-c3p" class="focus-title ko">Esquive ratée : 7 dégâts subis</h2><ul class="outcome-list"><li><span class="k">Localisation</span><span class="v">Bras droit</span></li><li><span class="k">Balles</span><span class="v">1 balle</span></li><li><span class="k">Dégâts subis</span><span class="v ko">7</span></li><li><span class="k">Points de vie</span><span class="v">123 sur 130</span></li></ul><button type="button" class="btn ghost block">Retour à ma fiche</button></section>
+      </div></div>
+    </div>
+    <div><p class="frame-label">Téléphone 375, esquive réussie</p>
+      <div class="phone"><div class="app">
+        <section class="focus-card" aria-labelledby="h-c3q" role="status"><div class="eyebrow"><span class="step-chip">Étape 3 sur 3</span>Résultat</div><h2 id="h-c3q" class="focus-title ok">Esquivé, aucun dégât</h2><p class="explain">Votre dé fait 12 sur un seuil de 35 : 3 degrés de réussite.</p><ul class="outcome-list"><li><span class="k">Attaque</span><span class="v">Touché</span></li><li><span class="k">Esquive</span><span class="v ok">Réussie</span></li></ul><button type="button" class="btn ghost block">Retour à ma fiche</button></section>
+      </div></div>
+    </div>
+  </div>
+  <div class="states">
+    <div><p class="state-title">Résultat : hors de combat</p><div class="state-box"><p class="msg-error" role="alert"><span><strong>Hors de combat.</strong> Vos points de vie sont tombés à 0. Le Maître de Jeu décide de la suite.</span></p></div></div>
+    <div><p class="state-title">Corps à corps : pas de balles</p><div class="state-box"><ul class="outcome-list" style="grid-template-columns:1fr 1fr"><li><span class="k">Localisation</span><span class="v">Jambes</span></li><li><span class="k">Coup</span><span class="v">Le coup touche</span></li></ul></div></div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

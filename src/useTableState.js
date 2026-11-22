@@ -13,6 +13,7 @@ import {
   attackOutcomeLabel,
   attackRollDegreeLabel,
 } from './gameLogic'
+import { testThreshold, rollSummary, armorCells } from './explain'
 
 const MY_CHARACTER_KEY = 'auspex.myCharacterId'
 
@@ -49,6 +50,11 @@ export function useTableState() {
   const [npcDodging, setNpcDodging] = useState(false)
   const [rollingAttack, setRollingAttack] = useState(false)
   const [attackError, setAttackError] = useState('')
+  const [launchError, setLaunchError] = useState('')
+  const [rollError, setRollError] = useState('')
+  // Rappel compact du dernier test dans la vue MJ (ticket 99, souhaitable 4) : gardé
+  // côté navigateur, puisque le snapshot oublie le test dès qu'il est clos.
+  const [lastTest, setLastTest] = useState(null)
 
   const socketRef = useRef(null)
   useEffect(() => {
@@ -265,10 +271,13 @@ export function useTableState() {
   async function rollDodge() {
     if (!myCharacterId || dodging) return
     setDodging(true)
+    setRollError('')
     try {
       await api.rollDodge(myCharacterId)
       // Same readability pause as rollDice — the server resolves instantly.
       await new Promise((resolve) => setTimeout(resolve, 900))
+    } catch {
+      setRollError('Votre jet n’a pas pu être envoyé. Vérifiez votre connexion puis relancez.')
     } finally {
       setDodging(false)
     }
@@ -290,9 +299,12 @@ export function useTableState() {
   async function rollAttack() {
     if (!myCharacterId || rollingAttack) return
     setRollingAttack(true)
+    setRollError('')
     try {
       await api.rollAttack(myCharacterId)
       await new Promise((resolve) => setTimeout(resolve, 900))
+    } catch {
+      setRollError('Votre jet n’a pas pu être envoyé. Vérifiez votre connexion puis relancez.')
     } finally {
       setRollingAttack(false)
     }
@@ -320,6 +332,7 @@ export function useTableState() {
     setMalus(null)
     setWhoMode('all')
     setChosen({})
+    setLaunchError('')
   }
   function closeLaunch() {
     setShowLaunch(false)
@@ -337,9 +350,14 @@ export function useTableState() {
   async function sendRequest() {
     const concerned = concernedCharacterIds()
     if (!selectedSkill || concerned.length === 0) return
-    await api.createRequest({ skill: selectedSkill, malus, concernedCharacterIds: concerned })
-    setShowLaunch(false)
-    setRolling(false)
+    setLaunchError('')
+    try {
+      await api.createRequest({ skill: selectedSkill, malus, concernedCharacterIds: concerned })
+      setShowLaunch(false)
+      setRolling(false)
+    } catch {
+      setLaunchError('L’ordre n’a pas pu être transmis. Vérifiez votre connexion puis réessayez.')
+    }
   }
 
   async function startNewTest() {
@@ -354,14 +372,24 @@ export function useTableState() {
   async function rollDice() {
     if (!myCharacterId || rolling || rolls[myCharacterId]) return
     setRolling(true)
+    setRollError('')
     try {
       await api.rollDice(myCharacterId)
       // The server resolves the roll instantly; a short pause keeps the dice-spin
       // animation readable instead of flashing the result immediately.
       await new Promise((resolve) => setTimeout(resolve, 900))
+    } catch {
+      setRollError('Votre jet n’a pas pu être envoyé. Vérifiez votre connexion puis relancez.')
     } finally {
       setRolling(false)
     }
+  }
+
+  // Seuil de chaque personnage pour le test en cours (ticket 99, exigence 7) : même
+  // calcul que le serveur, à partir de la caractéristique liée déjà dans le snapshot.
+  const requestCharacteristic = request ? availableSkills.find((s) => s.name === request.skill)?.characteristic ?? null : null
+  function thresholdFor(c) {
+    return request ? testThreshold(c, request.skill, requestCharacteristic, request.malus) : null
   }
 
   const concernedCharacters = request
@@ -373,14 +401,37 @@ export function useTableState() {
   // Un fictif sans jet est en train de lancer automatiquement (ticket 94), pas « en attente ».
   function rollMeta(c) {
     const r = rolls[c.id]
-    const meta = statusMeta(r)
+    const summary = rollSummary(r)
+    const threshold = thresholdFor(c)
+    const meta = {
+      ...statusMeta(r),
+      summaryTitle: summary?.title ?? '',
+      // Seuil réellement utilisé une fois le jet fait, seuil prévu tant qu'il est en attente.
+      summaryDetail: summary ? summary.detail : threshold ? `Seuil de ${threshold.target}` : '',
+      roll: r?.roll ?? null,
+      target: r?.target ?? threshold?.target ?? null,
+    }
     if (!c.fictional) return meta
     if (!r) return { ...meta, label: 'Jet automatique…', isAuto: true }
-    return { ...meta, degreeText: `${meta.degreeText} · jet automatique` }
+    return { ...meta, degreeText: `${meta.degreeText} · jet automatique`, summaryDetail: `${meta.summaryDetail}, jet automatique` }
   }
   const rollsList = concernedCharacters.map((c) => ({ id: c.id, name: c.name, cls: c.cls, avatar: c.avatar, fictional: c.fictional, ...rollMeta(c) }))
   const received = concernedCharacters.filter((c) => rolls[c.id]).length
   const myMeta = statusMeta(myRoll)
+  const myThreshold = myCharacter ? thresholdFor(myCharacter) : null
+
+  useEffect(() => {
+    if (!request) return
+    const done = concernedCharacters.filter((c) => rolls[c.id])
+    if (done.length === 0) return
+    setLastTest({
+      id: request.id,
+      skill: request.skill,
+      successes: done.filter((c) => rolls[c.id].status === 'success').length,
+      received: done.length,
+      total: concernedCharacters.length,
+    })
+  }, [request, rolls])
   const teammates = concernedCharacters
     .filter((c) => c.id !== myCharacterId)
     .map((c) => ({ id: c.id, name: c.name, avatar: c.avatar, fictional: c.fictional, ...rollMeta(c) }))
@@ -446,6 +497,11 @@ export function useTableState() {
   const attackFireModeLabel = attack ? FIRE_MODE_LABELS[attack.fireMode] || '' : ''
   const attackOutcomeText = attackOutcomeLabel(attack)
   const attackRollDegreeText = attackRollDegreeLabel(attack)
+  // Détail du seuil d'esquive (ticket 99) : score d'Esquive et bonus, pour la ligne de calcul.
+  const attackDefenderDodgeScore =
+    attack && attack.defender.type === 'character' && attackDefenderEntity ? effectiveSkillScore(attackDefenderEntity, 'Esquive', 'Agi') : null
+  const attackDefenderDodgeBonus = attack && attackDefenderEntity ? attackDefenderEntity.dodgeBonus || 0 : 0
+  const attackDefenderDodgeTrained = attack && attack.defender.type === 'character' && attackDefenderEntity ? attackDefenderEntity.skills.some((s) => s.name === 'Esquive') : false
   const meIsAttackTarget = !!attack && myCharacterId != null && attack.defender.type === 'character' && attack.defender.id === myCharacterId
   const meIsAttacker = !!attack && myCharacterId != null && attack.attacker.type === 'character' && attack.attacker.id === myCharacterId
   // "Resolved" veut dire un des trois états terminaux — pas juste "différent de
@@ -455,6 +511,8 @@ export function useTableState() {
   const attackIsTerminal = attack && ['miss', 'dodged', 'hit'].includes(attack.outcome)
   const attackPendingForMe = meIsAttackTarget && attack.outcome === 'pending-dodge'
   const attackResolvedForMe = meIsAttackTarget && attackIsTerminal && !attackDismissed
+  const myHitLocationKey = attackResolvedForMe && attack.outcome === 'hit' ? attack.damage?.locationKey ?? null : null
+  const myArmorCells = myCharacter ? armorCells(myCharacter.armor, myHitLocationKey) : []
   const attackPendingForNpcDefender = !!attack && attack.outcome === 'pending-dodge' && attack.defender.type === 'npc'
   // Le personnage attaquant lance lui-même son jet (V3 §5 v2) — symétrique de
   // attackPendingForMe côté défenseur, pas d'écran de résultat dédié une fois le
@@ -506,7 +564,7 @@ export function useTableState() {
     ? groupSkillsByCharacteristic(myCharacter.skills).map((group) => ({
         characteristic: group.characteristic,
         characteristicName: group.characteristicName,
-        skills: group.items.map((skill) => skill.name),
+        skills: group.items.map((skill) => ({ name: skill.name, score: skill.score })),
       }))
     : []
   const malusOpts = MALUS_OPTIONS.map((m) => ({ label: m, isActive: m === malus, set: () => setMalus(malus === m ? null : m) }))
@@ -535,7 +593,9 @@ export function useTableState() {
       fictional: type === 'character' && !!item.fictional,
       isActive: currentType === type && currentId === item.id,
       dodgeScore: dodgeThresholdFor(item, type),
+      dexterity: item.characteristics?.Dex || 0,
       pvCurrent: item.pv.current,
+      pvMax: item.pv.max,
       select: () => onSelect(type, item.id),
     }))
   }
@@ -566,6 +626,8 @@ export function useTableState() {
     name: w.name,
     damage: w.damage,
     modesText: weaponModesText(w),
+    // Même liste en toutes lettres pour la phrase sous le nom de l'arme.
+    modesSentence: weaponModesText(w).split(' · ').join(', ').toLowerCase(),
     isActive: w.name === attackWeaponName,
     select: () => selectAttackWeapon(w.name),
   }))
@@ -578,6 +640,7 @@ export function useTableState() {
   ]
     .filter((m) => m.available)
     .map((m) => ({ key: m.key, label: m.label, isActive: m.key === attackFireMode, select: () => setAttackFireMode(m.key) }))
+  const attackModalFireModeLabel = attackFireMode ? FIRE_MODE_LABELS[attackFireMode] : ''
   const defenderCharacterDisconnected = defenderType === 'character' && defenderId != null && !characters.find((c) => c.id === defenderId)?.connected
   // Un personnage attaquant doit désormais rester connecté (V3 §5 v2) : lui seul
   // peut cliquer son propre jet, contrairement au PNJ dont le jet reste automatique.
@@ -669,6 +732,18 @@ export function useTableState() {
     showRollBtn: meConcerned && !myRolled && !rolling,
     rolling,
     myLabel: myMeta.label,
+    myIsSuccess: myMeta.isSuccess,
+    myRollValue: myRoll?.roll ?? null,
+    myRollTarget: myRoll?.target ?? null,
+    myRollDegrees: myRoll?.degrees ?? null,
+    myThreshold,
+    rollError,
+    launchError,
+    lastTest,
+    selectedSkill,
+    selectedMalus: malus,
+    concernedCount: concernedCharacterIds().length,
+    concernedFictionalCount: characters.filter((c) => c.fictional && concernedCharacterIds().includes(c.id)).length,
     myDegree: myMeta.degreeText,
     myBorder: myMeta.borderCol,
     myBg: myMeta.bgCol,
@@ -694,6 +769,12 @@ export function useTableState() {
     myPvStatus,
     myPvRatio,
     myArmorList,
+    myArmorCells,
+    myHitLocationKey,
+    attackDefenderDodgeScore,
+    attackDefenderDodgeBonus,
+    attackDefenderDodgeTrained,
+    attackIsTerminal: !!attackIsTerminal,
     isMeDown: !!myCharacter && myCharacter.pv.current <= 0,
     damageNoticeText,
     attackAttackerNoticeText,
@@ -716,6 +797,8 @@ export function useTableState() {
     attackModalAttackerThreshold,
     attackModalDefenderThreshold,
     attackError,
+    attackModalWeaponName: attackWeaponName,
+    attackModalFireModeLabel,
     attackLaunchDisabled,
     defenderCharacterDisconnected,
     attackerCharacterDisconnected,

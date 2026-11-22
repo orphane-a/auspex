@@ -1,127 +1,150 @@
 import { FictifBadge } from './Avatar.jsx'
+import { CloseIcon, ErrorMsg } from './FocusParts.jsx'
 
-function EntityPickRow({ label, options, emptyHint, showStats }) {
+// Modale « Engager le combat » (ticket 99) : champs numérotés dans l'ordre du choix,
+// libellés en toutes lettres, pied fixe avec le récapitulatif, les erreurs et le bouton.
+
+function PickGroup({ title, options, emptyHint, describe }) {
   return (
-    <>
-      <div className="section-label" style={{ marginTop: 4 }}>
-        {label}
-      </div>
+    <div>
+      <p className="pick-group">{title}</p>
       {options.length === 0 ? (
-        <div className="whoall-hint">{emptyHint}</div>
+        <p className="whoall-hint">{emptyHint}</p>
       ) : (
-        <div className="entity-pick-list">
+        <div className="picks">
           {options.map((o) => (
-            <button key={`${label}-${o.id}`} className={`entity-pick ${o.isActive ? 'active' : ''}`} onClick={o.select}>
-              <span className="entity-pick-box">{o.isActive ? '▓' : ' '}</span>
-              <span className="entity-pick-name">
-                {o.name}
-                {o.fictional && <FictifBadge />}
-                {!o.connected ? ' (non connecté)' : ''}
-              </span>
-              {showStats && (
-                <span className="entity-pick-stats">
-                  esq {o.dodgeScore} · pv {o.pvCurrent}
+            <button
+              key={o.id}
+              type="button"
+              className={`pick${o.isActive ? ' on' : ''}${o.connected ? '' : ' dis'}`}
+              aria-pressed={o.isActive}
+              onClick={o.select}
+            >
+              <span>
+                <span className="pick-name">
+                  {o.name}
+                  {o.fictional && <FictifBadge />}
+                  {!o.connected && <span className="tag">Non connecté</span>}
                 </span>
-              )}
+                <span className="sub">{describe(o)}</span>
+              </span>
             </button>
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
 
+const describeAttacker = (o) => `Dextérité ${o.dexterity}`
+const describeTarget = (o) => `Esquive ${o.dodgeScore}, ${o.pvCurrent} point${o.pvCurrent > 1 ? 's' : ''} de vie`
+
 export default function AttackModal({ vals }) {
+  const attacker = vals.attackModalAttackerEntity
+  const defender = vals.attackModalDefenderEntity
+
+  const errors = []
+  if (vals.attackerIsDefender) errors.push("Un combattant ne peut pas s'attaquer lui-même. Choisissez une autre cible.")
+  if (vals.attackerCharacterDisconnected && attacker)
+    errors.push(`${attacker.name} n'est pas connecté. Il ne pourrait pas lancer son jet d'attaque, l'attaque ne peut donc pas être lancée.`)
+  if (vals.defenderCharacterDisconnected && defender)
+    errors.push(`${defender.name} n'est pas connecté. Il ne pourrait pas lancer son esquive, l'attaque ne peut donc pas être lancée.`)
+  if (attacker && vals.weaponOptions.length === 0) errors.push(`${attacker.name} n'a aucune arme utilisable. Choisissez un autre attaquant.`)
+  if (vals.attackError) errors.push(vals.attackError)
+
+  const canSummarize = attacker && defender && vals.attackModalWeaponName && !vals.attackerIsDefender
   return (
     <div className="modal-overlay">
-      <div className="modal-sheet">
-        <div className="panel-stripe" />
-        <div className="modal-titlebar">
-          <span>◈ Engager le combat</span>
-          <button className="modal-close" onClick={vals.closeAttack}>
-            [X]
+      <div className="modal-sheet wide" role="dialog" aria-modal="true" aria-labelledby="h-attack-modal">
+        <div className="modal-head">
+          <h2 id="h-attack-modal">Engager le combat</h2>
+          <button type="button" className="close-x" onClick={vals.closeAttack} aria-label="Fermer">
+            <CloseIcon />
           </button>
         </div>
-        <div className="modal-content">
-          <div className="duel-preview">
-            <div className="duel-card duel-card-attacker">
-              <div className="duel-card-label">[ATK]</div>
-              <div className="duel-card-name">{vals.attackModalAttackerEntity?.name ?? '—'}</div>
-              <div className="duel-card-stat">DEX:{vals.attackModalAttackerThreshold}</div>
-            </div>
-            <div className="duel-arrow">
-              <span>➤</span>
-              <span>ENGAGE</span>
-            </div>
-            <div className="duel-card duel-card-defender">
-              <div className="duel-card-label">[TGT]</div>
-              <div className="duel-card-name">{vals.attackModalDefenderEntity?.name ?? '—'}</div>
-              <div className="duel-card-stat">ESQ:{vals.attackModalDefenderThreshold}</div>
-            </div>
+        <div className="modal-body">
+          <div className="two">
+            <fieldset className="field">
+              <legend>
+                <span className="n">1</span> Attaquant <span className="hint">Il lance le jet d'attaque.</span>
+              </legend>
+              <PickGroup title="PNJ" options={vals.attackerNpcOptions} emptyHint="Aucun PNJ importé." describe={describeAttacker} />
+              <PickGroup title="Joueurs" options={vals.attackerCharacterOptions} emptyHint="Aucun personnage importé." describe={describeAttacker} />
+            </fieldset>
+            <fieldset className="field">
+              <legend>
+                <span className="n">2</span> Cible <span className="hint">Elle pourra tenter une esquive.</span>
+              </legend>
+              <PickGroup title="Joueurs" options={vals.defenderCharacterOptions} emptyHint="Aucun personnage importé." describe={describeTarget} />
+              <PickGroup title="PNJ" options={vals.defenderNpcOptions} emptyHint="Aucun PNJ importé." describe={describeTarget} />
+            </fieldset>
           </div>
-
-          <EntityPickRow label="Attaquant — PNJ" options={vals.attackerNpcOptions} emptyHint="Aucun PNJ importé." />
-          <EntityPickRow label="Attaquant — Joueurs" options={vals.attackerCharacterOptions} emptyHint="Aucun personnage importé." />
-          <EntityPickRow label="Cible — PNJ" options={vals.defenderNpcOptions} emptyHint="Aucun PNJ importé." showStats />
-          <EntityPickRow label="Cible — Joueurs" options={vals.defenderCharacterOptions} emptyHint="Aucun personnage importé." showStats />
-
-          {vals.weaponOptions.length > 0 ? (
-            <>
-              <div className="section-label" style={{ marginTop: 12 }}>
-                Arme
-              </div>
-              <div className="weapon-row-list">
-                {vals.weaponOptions.map((w) => (
-                  <button key={w.name} className={`weapon-row ${w.isActive ? 'active' : ''}`} onClick={w.select}>
-                    <span className="entity-pick-box">{w.isActive ? '▓' : ' '}</span>
-                    <span>
-                      <span className="weapon-row-name">{w.name}</span>
-                      <span className="weapon-row-modes">{w.modesText}</span>
-                    </span>
-                    <span className="weapon-row-damage">{w.damage} dégâts</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="whoall-hint" style={{ marginTop: 12 }}>
-              Cet attaquant n'a aucune arme utilisable pour cette séquence.
-            </div>
+          <div className="two">
+            <fieldset className="field">
+              <legend>
+                <span className="n">3</span> Arme
+              </legend>
+              {vals.weaponOptions.length > 0 ? (
+                <div className="picks">
+                  {vals.weaponOptions.map((w) => (
+                    <button key={w.name} type="button" className={`pick${w.isActive ? ' on' : ''}`} aria-pressed={w.isActive} onClick={w.select}>
+                      <span>
+                        <span className="pick-name">{w.name}</span>
+                        <span className="sub">
+                          {w.damage} dégâts, {w.modesSentence}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="whoall-hint">Cet attaquant n'a aucune arme utilisable pour cette séquence.</p>
+              )}
+            </fieldset>
+            <fieldset className="field">
+              <legend>
+                <span className="n">4</span> Mode de tir <span className="hint">Semi-auto et auto peuvent toucher plusieurs fois.</span>
+              </legend>
+              {vals.fireModeOptions.length > 0 ? (
+                <div className="chips">
+                  {vals.fireModeOptions.map((m) => (
+                    <button key={m.key} type="button" className={`chipb${m.isActive ? ' on' : ''}`} aria-pressed={m.isActive} onClick={m.select}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="whoall-hint">Choisissez d'abord une arme.</p>
+              )}
+            </fieldset>
+          </div>
+          {vals.attackModalAttackerFictional && attacker && (
+            <p className="msg-info">{attacker.name} est un personnage fictif : son jet d'attaque sera lancé automatiquement.</p>
           )}
-
-          {vals.fireModeOptions.length > 0 && (
-            <>
-              <div className="section-label" style={{ marginTop: 4 }}>
-                Mode de tir
-              </div>
-              <div className="who-row">
-                {vals.fireModeOptions.map((m) => (
-                  <button key={m.key} className={`who-btn ${m.isActive ? 'active' : ''}`} onClick={m.select}>
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </>
+          {vals.attackModalDefenderFictional && defender && (
+            <p className="msg-info">{defender.name} est un personnage fictif : son esquive sera lancée automatiquement.</p>
           )}
-
-          {vals.attackModalAttackerFictional && vals.attackModalAttackerEntity && (
-            <div className="whoall-hint">{vals.attackModalAttackerEntity.name} est un personnage fictif : son jet d'attaque sera lancé automatiquement.</div>
-          )}
-          {vals.attackModalDefenderFictional && vals.attackModalDefenderEntity && (
-            <div className="whoall-hint">{vals.attackModalDefenderEntity.name} est un personnage fictif : son esquive sera lancée automatiquement.</div>
-          )}
-          {vals.attackerIsDefender && <div className="form-error">Un combattant ne peut pas s'attaquer lui-même.</div>}
-          {vals.attackerCharacterDisconnected && (
-            <div className="form-error">L'attaquant n'est pas connecté — il ne pourra pas lancer son propre jet.</div>
-          )}
-          {vals.defenderCharacterDisconnected && (
-            <div className="form-error">Ce joueur n'est pas connecté — l'attaque ne peut pas être lancée.</div>
-          )}
-          {vals.attackError && <div className="form-error">{vals.attackError}</div>}
-
-          <button className="primary-btn" style={{ marginTop: 16 }} disabled={vals.attackLaunchDisabled} onClick={vals.launchAttack}>
-            ➤ Engager le combat
-          </button>
+        </div>
+        <div className="modal-foot">
+          {errors.map((e) => (
+            <ErrorMsg key={e}>{e}</ErrorMsg>
+          ))}
+          <div className="foot-row">
+            <p className="summary" aria-live="polite">
+              {canSummarize ? (
+                <>
+                  <strong>{attacker.name}</strong> attaque <strong>{defender.name}</strong> : {vals.attackModalWeaponName}
+                  {vals.attackModalFireModeLabel ? `, ${vals.attackModalFireModeLabel.toLowerCase()}` : ''}. Jet d'attaque sur un seuil de{' '}
+                  <strong>{vals.attackModalAttackerThreshold}</strong>, puis esquive de {defender.name} sur un seuil de <strong>{vals.attackModalDefenderThreshold}</strong>.
+                </>
+              ) : (
+                'Choisissez un attaquant, une cible et une arme.'
+              )}
+            </p>
+            <button type="button" className="btn" disabled={vals.attackLaunchDisabled} onClick={vals.launchAttack}>
+              Engager le combat
+            </button>
+          </div>
         </div>
       </div>
     </div>

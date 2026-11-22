@@ -5,6 +5,7 @@ import PlayerView from './PlayerView.jsx'
 import MjHome from './screens/MjHome.jsx'
 import JoinTable from './screens/JoinTable.jsx'
 import SplitScreen from './SplitScreen.jsx'
+import DiceHelp from './DiceHelp.jsx'
 import { useScenario } from './useScenario'
 import DemoGuide from './demo/DemoGuide.jsx'
 import DemoHome from './demo/DemoHome.jsx'
@@ -64,6 +65,9 @@ function TableApp() {
   // de recommencer la démo plutôt que d'importer des fiches.
   const showMjHome = mjSubView === 'home' || (mjSubView === null && vals.characters.length === 0 && !scenario)
 
+  const subtitle = activeView === 'mj' ? 'Maître de jeu' : vals.myCharacter ? `Joueur, table ${vals.tableCode}` : 'Joueur'
+  const otherPath = routeView === 'mj' ? '/joueur' : '/mj'
+
   return (
     <div className="app-shell">
       <header className="stage-header">
@@ -74,15 +78,32 @@ function TableApp() {
           </svg>
           <div>
             <h1 className="brand-title" style={{ margin: 0 }}>AUSPEX</h1>
-            <div className="brand-subtitle">{activeView === 'mj' ? 'Maître de jeu' : 'Joueur'}</div>
+            <div className="brand-subtitle">{subtitle}</div>
           </div>
         </div>
-        <div className="stage-header-chips">
+        {!routeView && (
+          <div className="view-tabs" role="group" aria-label="Choix de la vue">
+            <button className={`view-tab ${view === 'mj' ? 'active' : ''}`} aria-pressed={view === 'mj'} onClick={() => setView('mj')}>
+              Vue MJ
+            </button>
+            <button className={`view-tab ${view === 'joueur' ? 'active' : ''}`} aria-pressed={view === 'joueur'} onClick={() => setView('joueur')}>
+              Vue Joueur
+            </button>
+          </div>
+        )}
+        <div className="top-right">
+          {/* Lien vers l'autre vue, en petit dans la barre plutôt qu'un bandeau qui coûtait de la hauteur. */}
+          {routeView && !isEmbedded && (
+            <a className="route-link" href={otherPath} target="_blank" rel="noreferrer">
+              Ouvrir la {routeView === 'mj' ? 'vue Joueur' : 'vue MJ'}
+            </a>
+          )}
           {scenario && (
             <span className="demo-chip" title="Table de démonstration, distincte de la vraie table">
               Démo
             </span>
           )}
+          <DiceHelp />
           <span className="online-chip">
             <span className="status-dot" aria-hidden="true" />
             En ligne
@@ -90,38 +111,25 @@ function TableApp() {
         </div>
       </header>
 
-      {routeView ? (
-        !isEmbedded && <div className="route-banner">
-          Fenêtre dédiée · <strong>{routeView === 'mj' ? 'Vue MJ' : 'Vue Joueur'}</strong> — ouvrir{' '}
-          <a href={routeView === 'mj' ? '/joueur' : '/mj'} target="_blank" rel="noreferrer">
-            la {routeView === 'mj' ? 'vue Joueur' : 'vue MJ'} dans une autre fenêtre
-          </a>{' '}
-          pour tester les deux côte à côte.
-        </div>
-      ) : (
-        <div className="view-tabs">
-          <button className={`view-tab ${view === 'mj' ? 'active' : ''}`} onClick={() => setView('mj')}>
-            Vue MJ
-          </button>
-          <button className={`view-tab ${view === 'joueur' ? 'active' : ''}`} onClick={() => setView('joueur')}>
-            Vue Joueur
-          </button>
-        </div>
-      )}
-
-      {vals.loading ? (
-        <div className="helper-text">Connexion au serveur…</div>
-      ) : activeView === 'mj' ? (
-        showMjHome ? (
-          <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
+      <main className="app-main">
+        {vals.loading ? (
+          <div className="helper-text">Connexion au serveur…</div>
+        ) : activeView === 'mj' ? (
+          showMjHome ? (
+            <div className="screen-scroll">
+              <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
+            </div>
+          ) : (
+            <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />
+          )
+        ) : vals.myCharacter ? (
+          <PlayerView vals={vals} />
         ) : (
-          <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />
-        )
-      ) : vals.myCharacter ? (
-        <PlayerView vals={vals} />
-      ) : (
-        <JoinTable vals={vals} lockedCode={scenario ? vals.tableCode : null} onCodeStatus={setJoinCodeOk} />
-      )}
+          <div className="screen-scroll">
+            <JoinTable vals={vals} lockedCode={scenario ? vals.tableCode : null} onCodeStatus={setJoinCodeOk} />
+          </div>
+        )}
+      </main>
 
       {scenario && !vals.loading && <DemoGuide key={activeView} vals={vals} scenario={scenario} mode={activeView} embedded={isEmbedded} />}
     </div>

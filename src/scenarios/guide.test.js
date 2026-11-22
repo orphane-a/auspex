@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { dragonScenario as scenario } from './dragon.js'
-import { nextMove, advance, INITIAL_PROGRESS } from './guide.js'
+import { nextMove, advance, syncProgress, INITIAL_PROGRESS } from './guide.js'
 
 const ALDRIC = 1
 const YSOLDE = 2
@@ -127,5 +127,48 @@ describe('guide : combat', () => {
   it("propose de rejoindre la table côté joueur, avec le héros", () => {
     const move = nextMove({ scenario, progress: combat, mode: 'joueur', solo: true, table: table() })
     expect(move.join.id).toBe(ALDRIC)
+  })
+})
+
+describe('guide : la vue joueur rattrape le MJ (retour du 22/11)', () => {
+  const discretion = { id: 8, skill: 'Discrétion', malus: '+10', concernedCharacterIds: [ALDRIC, YSOLDE, BRANNOC] }
+  const attack = (id, attacker, defender, outcome = 'pending-attack-roll') => ({ id, attacker, defender, outcome })
+  const aldric = { type: 'character', id: ALDRIC }
+  const dragon = { type: 'npc', id: DRAGON }
+
+  it("rejoint le test d'une étape plus loin, déjà ordonné par le MJ", () => {
+    const synced = syncProgress({ scenario, progress: playTest, table: table({ request: discretion }) })
+    expect(synced).toMatchObject({ step: 1, phase: 'play' })
+  })
+
+  it('ne bouge pas quand la table montre le test de son étape, ou rien', () => {
+    expect(syncProgress({ scenario, progress: playTest, table: table({ request: perception }) })).toBe(playTest)
+    expect(syncProgress({ scenario, progress: playTest, table: table() })).toBe(playTest)
+  })
+
+  it('ne revient jamais en arrière', () => {
+    const later = { ...INITIAL_PROGRESS, step: 2, phase: 'play' }
+    expect(syncProgress({ scenario, progress: later, table: table({ request: perception }) })).toBe(later)
+  })
+
+  it("rejoint le combat quand l'attaque est lancée, au bon tour", () => {
+    const fromTest = syncProgress({ scenario, progress: playTest, table: table({ attack: attack(5, dragon, aldric, 'pending-dodge') }) })
+    expect(fromTest).toMatchObject({ step: 4, phase: 'play', turn: 1 })
+    const fromStory = syncProgress({ scenario, progress: { ...combat, phase: 'story' }, table: table({ attack: attack(5, aldric, dragon) }) })
+    expect(fromStory).toMatchObject({ step: 4, phase: 'play', turn: 0 })
+  })
+
+  it('passe au tour suivant du combat, et au round suivant quand le tour reboucle', () => {
+    const t1 = syncProgress({ scenario, progress: { ...combat, baseAttackId: 4 }, table: table({ attack: attack(5, dragon, aldric, 'pending-dodge') }) })
+    expect(t1).toMatchObject({ turn: 1, round: 1 })
+    const t0 = syncProgress({ scenario, progress: { ...combat, turn: 1, baseAttackId: 5 }, table: table({ attack: attack(6, aldric, dragon) }) })
+    expect(t0).toMatchObject({ turn: 0, round: 2 })
+  })
+
+  it("ignore une attaque terminée ou celle déjà jouée à ce tour", () => {
+    const done = table({ attack: attack(5, dragon, aldric, 'hit') })
+    expect(syncProgress({ scenario, progress: combat, table: done })).toBe(combat)
+    const old = { ...combat, baseAttackId: 5 }
+    expect(syncProgress({ scenario, progress: old, table: table({ attack: attack(5, dragon, aldric, 'pending-dodge') }) })).toBe(old)
   })
 })

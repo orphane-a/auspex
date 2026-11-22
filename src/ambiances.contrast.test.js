@@ -65,6 +65,7 @@ describe.each(AMBIANCES.map((a) => a.id))('ambiance %s', (id) => {
     expect(contrast(p['warn-ink'], p.warn)).toBeGreaterThanOrEqual(4.5)
     expect(contrast(p.text, p['warn-bg'])).toBeGreaterThanOrEqual(4.5)
     expect(contrast(p.danger, p['danger-bg'])).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(p['danger-ink'], p.danger)).toBeGreaterThanOrEqual(4.5)
     expect(contrast(p.text, p['surface-hover'])).toBeGreaterThanOrEqual(4.5)
     expect(contrast(p.placeholder, p.surface)).toBeGreaterThanOrEqual(4.5)
   })
