@@ -3529,16 +3529,18 @@ html[data-ambiance] body {
   background-size: var(--texture-size);
   background-attachment: fixed;
 }
-/* 2. Motif dans le coin haut droit, sous le contenu */
+/* 2. Motif de coin, sous le contenu. Placé en bas à droite de l'écran (retourné)
+   plutôt qu'en haut, où il passait derrière les pastilles de l'en-tête. */
 .app-shell {
   position: relative;
   isolation: isolate;
 }
 html[data-ambiance] .app-shell::before {
   content: '';
-  position: absolute;
-  top: 0;
+  position: fixed;
+  bottom: 0;
   right: 0;
+  transform: scaleY(-1);
   width: 150px;
   height: 150px;
   background: var(--corner) no-repeat top right / contain;
