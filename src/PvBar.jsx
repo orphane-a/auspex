@@ -1,8 +1,8 @@
 // Barre de PV lisible et vocalisée (progressbar) — remplace la barre ASCII ▓░,
 // que les lecteurs d'écran épelaient caractère par caractère.
-export default function PvBar({ label, current, max, ratio, statusKey, large }) {
+export default function PvBar({ label, current, max, ratio, statusKey, large, compact }) {
   return (
-    <div className={`pv-block${large ? ' lg' : ''}`}>
+    <div className={`pv-block${large ? ' lg' : ''}${compact ? ' compact' : ''}`}>
       <div className="pv-head">
         <span className="pv-caption">Points de vie</span>
         <span className="pv-value">
