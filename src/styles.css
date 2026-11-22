@@ -2862,6 +2862,14 @@ input {
   .help-btn {
     padding: 0 10px;
   }
+  .help-pop {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: 120px;
+    width: auto;
+    max-height: calc(100vh - 140px);
+  }
   .modal-overlay {
     padding: 0;
   }
