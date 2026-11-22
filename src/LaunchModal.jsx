@@ -1,94 +1,118 @@
 import { useState } from 'react'
 import { FictifBadge } from './Avatar.jsx'
+import { CloseIcon, ErrorMsg } from './FocusParts.jsx'
+import { launchSummary, malusDisplay } from './explain.js'
 
+// Modale « Ordonner un test » (ticket 99) : en tête et pied fixes, seul le corps défile,
+// le bouton « Transmettre l'ordre » reste toujours visible.
 export default function LaunchModal({ vals }) {
   const [skillTab, setSkillTab] = useState('all')
   const activeGroups =
     skillTab === 'all' ? vals.skillGroups : vals.skillGroupsByCharacter.find((c) => c.id === skillTab)?.groups || []
+  const canSend = !!vals.selectedSkill && vals.concernedCount > 0
 
   return (
     <div className="modal-overlay">
-      <div className="modal-sheet">
-        <div className="panel-stripe" />
-        <div className="modal-titlebar">
-          <span>Ordonner un test</span>
-          <button className="modal-close" onClick={vals.closeLaunch}>
-            [X]
+      <div className="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="h-launch-modal">
+        <div className="modal-head">
+          <h2 id="h-launch-modal">Ordonner un test</h2>
+          <button type="button" className="close-x" onClick={vals.closeLaunch} aria-label="Fermer">
+            <CloseIcon />
           </button>
         </div>
-        <div className="modal-content">
-          <div className="section-label">Compétence à tester</div>
-          <div className="skill-tab-row">
-            <button className={`skill-tab ${skillTab === 'all' ? 'active' : ''}`} onClick={() => setSkillTab('all')}>
-              Toutes
-            </button>
-            {vals.skillGroupsByCharacter.map((c) => (
-              <button key={c.id} className={`skill-tab ${skillTab === c.id ? 'active' : ''}`} onClick={() => setSkillTab(c.id)}>
-                {c.name}
+        <div className="modal-body">
+          <fieldset className="field">
+            <legend>
+              <span className="n">1</span> Compétence à tester
+            </legend>
+            <div className="skill-tab-row">
+              <button type="button" className={`skill-tab ${skillTab === 'all' ? 'active' : ''}`} aria-pressed={skillTab === 'all'} onClick={() => setSkillTab('all')}>
+                Toutes
               </button>
-            ))}
-          </div>
-          {activeGroups.length === 0 ? (
-            <div className="whoall-hint">Aucune compétence pour ce personnage.</div>
-          ) : (
-            activeGroups.map((group) => (
-              <div key={group.characteristic} className="char-group">
-                <div className="char-group-label">{group.characteristicName}</div>
-                <div className="chip-row">
-                  {group.chips.map((c) => (
-                    <button key={c.name} className={`chip ${c.isActive ? 'active' : ''}`} onClick={c.select}>
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))
-          )}
-
-          <div className="section-label">Malus</div>
-          <div className="malus-row">
-            {vals.malusOpts.map((m) => (
-              <button key={m.label} className={`malus-btn ${m.isActive ? 'active' : ''}`} onClick={m.set}>
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="section-label">Joueurs concernés</div>
-          <div className="who-row">
-            <button className={`who-btn ${vals.whoMode === 'all' ? 'active' : ''}`} onClick={vals.setWhoAll}>
-              Toute l'équipe
-            </button>
-            <button className={`who-btn ${vals.whoMode === 'some' ? 'active' : ''}`} onClick={vals.setWhoSome}>
-              Sélection
-            </button>
-          </div>
-
-          {vals.whoMode === 'some' ? (
-            <div className="selectable-list">
-              {vals.selectable.map((p) => (
-                <button key={p.id} className={`selectable-row ${p.isChosen ? 'chosen' : ''}`} onClick={p.toggle}>
-                  <span className={`checkbox ${p.isChosen ? 'chosen' : ''}`} />
-                  <span className={`selectable-label ${p.isChosen ? 'chosen' : ''}`}>{p.name}</span>
-                  {p.fictional && <FictifBadge />}
+              {vals.skillGroupsByCharacter.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`skill-tab ${skillTab === c.id ? 'active' : ''}`}
+                  aria-pressed={skillTab === c.id}
+                  onClick={() => setSkillTab(c.id)}
+                >
+                  {c.name}
                 </button>
               ))}
             </div>
-          ) : (
-            <div className="whoall-hint">
-              Concerne toute l'équipe présente ({vals.connectedCount} joueur{vals.connectedCount > 1 ? 's' : ''}
-              {vals.connectedFictionalCount > 0 ? `, dont ${vals.connectedFictionalCount} fictif${vals.connectedFictionalCount > 1 ? 's' : ''}` : ''}).
-            </div>
-          )}
-          {vals.connectedFictionalCount > 0 && (
-            <div className="whoall-hint" style={{ marginBottom: 14 }}>
-              Les personnages fictifs lancent leur jet automatiquement.
-            </div>
-          )}
+            {activeGroups.length === 0 ? (
+              <p className="whoall-hint">Aucune compétence pour ce personnage.</p>
+            ) : (
+              activeGroups.map((group) => (
+                <div key={group.characteristic} className="char-group">
+                  <p className="pick-group">{group.characteristicName}</p>
+                  <div className="chips">
+                    {group.chips.map((c) => (
+                      <button key={c.name} type="button" className={`chipb${c.isActive ? ' on' : ''}`} aria-pressed={c.isActive} onClick={c.select}>
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </fieldset>
 
-          <button className="primary-btn" onClick={vals.sendRequest}>
-            ▶ Transmettre l'ordre
-          </button>
+          <fieldset className="field">
+            <legend>
+              <span className="n">2</span> Malus <span className="hint">Retiré au seuil de chaque joueur. Facultatif.</span>
+            </legend>
+            <div className="chips">
+              {vals.malusOpts.map((m) => (
+                <button key={m.label} type="button" className={`chipb${m.isActive ? ' on' : ''}`} aria-pressed={m.isActive} onClick={m.set}>
+                  {malusDisplay(m.label)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="field">
+            <legend>
+              <span className="n">3</span> Joueurs concernés
+            </legend>
+            <div className="chips">
+              <button type="button" className={`chipb${vals.whoMode === 'all' ? ' on' : ''}`} aria-pressed={vals.whoMode === 'all'} onClick={vals.setWhoAll}>
+                Toute l'équipe
+              </button>
+              <button type="button" className={`chipb${vals.whoMode === 'some' ? ' on' : ''}`} aria-pressed={vals.whoMode === 'some'} onClick={vals.setWhoSome}>
+                Sélection
+              </button>
+            </div>
+            {vals.whoMode === 'some' ? (
+              <div className="selectable-list">
+                {vals.selectable.map((p) => (
+                  <button key={p.id} type="button" className={`selectable-row ${p.isChosen ? 'chosen' : ''}`} aria-pressed={p.isChosen} onClick={p.toggle}>
+                    <span className={`checkbox ${p.isChosen ? 'chosen' : ''}`} aria-hidden="true" />
+                    <span className={`selectable-label ${p.isChosen ? 'chosen' : ''}`}>{p.name}</span>
+                    {p.fictional && <FictifBadge />}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="whoall-hint">
+                Concerne toute l'équipe présente ({vals.connectedCount} joueur{vals.connectedCount > 1 ? 's' : ''}
+                {vals.connectedFictionalCount > 0 ? `, dont ${vals.connectedFictionalCount} fictif${vals.connectedFictionalCount > 1 ? 's' : ''}` : ''}).
+              </p>
+            )}
+            {vals.connectedFictionalCount > 0 && <p className="whoall-hint">Les personnages fictifs lancent leur jet automatiquement.</p>}
+          </fieldset>
+        </div>
+        <div className="modal-foot">
+          <ErrorMsg>{vals.launchError}</ErrorMsg>
+          <div className="foot-row">
+            <p className="summary" aria-live="polite">
+              {launchSummary({ skill: vals.selectedSkill, malus: vals.selectedMalus, count: vals.concernedCount, fictionalCount: vals.concernedFictionalCount })}
+            </p>
+            <button type="button" className="btn" disabled={!canSend} onClick={vals.sendRequest}>
+              Transmettre l'ordre
+            </button>
+          </div>
         </div>
       </div>
     </div>

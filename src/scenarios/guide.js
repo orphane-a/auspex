@@ -10,6 +10,7 @@
 // snapshot, ni les règles de combat ne changent.
 import { attackOutcomeLabel, FIRE_MODE_LABELS } from '../gameLogic.js'
 import { stepOutcome } from './index.js'
+import { malusDisplay } from '../explain.js'
 
 export const INITIAL_PROGRESS = { step: 0, phase: 'story', round: 1, turn: 0, baseAttackId: null, ending: null }
 
@@ -29,7 +30,7 @@ function combatant(side, cast) {
 }
 
 function malusLabel(malus) {
-  return malus ? `malus ${malus}` : 'sans malus'
+  return malus ? `malus ${malusDisplay(malus)}` : 'sans malus'
 }
 
 function testMove({ step, mode, solo, table, cast }) {
@@ -82,7 +83,7 @@ function testMove({ step, mode, solo, table, cast }) {
   }
 
   if (heroPending && heroPending.entity.id === table.myCharacterId) {
-    return { rolls, say: `Cliquez sur LANCER pour le test de ${skill}.`, target: { kind: 'playerRoll' } }
+    return { rolls, say: `Cliquez sur « Lancer le dé » pour le test de ${skill}.`, target: { kind: 'playerRoll' } }
   }
   return {
     rolls,
@@ -131,7 +132,7 @@ function combatMove({ step, progress, mode, solo, table, cast }) {
   }
 
   if (mine.outcome === 'pending-attack-roll') {
-    if (mode === 'joueur') return { ...base, say: "Cliquez sur LANCER pour votre jet d'attaque.", target: { kind: 'playerRoll' } }
+    if (mode === 'joueur') return { ...base, say: "Cliquez sur « Lancer l'attaque » pour votre jet d'attaque.", target: { kind: 'playerRoll' } }
     if (solo) return { ...base, say: `${attacker.name} lance son jet d'attaque…`, auto: { kind: 'attackRoll', key: `attackRoll:${mine.id}`, characterId: attacker.id } }
     return { ...base, say: `En attente du jet d'attaque de ${attacker.name} sur la vue joueur.` }
   }
@@ -142,7 +143,7 @@ function combatMove({ step, progress, mode, solo, table, cast }) {
       if (solo) return { ...base, say: `Touché ! ${defender.name} tente d'esquiver…`, auto: { kind: 'npcDodge', key: `npcDodge:${mine.id}` } }
       return { ...base, say: `Touché ! Le MJ lance l'esquive de ${defender.name}.` }
     }
-    if (mode === 'joueur') return { ...base, say: 'Attaque entrante ! Cliquez sur ESQUIVER.', target: { kind: 'playerDodge' } }
+    if (mode === 'joueur') return { ...base, say: "Attaque entrante ! Cliquez sur « Lancer l'esquive ».", target: { kind: 'playerDodge' } }
     if (solo) return { ...base, say: `${defender.name} tente d'esquiver…`, auto: { kind: 'dodge', key: `dodge:${mine.id}`, characterId: defender.id } }
     return { ...base, say: `En attente de l'esquive de ${defender.name} sur la vue joueur.` }
   }
@@ -164,6 +165,43 @@ export function nextMove({ scenario, progress, mode, solo, table }) {
   if (progress.phase === 'story') return { story: true, canContinue: true }
   if (step.test) return testMove({ step, mode, solo, table, cast })
   return combatMove({ step, progress, mode, solo, table, cast })
+}
+
+// Rattrapage (retour du 22/11) : à deux, chaque vue avance à son rythme et le MJ
+// peut passer à la suite avant le joueur. Le joueur rejoint alors ce que la table
+// montre déjà : le test d'une étape plus loin, ou l'attaque en cours au combat.
+// Jamais de retour en arrière ; rend la même progression si rien ne change.
+function turnOf(step, attack, cast) {
+  return step.combat.turns.findIndex((t) => {
+    const atk = combatant(t.attacker, cast)
+    const def = combatant(t.defender, cast)
+    return atk && def && attack.attacker.type === atk.type && attack.attacker.id === atk.id && attack.defender.type === def.type && attack.defender.id === def.id
+  })
+}
+
+export function syncProgress({ scenario, progress, table }) {
+  if (progress.ending) return progress
+  const cast = castOf(scenario, table)
+
+  const request = table.request
+  if (request) {
+    const later = scenario.steps.findIndex((s, i) => i > progress.step && s.test?.skill === request.skill)
+    if (later !== -1) return { ...INITIAL_PROGRESS, step: later, phase: 'play' }
+  }
+
+  const a = table.attack
+  const pending = a && ['pending-attack-roll', 'pending-dodge'].includes(a.outcome)
+  if (!pending) return progress
+  const combatIndex = scenario.steps.findIndex((s) => s.combat)
+  if (combatIndex === -1) return progress
+  const turn = turnOf(scenario.steps[combatIndex], a, cast)
+  if (turn === -1) return progress
+  if (progress.step < combatIndex) return { ...INITIAL_PROGRESS, step: combatIndex, phase: 'play', turn }
+  if (progress.step === combatIndex && (progress.phase === 'story' || progress.turn !== turn) && a.id !== progress.baseAttackId) {
+    const round = progress.phase === 'play' && turn < progress.turn ? progress.round + 1 : progress.round
+    return { ...progress, phase: 'play', turn, round }
+  }
+  return progress
 }
 
 // Progression après « Suite ». Le combat s'arrête dès que le dragon tombe, sinon
