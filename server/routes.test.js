@@ -244,3 +244,36 @@ describe('retrait et ajout des fictifs', () => {
     expect(data.attack).toBeNull()
   })
 })
+
+describe('POST /table/reset, ambiance (ticket 100)', () => {
+  for (const ambiance of ['cyber', 'medieval', 'espace', 'horreur', 'gothique']) {
+    it(`crée la table en ${ambiance} et l'expose dans l'instantané`, async () => {
+      const { status, data } = await call('POST', '/table/reset', { ambiance })
+      expect(status).toBe(200)
+      expect(data.ambiance).toBe(ambiance)
+      expect((await call('GET', '/table')).data.ambiance).toBe(ambiance)
+    })
+  }
+
+  it('crée la table en cyber sans ambiance fournie', async () => {
+    await call('POST', '/table/reset', { ambiance: 'gothique' })
+    const { status, data } = await call('POST', '/table/reset')
+    expect(status).toBe(200)
+    expect(data.ambiance).toBe('cyber')
+  })
+
+  it('refuse une ambiance inconnue en 400, sans toucher à la table ni à son code', async () => {
+    await call('POST', '/table/reset', { ambiance: 'espace' })
+    const before = (await call('GET', '/table')).data
+    for (const ambiance of ['pirate', '', 42, 'CYBER', '__proto__']) {
+      const { status, data } = await call('POST', '/table/reset', { ambiance })
+      expect(status).toBe(400)
+      expect(data.error).toBe("Ambiance inconnue. Choisissez l'une des cinq ambiances proposées. La table actuelle n'a pas changé.")
+    }
+    const after = (await call('GET', '/table')).data
+    expect(after.code).toBe(before.code)
+    expect(after.ambiance).toBe('espace')
+    expect(after.characters.map((c) => c.id)).toEqual(before.characters.map((c) => c.id))
+  })
+})
+

@@ -101,3 +101,13 @@ describe('characteristicForSkillName', () => {
     expect(state.characteristicForSkillName('Inconnu')).toBeNull()
   })
 })
+
+describe("ambiance dans l'instantané (ticket 100)", () => {
+  it("expose l'ambiance de la table, cyber par défaut", () => {
+    db.resetTable()
+    expect(state.buildSnapshot(() => false).ambiance).toBe('cyber')
+    db.resetTable('medieval')
+    expect(state.buildSnapshot(() => false).ambiance).toBe('medieval')
+  })
+})
+
