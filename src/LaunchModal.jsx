@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FictifBadge } from './Avatar.jsx'
 
 export default function LaunchModal({ vals }) {
   const [skillTab, setSkillTab] = useState('all')
@@ -69,11 +70,20 @@ export default function LaunchModal({ vals }) {
                 <button key={p.id} className={`selectable-row ${p.isChosen ? 'chosen' : ''}`} onClick={p.toggle}>
                   <span className={`checkbox ${p.isChosen ? 'chosen' : ''}`} />
                   <span className={`selectable-label ${p.isChosen ? 'chosen' : ''}`}>{p.name}</span>
+                  {p.fictional && <FictifBadge />}
                 </button>
               ))}
             </div>
           ) : (
-            <div className="whoall-hint">Concerne toute l'équipe connectée ({vals.connectedCount} joueurs).</div>
+            <div className="whoall-hint">
+              Concerne toute l'équipe présente ({vals.connectedCount} joueur{vals.connectedCount > 1 ? 's' : ''}
+              {vals.connectedFictionalCount > 0 ? `, dont ${vals.connectedFictionalCount} fictif${vals.connectedFictionalCount > 1 ? 's' : ''}` : ''}).
+            </div>
+          )}
+          {vals.connectedFictionalCount > 0 && (
+            <div className="whoall-hint" style={{ marginBottom: 14 }}>
+              Les personnages fictifs lancent leur jet automatiquement.
+            </div>
           )}
 
           <button className="primary-btn" onClick={vals.sendRequest}>

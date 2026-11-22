@@ -18,6 +18,8 @@ export const api = {
   rollDice: (characterId) => request('/table/roll', { method: 'POST', body: JSON.stringify({ characterId }) }),
   joinTable: (code, characterId) => request('/table/join', { method: 'POST', body: JSON.stringify({ code, characterId }) }),
   uploadCharacter: (formData) => request('/characters', { method: 'POST', body: formData }),
+  removeFictional: () => request('/characters/fictional', { method: 'DELETE' }),
+  addFictional: () => request('/characters/fictional', { method: 'POST' }),
   deleteCharacter: (id) => request(`/characters/${id}`, { method: 'DELETE' }),
   updateSkillScore: (characterId, skillName, score) =>
     request(`/characters/${characterId}/skills/${encodeURIComponent(skillName)}`, {

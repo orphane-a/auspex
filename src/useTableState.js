@@ -298,6 +298,15 @@ export function useTableState() {
     }
   }
 
+  // Personnages fictifs (ticket 94) : retrait avant une vraie partie, ajout à la
+  // demande. Les erreurs remontent à l'écran Personnages, qui les affiche.
+  async function removeFictional() {
+    return api.removeFictional()
+  }
+  async function addFictional() {
+    return api.addFictional()
+  }
+
   async function resetTable() {
     await api.resetTable()
     localStorage.removeItem(MY_CHARACTER_KEY)
@@ -360,12 +369,20 @@ export function useTableState() {
   const meConcerned = !!request && myCharacterId != null && request.concernedCharacterIds.includes(myCharacterId)
   const myRoll = myCharacterId != null ? rolls[myCharacterId] : null
   const myRolled = !!myRoll
-  const rollsList = concernedCharacters.map((c) => ({ id: c.id, name: c.name, cls: c.cls, avatar: c.avatar, ...statusMeta(rolls[c.id]) }))
+  // Un fictif sans jet est en train de lancer automatiquement (ticket 94), pas « en attente ».
+  function rollMeta(c) {
+    const r = rolls[c.id]
+    const meta = statusMeta(r)
+    if (!c.fictional) return meta
+    if (!r) return { ...meta, label: 'Jet automatique…', isAuto: true }
+    return { ...meta, degreeText: `${meta.degreeText} · jet automatique` }
+  }
+  const rollsList = concernedCharacters.map((c) => ({ id: c.id, name: c.name, cls: c.cls, avatar: c.avatar, fictional: c.fictional, ...rollMeta(c) }))
   const received = concernedCharacters.filter((c) => rolls[c.id]).length
   const myMeta = statusMeta(myRoll)
   const teammates = concernedCharacters
     .filter((c) => c.id !== myCharacterId)
-    .map((c) => ({ id: c.id, name: c.name, avatar: c.avatar, ...statusMeta(rolls[c.id]) }))
+    .map((c) => ({ id: c.id, name: c.name, avatar: c.avatar, fictional: c.fictional, ...rollMeta(c) }))
 
   const roster = characters.map((c) => {
     const status = pvStatus(c.pv)
@@ -375,8 +392,10 @@ export function useTableState() {
       cls: c.cls,
       avatar: c.avatar,
       connected: c.connected,
+      fictional: c.fictional,
       dot: c.connected ? '#4dff8f' : 'rgba(31,122,69,.3)',
-      statusText: c.connected ? 'Connecté' : 'Pas encore rejoint',
+      // « Toujours présent » plutôt que « Connecté » : ne pas faire croire qu'un vrai joueur est là.
+      statusText: c.fictional ? 'Toujours présent' : c.connected ? 'Connecté' : 'Pas encore rejoint',
       statusCol: c.connected ? '#4dff8f' : 'rgba(31,122,69,.4)',
       op: c.connected ? '1' : '.55',
       pvCurrent: c.pv.current,
@@ -491,7 +510,15 @@ export function useTableState() {
     : []
   const malusOpts = MALUS_OPTIONS.map((m) => ({ label: m, isActive: m === malus, set: () => setMalus(malus === m ? null : m) }))
   const connectedCharacters = characters.filter((c) => c.connected)
-  const selectable = connectedCharacters.map((c) => ({ id: c.id, name: c.name, isChosen: !!chosen[c.id], toggle: () => togglePlayer(c.id) }))
+  const selectable = connectedCharacters.map((c) => ({
+    id: c.id,
+    name: c.name,
+    fictional: c.fictional,
+    isChosen: !!chosen[c.id],
+    toggle: () => togglePlayer(c.id),
+  }))
+  const fictionalCharacters = characters.filter((c) => c.fictional)
+  const connectedFictionalCount = connectedCharacters.filter((c) => c.fictional).length
 
   // Modale d'attaque (V3 §3/§6) : listes complètes PNJ + Joueurs, pour l'attaquant
   // comme pour la cible — un attaquant peut être un joueur non connecté (§6) ; côté
@@ -504,6 +531,7 @@ export function useTableState() {
       name: item.name,
       avatar: item.avatar,
       connected: type === 'character' ? item.connected : true,
+      fictional: type === 'character' && !!item.fictional,
       isActive: currentType === type && currentId === item.id,
       dodgeScore: dodgeThresholdFor(item, type),
       pvCurrent: item.pv.current,
@@ -566,11 +594,28 @@ export function useTableState() {
     attackerCharacterDisconnected ||
     attackerIsDefender
 
+  const attackAttackerFictional = !!attack && attack.attacker.type === 'character' && !!attackAttackerEntity?.fictional
+  const attackDefenderFictional = !!attack && attack.defender.type === 'character' && !!attackDefenderEntity?.fictional
+  const attackModalAttackerFictional = attackerType === 'character' && !!attackerEntity?.fictional
+  const attackModalDefenderFictional = defenderType === 'character' && !!attackModalDefenderEntity?.fictional
+
   return {
     loading: !snapshot,
     code,
     tableCode: code,
     characters,
+    // L'écran « Choisir son personnage » ne propose jamais un fictif (ticket 94).
+    joinableCharacters: characters.filter((c) => !c.fictional),
+    fictionalCharacters,
+    fictionalEnabled: snapshot?.fictionalEnabled ?? true,
+    connectedFictionalCount,
+    fictionalRemovedDuringTest: !!request?.fictionalRemoved,
+    removeFictional,
+    addFictional,
+    attackAttackerFictional,
+    attackDefenderFictional,
+    attackModalAttackerFictional,
+    attackModalDefenderFictional,
     availableSkills,
     myCharacter,
     me: myCharacter ? { name: myCharacter.name, cls: myCharacter.cls, avatar: myCharacter.avatar } : null,

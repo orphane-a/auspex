@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Avatar from './Avatar.jsx'
+import Avatar, { FictifBadge } from './Avatar.jsx'
 import CharacteristicsRadar from './CharacteristicsRadar.jsx'
 import PvBar, { PvStatusBadge } from './PvBar.jsx'
 
@@ -257,8 +257,11 @@ export default function PlayerView({ vals }) {
             {vals.teammates.map((t) => (
               <div key={t.id} className={`teammate-row${t.isSuccess ? ' is-success' : t.isFail ? ' is-fail' : ''}`}>
                 <div className="teammate-row-left">
-                  <Avatar src={t.avatar} size="sm" />
-                  <span className="teammate-name">{t.name}</span>
+                  <Avatar src={t.avatar} size="sm" fictional={t.fictional} />
+                  <span className="teammate-name">
+                    {t.name}
+                    {t.fictional && <FictifBadge />}
+                  </span>
                 </div>
                 <div className="teammate-result">
                   <div className="teammate-label">
