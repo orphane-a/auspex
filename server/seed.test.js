@@ -32,6 +32,16 @@ describe('seedIfEmpty', () => {
   })
 })
 
+// Sans mode démo (ticket 97, critère 8) : le seed habituel ne doit pas bouger.
+describe('sans SCENARIO', () => {
+  it("n'active aucun scénario et ne crée aucune donnée de démo", async () => {
+    expect(process.env.SCENARIO).toBeUndefined()
+    expect(seed.activeScenario()).toBeNull()
+    expect(await seed.resetScenarioTable()).toBe(false)
+    expect(db.listCharacters().map((c) => c.name)).not.toContain('Aldric')
+  })
+})
+
 describe('seedNpcsIfEmpty', () => {
   it('imports the three PNJ_test enemies when the npcs table is empty', async () => {
     await seed.seedNpcsIfEmpty()
