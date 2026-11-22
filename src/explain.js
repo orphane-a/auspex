@@ -40,14 +40,21 @@ export function testThreshold(character, skillName, linkedCharacteristic, malus)
 // « de l'Agilité », « de la Force » : le libellé complet se lit mieux avec son article.
 function withArticle(name) {
   if (!name) return ''
-  return /^[AEIOUÉÈH]/i.test(name) ? `l’${name}` : `la ${name}`
+  if (/^[AEIOUÉÈH]/i.test(name)) return `l’${name}`
+  return name === 'Charisme' ? `le ${name}` : `la ${name}`
+}
+
+// « à l’Agilité », « à la Force », « au Charisme ».
+function aLinked(name) {
+  const w = withArticle(name)
+  return w.startsWith('le ') ? `au ${w.slice(3)}` : `à ${w}`
 }
 
 // Ligne de calcul en petit sous les chiffres : d'où vient le seuil.
 export function thresholdCalcText(t) {
   if (!t) return ''
   const base = t.trained
-    ? `${t.skill} ${t.score}${t.characteristicName ? `, liée à ${withArticle(t.characteristicName)}` : ''}`
+    ? `${t.skill} ${t.score}${t.characteristicName ? `, liée ${aLinked(t.characteristicName)}` : ''}`
     : `${t.skill} non apprise : la moitié de ${withArticle(t.characteristicName || 'caractéristique')} (${t.characteristicValue}), soit ${t.score}`
   return t.malus ? `${base}, moins un malus de ${t.malus} = seuil de ${t.target}` : `${base} = seuil de ${t.target}`
 }

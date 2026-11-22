@@ -52,6 +52,10 @@ describe('testThreshold', () => {
     expect(t).toMatchObject({ trained: false, score: 15, target: 0 })
     expect(thresholdCalcText(t)).toBe('Athlétisme non apprise : la moitié de la Force (30), soit 15, moins un malus de 20 = seuil de 0')
   })
+  it('accorde l’article de la caractéristique', () => {
+    const c = { skills: [{ name: 'Charme', characteristic: 'Cha', score: 48 }], characteristics: { Cha: 48 } }
+    expect(thresholdCalcText(testThreshold(c, 'Charme', 'Cha', null))).toBe('Charme 48, liée au Charisme = seuil de 48')
+  })
   it('renvoie null sans personnage ni compétence', () => {
     expect(testThreshold(null, 'Esquive', 'Agi')).toBeNull()
     expect(testThreshold(djoko, '', 'Agi')).toBeNull()
