@@ -6,7 +6,11 @@ async function request(path, options) {
     ...options,
   })
   const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`)
+  if (!res.ok) {
+    const err = new Error(data.error || `Erreur ${res.status}`)
+    err.status = res.status
+    throw err
+  }
   return data
 }
 
@@ -14,7 +18,8 @@ export const api = {
   getTable: () => request('/table'),
   // Mode démo (ticket 97) : { scenario: 'dragon' } ou { scenario: null }.
   getScenario: () => request('/scenario'),
-  resetTable: () => request('/table/reset', { method: 'POST' }),
+  // Ambiance de la nouvelle table (ticket 100) ; absente, le serveur prend cyber.
+  resetTable: (ambiance) => request('/table/reset', { method: 'POST', body: JSON.stringify(ambiance ? { ambiance } : {}) }),
   endTest: () => request('/table/end-test', { method: 'POST' }),
   createRequest: (body) => request('/table/request', { method: 'POST', body: JSON.stringify(body) }),
   rollDice: (characterId) => request('/table/roll', { method: 'POST', body: JSON.stringify({ characterId }) }),

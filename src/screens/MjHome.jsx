@@ -1,6 +1,92 @@
 import { useState } from 'react'
 import Avatar, { FictifBadge, Spinner } from '../Avatar.jsx'
 import { HIT_LOCATIONS } from '../gameLogic.js'
+import { AMBIANCES, AMBIANCE_PAR_DEFAUT, nomAmbiance } from '../ambiances.js'
+
+// Choix de l'ambiance (ticket 100), juste au dessus du bouton de création. Les
+// pastilles et l'emblème montrent toujours les couleurs de chaque ambiance, quelle
+// que soit l'ambiance active. Cyber est présélectionnée à chaque visite.
+function AmbiancePicker({ vals, onStayHome }) {
+  const [choix, setChoix] = useState(AMBIANCE_PAR_DEFAUT)
+  const [creating, setCreating] = useState(false)
+  const [message, setMessage] = useState(null) // { kind: 'ok' | 'error', title?, text }
+
+  async function create() {
+    setCreating(true)
+    setMessage(null)
+    // Reste sur l'Accueil MJ : la nouvelle table est réamorcée, et sans cela l'écran
+    // basculerait sur le tableau de bord avant d'afficher la confirmation.
+    onStayHome?.()
+    try {
+      const data = await vals.resetTable(choix)
+      setMessage({
+        kind: 'ok',
+        text: `Nouvelle table créée en ambiance ${nomAmbiance(data?.ambiance ?? choix)}. Transmettez le code ${data?.code ?? ''} à vos joueurs.`,
+      })
+    } catch (err) {
+      setMessage(
+        err.status === 400
+          ? { kind: 'error', title: 'Ambiance inconnue.', text: "Choisissez l'une des cinq ambiances proposées. La table actuelle n'a pas changé." }
+          : { kind: 'error', title: "La table n'a pas pu être créée.", text: "Vérifiez la connexion puis réessayez. La table actuelle n'a pas changé." },
+      )
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  return (
+    <>
+      {message?.kind === 'ok' && (
+        <p className="ambiance-toast" role="status">
+          <span className="ambiance-ok" aria-hidden="true">
+            ✓
+          </span>
+          {message.text}
+        </p>
+      )}
+      <fieldset className="ambiance-picker" disabled={creating}>
+        <legend className="section-label">Ambiance de la table</legend>
+        <p className="ambiance-hint">Toute la table verra cette ambiance. Pour en changer, il faudra créer une nouvelle table.</p>
+        <div className="ambiance-grid">
+          {AMBIANCES.map((a) => (
+            <label key={a.id} className={`ambiance-option${choix === a.id ? ' selected' : ''}`}>
+              <input type="radio" name="ambiance" value={a.id} checked={choix === a.id} onChange={() => setChoix(a.id)} />
+              <span className="ambiance-swatches" aria-hidden="true">
+                <i style={{ background: a.apercu.fond }} />
+                <i style={{ background: a.apercu.surface }} />
+                <i style={{ background: a.apercu.accent }} />
+                <b className="ambiance-emblem" style={{ background: a.apercu.fond, color: a.apercu.accent }}>
+                  {a.embleme}
+                </b>
+              </span>
+              <span className="ambiance-option-name">{a.nom}</span>
+              <span className="ambiance-option-desc">{a.description}</span>
+              {choix === a.id && (
+                <span className="ambiance-check" aria-hidden="true">
+                  ✓
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
+        <button className="primary-btn" type="button" onClick={create}>
+          {creating ? (
+            <>
+              <Spinner /> Création de la table en cours…
+            </>
+          ) : (
+            '↻ Créer une nouvelle table'
+          )}
+        </button>
+        {message?.kind === 'error' && (
+          <div className="form-error" role="alert">
+            <strong>{message.title}</strong> {message.text}
+          </div>
+        )}
+      </fieldset>
+    </>
+  )
+}
 
 function CharacterEditPanel({ vals, character }) {
   const [bonusLabel, setBonusLabel] = useState('')
@@ -245,7 +331,7 @@ function NpcUploadForm({ vals }) {
   )
 }
 
-export default function MjHome({ vals, onGoToDashboard }) {
+export default function MjHome({ vals, onGoToDashboard, onStayHome }) {
   const [name, setName] = useState('')
   const [cls, setCls] = useState('')
   const [file, setFile] = useState(null)
@@ -285,13 +371,13 @@ export default function MjHome({ vals, onGoToDashboard }) {
           </div>
           <span>Accueil MJ</span>
         </div>
-        <span className="panel-titlebar-tag">Code {vals.tableCode}</span>
+        <span className="panel-titlebar-tag">
+          Code {vals.tableCode} · {nomAmbiance(vals.ambiance)}
+        </span>
       </div>
 
       <div className="gm-body">
-        <button className="secondary-btn" onClick={() => vals.resetTable()}>
-          ↻ Créer une nouvelle table
-        </button>
+        <AmbiancePicker vals={vals} onStayHome={onStayHome} />
 
         <div style={{ marginTop: 24 }}>
           <FictionalPanel vals={vals} />
