@@ -96,7 +96,7 @@ function TableApp() {
       ) : vals.myCharacter ? (
         <PlayerView vals={vals} />
       ) : (
-        <JoinTable vals={vals} />
+        <JoinTable vals={vals} lockedCode={scenario ? vals.tableCode : null} />
       )}
 
       {scenario && !vals.loading && <DemoGuide key={activeView} vals={vals} scenario={scenario} mode={activeView} embedded={isEmbedded} />}

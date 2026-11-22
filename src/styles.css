@@ -1914,19 +1914,6 @@ input {
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
-.demo-solo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  font-size: 15px;
-  cursor: pointer;
-}
-.demo-solo input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
-}
 
 /* Repère « Cliquez ici » : un cadre qui pulse autour du vrai bouton d'Auspex. Il
    ne capte aucun clic, le bouton reste cliquable dessous. */
@@ -2029,4 +2016,11 @@ input {
   font-size: 20px;
   font-weight: 600;
   color: var(--accent);
+}
+
+/* Code de table imposé (démo, ticket 97) : lisible mais visiblement non modifiable. */
+.text-input[readonly] {
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: default;
 }

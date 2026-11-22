@@ -66,11 +66,10 @@ function sameRect(a, b) {
 export default function DemoGuide({ vals, scenario, mode, embedded }) {
   const place = embedded ? 'partage' : 'seul'
   const progressKey = `auspex.demo.${scenario.id}.${mode}.${place}`
-  const soloKey = `auspex.demo.solo.${mode}.${place}`
   const [progress, setProgress] = useState(() => ({ ...INITIAL_PROGRESS, ...load(progressKey, {}) }))
-  // Dans l'écran partagé, deux personnes jouent chacune un côté ; seul, le guide
-  // joue l'autre côté.
-  const [solo, setSolo] = useState(() => load(soloKey, !embedded))
+  // Dans l'écran partagé, deux personnes jouent chacune un côté ; dans une fenêtre
+  // seule, le guide joue toujours l'autre côté.
+  const solo = !embedded
   const [collapsed, setCollapsed] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -114,10 +113,6 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
     save(progressKey, next)
   }
 
-  function toggleSolo(value) {
-    setSolo(value)
-    save(soloKey, value)
-  }
 
   // Côté MJ, les compagnons (et le héros quand on joue seul) sont « connectés » par
   // le guide pour qu'Auspex les compte dans « Toute l'équipe » et accepte l'attaque.
@@ -411,10 +406,6 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
               </div>
             )}
             <div className="demo-pop-foot">
-              <label className="demo-solo">
-                <input type="checkbox" checked={solo} onChange={(e) => toggleSolo(e.target.checked)} />
-                Je joue seul : le guide joue {mode === 'mj' ? `${cast.hero?.name ?? 'le joueur'}` : 'le MJ'}
-              </label>
               {!resetPhase && (
                 <button type="button" className="guide-link" onClick={() => setResetPhase('confirm')}>
                   Recommencer la démo

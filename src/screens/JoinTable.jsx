@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import Avatar from '../Avatar.jsx'
 
-export default function JoinTable({ vals }) {
-  const [code, setCode] = useState('')
+// En démo (ticket 97), `lockedCode` est le code de la table de démo : il est déjà
+// rempli et ne se modifie pas. Hors démo, le joueur tape le code donné par le MJ.
+export default function JoinTable({ vals, lockedCode }) {
+  const [typedCode, setCode] = useState('')
+  const code = lockedCode ?? typedCode
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
 
@@ -28,8 +31,10 @@ export default function JoinTable({ vals }) {
         <div className="section-label">Code de la table</div>
         <input
           className="text-input"
+          aria-label="Code de la table"
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          readOnly={lockedCode != null}
           placeholder="Ex. XR-4417"
           autoCapitalize="characters"
         />
