@@ -1621,6 +1621,410 @@ input {
   }
 }
 
+/* Scénario guidé (ticket 97) : badge « Démo », popin du guide posée par dessus
+   Auspex et repères « Cliquez ici ». Mêmes jetons que le reste de l'interface. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.stage-header-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.demo-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--warn);
+  background: var(--surface);
+  border: 1px dashed var(--warn);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.guide-steps {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.guide-steps li {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.guide-steps li.done {
+  background: var(--border-strong);
+  border-color: var(--border-strong);
+}
+.guide-steps li.now {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.guide-step-title {
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+.guide-read {
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+.guide-read.ok {
+  border-color: var(--border-strong);
+  border-left-width: 4px;
+}
+.guide-read.ko {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
+.guide-tag {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 4px;
+}
+.guide-alert {
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+}
+.guide-alert.err {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+}
+.guide-alert.info {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.guide-alert.warn {
+  background: #2a2410;
+  border: 1px solid #8a7426;
+}
+.guide-link {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  min-height: 44px;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 15px;
+}
+.guide-link:disabled {
+  color: var(--text-2);
+  cursor: not-allowed;
+}
+.guide-dialog {
+  background: var(--bg);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-dialog h4 {
+  margin: 0;
+  font-size: 20px;
+}
+.guide-dialog p {
+  margin: 0;
+}
+.guide-end {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+.guide-end h3 {
+  margin: 0;
+  font-size: 26px;
+}
+.guide-end p {
+  margin: 0;
+}
+.guide-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  display: inline-block;
+  animation: guide-spin 1s linear infinite;
+  flex: none;
+}
+@keyframes guide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-spinner {
+    animation: none;
+  }
+}
+.guide-btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.guide-btn-row > * {
+  flex: 1;
+}
+
+/* Popin du guide : en bas à droite sur ordinateur, en bas de l'écran sur téléphone.
+   Elle passe en haut quand elle cacherait le bouton à cliquer. */
+.demo-pop {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+.demo-pop.top {
+  bottom: auto;
+  top: 20px;
+}
+.demo-pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.demo-pop-title {
+  font-weight: 600;
+  font-size: 17px;
+}
+.demo-meta {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.demo-pop-toggle {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.demo-pop-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.demo-pop.collapsed .demo-say.compact {
+  margin: 0;
+  padding: 10px 16px 14px;
+}
+.demo-story-line {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.demo-say {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.demo-say-tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+}
+.demo-rolls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.demo-rolls li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+.demo-rolls li.ok b {
+  color: var(--accent);
+}
+.demo-rolls li.ko {
+  border-color: var(--danger-border);
+}
+.demo-rolls li.wait b {
+  color: var(--text-2);
+  font-weight: 400;
+}
+.demo-pop-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Repère « Cliquez ici » : un cadre qui pulse autour du vrai bouton d'Auspex. Il
+   ne capte aucun clic, le bouton reste cliquable dessous. */
+.demo-coach {
+  position: fixed;
+  z-index: 35;
+  pointer-events: none;
+  border: 3px solid var(--warn);
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.45);
+  animation: demoPulse 1.4s ease-in-out infinite;
+}
+.demo-coach-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+.demo-coach-label.below {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+@keyframes demoPulse {
+  0%,
+  100% {
+    outline: 0 solid transparent;
+  }
+  50% {
+    outline: 6px solid rgba(255, 200, 80, 0.35);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-coach {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .demo-pop {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 55vh;
+  }
+  .demo-pop.top {
+    top: 8px;
+  }
+}
+
+/* Accueil de la démo : choix du côté de la table. */
+.demo-home {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  color: var(--text);
+}
+.demo-home-title {
+  font-size: 32px;
+  margin: 12px 0 8px;
+}
+.demo-home-lead {
+  font-size: 18px;
+  color: var(--text-2);
+  margin: 0 0 24px;
+}
+.demo-home-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.demo-home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 16px;
+}
+.demo-home-card:hover,
+.demo-home-card:focus-visible {
+  border-color: var(--accent);
+}
+.demo-home-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Code de table imposé (démo, ticket 97) : lisible mais visiblement non modifiable. */
+.text-input[readonly] {
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: default;
+}
+
 /* Personnages joueurs fictifs (ticket 94) : le pointillé les distingue, la palette reste intacte. */
 .avatar.fictif {
   display: flex;

@@ -622,6 +622,9 @@ export function useTableState() {
     roster,
     connectedCount: connectedCharacters.length,
     totalCount: characters.length,
+    // Lus par le panneau du scénario guidé (ticket 97) pour afficher jet et cible.
+    request,
+    rolls,
     mjDashboard: !request,
     mjResults: !!request,
     showLaunch,
