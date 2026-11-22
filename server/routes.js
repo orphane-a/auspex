@@ -2,7 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
 import { resolveRoll, degreesFromRoll } from './game.js'
-import { seedIfEmpty } from './seed.js'
+import { activeScenario, resetScenarioTable, seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
 import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
 import * as db from './db.js'
@@ -20,9 +20,16 @@ export function createRoutes({ presence, buildSnapshot }) {
 
   router.get('/table', (req, res) => res.json(snapshot()))
 
+  // Mode démo (ticket 97) : exposé par une route à part plutôt que dans le snapshot,
+  // pour ne pas toucher au protocole socket. Les textes du scénario restent côté
+  // client (src/scenarios/), seul l'identifiant transite.
+  router.get('/scenario', (req, res) => res.json({ scenario: activeScenario()?.id ?? null }))
+
   router.post('/table/reset', async (req, res) => {
-    db.resetTable()
-    await seedIfEmpty() // dev convenience: re-seeds Djoko right away instead of leaving MjHome blank
+    if (!(await resetScenarioTable())) {
+      db.resetTable()
+      await seedIfEmpty() // dev convenience: re-seeds Djoko right away instead of leaving MjHome blank
+    }
     respondWithSnapshot(res, 200)
   })
 
