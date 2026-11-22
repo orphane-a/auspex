@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import { degreeLabel } from '../gameLogic'
-import { nextMove, advance, castOf, INITIAL_PROGRESS } from '../scenarios/guide.js'
+import { nextMove, advance, castOf, syncProgress, INITIAL_PROGRESS } from '../scenarios/guide.js'
 import { resolveTarget } from './coach.js'
 import { useDemoPresence } from './useDemoPresence.js'
 
@@ -59,6 +59,18 @@ async function runAuto(auto, vals) {
   }
 }
 
+// Ticket 99 : les modales défilent dans leur corps, sous un pied fixe. Un bouton peut
+// donc être dans l'écran mais caché par le bord de la zone qui défile.
+function hiddenInScroller(el, r) {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const { overflowY } = getComputedStyle(p)
+    if (overflowY !== 'auto' && overflowY !== 'scroll') continue
+    const box = p.getBoundingClientRect()
+    if (r.top < box.top || r.bottom > box.bottom) return true
+  }
+  return false
+}
+
 function sameRect(a, b) {
   return a && b && a.top === b.top && a.left === b.left && a.width === b.width && a.height === b.height
 }
@@ -108,10 +120,36 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
   const total = scenario.steps.length
   const step = scenario.steps[progress.step]
 
+  // La progression retient le code de la table où elle a été faite : `advance` repart
+  // de INITIAL_PROGRESS, on y remet donc le code à chaque mise à jour.
   function updateProgress(next) {
-    setProgress(next)
-    save(progressKey, next)
+    const withCode = { ...next, tableCode: next.tableCode ?? vals.tableCode ?? null }
+    setProgress(withCode)
+    save(progressKey, withCode)
   }
+
+  // « Recommencer la démo » depuis une autre vue ou un autre appareil : la remise à
+  // zéro donne toujours un nouveau code à la table. Toutes les popins repartent alors
+  // de la première étape, pas seulement celle où l'on a cliqué.
+  useEffect(() => {
+    const code = vals.tableCode
+    if (!code || progress.tableCode === code) return
+    if (progress.tableCode) {
+      doneAutos.current.clear()
+      setResetPhase(null)
+      setError('')
+      updateProgress({ ...INITIAL_PROGRESS, tableCode: code })
+    } else {
+      updateProgress({ ...progress, tableCode: code })
+    }
+  }, [vals.tableCode, progress.tableCode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // À deux, la vue joueur rattrape le MJ s'il est passé à la suite avant elle.
+  useEffect(() => {
+    if (mode !== 'joueur' || !table.myCharacterId || progress.tableCode !== vals.tableCode) return
+    const synced = syncProgress({ scenario, progress, table })
+    if (synced !== progress) updateProgress(synced)
+  }) // eslint-disable-line react-hooks/exhaustive-deps
 
 
   // Côté MJ, les compagnons (et le héros quand on joue seul) sont « connectés » par
@@ -167,7 +205,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
       // Deux essais au plus par bouton, espacés : la page peut encore bouger juste
       // après son affichage et interrompre le premier défilement.
       const tries = scrollTries.current
-      const offscreen = r.top < 0 || r.bottom > window.innerHeight
+      const offscreen = r.top < 0 || r.bottom > window.innerHeight || hiddenInScroller(el, r)
       if (offscreen && tries.count < 2 && Date.now() - tries.at > 1200) {
         scrollTries.current = { count: tries.count + 1, at: Date.now() }
         const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
