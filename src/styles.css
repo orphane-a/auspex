@@ -26,6 +26,9 @@
   /* Ticket 100 : couleurs autrefois écrites en dur, passées en variables pour que
      chaque ambiance les surcharge. Valeurs de :root = ambiance Cyber, inchangée. */
   --text-strong: #fff;
+  /* Ligne d'un joueur hors ligne : atténuée seulement si le contraste le permet
+     (ticket 100) ; la mention de statut reste l'indice principal. */
+  --offline-opacity: 0.85;
   --danger-ink: #1a0904;
   --accent-hover: #8bf7b9;
   --accent-glow: rgba(94, 242, 156, 0.4);
@@ -2543,7 +2546,7 @@ input {
   grid-row: auto;
 }
 .gm-grid .roster-row.offline {
-  opacity: 0.85;
+  opacity: var(--offline-opacity);
 }
 .roster-id {
   min-width: 0;
@@ -3346,6 +3349,7 @@ input {
    sur fond sont vérifiées (≥ 4,5:1) par src/ambiances.contrast.test.js.
    ========================================================================== */
 :root[data-ambiance='medieval'] {
+  --offline-opacity: 1;
   --danger-ink: #fff8e6;
   --bg: #efe2c4;
   --surface: #f8efd9;
@@ -3418,6 +3422,7 @@ input {
   --warn-glow: rgba(255, 209, 102, 0.35);
 }
 :root[data-ambiance='horreur'] {
+  --offline-opacity: 1;
   --danger-ink: #f2ecd6;
   --bg: #e6dbc0;
   --surface: #f2e9d3;
@@ -3457,6 +3462,7 @@ input {
   --title-spacing: 0.08em;
 }
 :root[data-ambiance='gothique'] {
+  --offline-opacity: 1;
   --bg: #0d0a10;
   --surface: #18121e;
   --surface-2: #241a2d;
