@@ -23,6 +23,9 @@ afterAll(() => {
   rmSync(tmpDir, { recursive: true, force: true })
 })
 
+// Seed habituel depuis le ticket 94 : Djoko puis les personnages fictifs.
+const SEED_HABITUEL = () => ['Djoko', ...seed.FICTIONAL_CHARACTERS.map((f) => f.name)]
+
 describe('seed avec SCENARIO=inconnu', () => {
   it('avertit une seule fois puis retombe sur Djoko et les PNJ_test', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -33,13 +36,13 @@ describe('seed avec SCENARIO=inconnu', () => {
     expect(warn.mock.calls.filter((c) => c[0] === 'Scénario inconnu : inconnu')).toHaveLength(1)
     warn.mockRestore()
 
-    expect(db.listCharacters().map((c) => c.name)).toEqual(['Djoko'])
+    expect(db.listCharacters().map((c) => c.name)).toEqual(SEED_HABITUEL())
     expect(db.listNpcs()).toHaveLength(3)
     expect(db.listNpcs().map((n) => n.name)).not.toContain('Le dragon rouge')
   })
 
   it('garde la remise à zéro habituelle (resetScenarioTable ne fait rien)', async () => {
     expect(await seed.resetScenarioTable()).toBe(false)
-    expect(db.listCharacters().map((c) => c.name)).toEqual(['Djoko'])
+    expect(db.listCharacters().map((c) => c.name)).toEqual(SEED_HABITUEL())
   })
 })

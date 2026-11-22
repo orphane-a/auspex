@@ -43,11 +43,11 @@ export default function JoinTable({ vals, lockedCode }) {
         <div className="section-label" style={{ marginTop: 20 }}>
           Choisir son personnage
         </div>
-        {vals.characters.length === 0 ? (
+        {vals.joinableCharacters.length === 0 ? (
           <div className="whoall-hint">Aucune fiche n'a encore été importée par le MJ.</div>
         ) : (
           <div className="selectable-list">
-            {vals.characters.map((c) => (
+            {vals.joinableCharacters.map((c) => (
               <button key={c.id} className="selectable-row" disabled={joining} onClick={() => handlePick(c.id)}>
                 <Avatar src={c.avatar} />
                 <span className="selectable-label chosen">{c.name}</span>

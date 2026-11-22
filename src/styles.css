@@ -2024,3 +2024,109 @@ input {
   color: var(--text-2);
   cursor: default;
 }
+
+/* Personnages joueurs fictifs (ticket 94) : le pointillé les distingue, la palette reste intacte. */
+.avatar.fictif {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--text-2);
+  background: var(--bg, #07120c);
+  color: var(--text-2);
+}
+.badge-fictif {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+  border: 1px dashed var(--text-2);
+  border-radius: 999px;
+  padding: 4px 9px;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border, #2a5c40);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin40 0.9s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+  flex: none;
+}
+.auto-roll {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-2);
+  font-size: 16px;
+}
+.fictifs-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 24px;
+}
+.fictifs-panel h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.fictifs-names {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.fictifs-names .badge-fictif {
+  margin-left: 0;
+  font-size: 15px;
+}
+.danger-outline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--danger);
+  background: transparent;
+  border: 2px solid var(--danger-border);
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+}
+.danger-outline-btn:hover:not(:disabled) {
+  background: var(--danger-bg);
+}
+.danger-outline-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.msg-ok,
+.msg-info {
+  font-size: 15px;
+  margin: 6px 0 12px;
+}
+.msg-ok {
+  color: var(--accent);
+}
+.msg-info {
+  color: var(--text-2);
+  border: 1px dashed var(--text-2);
+  border-radius: var(--radius-sm, 8px);
+  padding: 10px 12px;
+}
+@media (max-width: 480px) {
+  .danger-outline-btn,
+  .fictifs-panel .secondary-btn {
+    width: 100%;
+  }
+}

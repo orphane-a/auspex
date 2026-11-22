@@ -71,6 +71,23 @@ describe('buildSnapshot', () => {
   })
 })
 
+describe('buildSnapshot, personnages fictifs (ticket 94)', () => {
+  it('un fictif est toujours connecté, indépendamment des sockets', () => {
+    db.resetTable()
+    db.addCharacter({ name: 'Djoko', skills: [] })
+    db.addCharacter({ name: 'Vex', skills: [], fictional: true })
+
+    const snapshot = state.buildSnapshot(() => false)
+
+    const byName = Object.fromEntries(snapshot.characters.map((c) => [c.name, c]))
+    expect(byName.Vex.connected).toBe(true)
+    expect(byName.Vex.fictional).toBe(true)
+    expect(byName.Djoko.connected).toBe(false)
+    expect(byName.Djoko.fictional).toBe(false)
+    expect(snapshot.fictionalEnabled).toBe(true)
+  })
+})
+
 describe('characteristicForSkillName', () => {
   it("finds a skill's linked characteristic from any character's sheet", () => {
     db.resetTable()

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Avatar from '../Avatar.jsx'
+import Avatar, { FictifBadge, Spinner } from '../Avatar.jsx'
 import { HIT_LOCATIONS } from '../gameLogic.js'
 
 function CharacterEditPanel({ vals, character }) {
@@ -110,6 +110,103 @@ function CharacterEditPanel({ vals, character }) {
   )
 }
 
+// Encart Personnages fictifs (ticket 94), en haut de l'écran : retrait sans
+// confirmation, car l'ajout répare l'action. Le bouton d'ajout n'apparaît que
+// lorsqu'aucun fictif n'est présent.
+function FictionalPanel({ vals }) {
+  const [busy, setBusy] = useState(null) // null | 'remove' | 'add'
+  const [message, setMessage] = useState(null) // { kind: 'ok' | 'error', text }
+  const names = vals.fictionalCharacters.map((c) => c.name)
+
+  async function remove() {
+    setBusy('remove')
+    setMessage(null)
+    try {
+      const { removed } = await vals.removeFictional()
+      setMessage({
+        kind: 'ok',
+        text: `${removed > 1 ? `Les ${removed} personnages fictifs ont été retirés.` : 'Le personnage fictif a été retiré.'} Les autres personnages, les PNJ et le code de table sont inchangés.`,
+      })
+    } catch {
+      setMessage({ kind: 'error', text: 'Impossible de retirer les personnages fictifs. Vérifiez la connexion puis réessayez.' })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function add() {
+    setBusy('add')
+    setMessage(null)
+    try {
+      await vals.addFictional()
+    } catch (err) {
+      setMessage({ kind: 'error', text: `Impossible d'ajouter les personnages fictifs. ${err.message}` })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <section className="fictifs-panel" aria-labelledby="h-fictifs">
+      <h2 id="h-fictifs">Personnages fictifs</h2>
+      {message?.kind === 'ok' && (
+        <p className="msg-ok" role="status">
+          ✓ {message.text}
+        </p>
+      )}
+      {message?.kind === 'error' && (
+        <p className="form-error" role="alert" style={{ margin: '0 0 12px' }}>
+          {message.text}
+        </p>
+      )}
+      {names.length > 0 ? (
+        <>
+          <p className="whoall-hint" style={{ margin: 0 }}>
+            {names.length > 1 ? `${names.length} personnages fictifs sont` : 'Un personnage fictif est'} à la table pour tester seul. Retirez les avant une vraie partie.
+          </p>
+          <div className="fictifs-names">
+            {names.map((n) => (
+              <span key={n} className="badge-fictif">
+                {n}
+              </span>
+            ))}
+          </div>
+          <button type="button" className="danger-outline-btn" onClick={remove} disabled={busy !== null}>
+            {busy === 'remove' ? (
+              <>
+                <Spinner />
+                Retrait en cours…
+              </>
+            ) : (
+              'Retirer les personnages fictifs'
+            )}
+          </button>
+        </>
+      ) : vals.fictionalEnabled ? (
+        <>
+          <p className="whoall-hint" style={{ margin: '0 0 12px' }}>
+            Aucun personnage fictif à la table.
+          </p>
+          <button type="button" className="secondary-btn" onClick={add} disabled={busy !== null}>
+            {busy === 'add' ? (
+              <>
+                <Spinner />
+                Ajout en cours…
+              </>
+            ) : (
+              'Ajouter les personnages fictifs'
+            )}
+          </button>
+        </>
+      ) : (
+        <p className="whoall-hint" style={{ margin: 0 }}>
+          Les personnages fictifs sont désactivés sur ce serveur.
+        </p>
+      )}
+    </section>
+  )
+}
+
 function NpcUploadForm({ vals }) {
   const [name, setName] = useState('')
   const [file, setFile] = useState(null)
@@ -196,6 +293,10 @@ export default function MjHome({ vals, onGoToDashboard }) {
           ↻ Créer une nouvelle table
         </button>
 
+        <div style={{ marginTop: 24 }}>
+          <FictionalPanel vals={vals} />
+        </div>
+
         <div className="section-label" style={{ marginTop: 24 }}>
           Uploader une fiche de personnage
         </div>
@@ -226,9 +327,12 @@ export default function MjHome({ vals, onGoToDashboard }) {
               <div key={c.id} className="roster-item">
                 <div className="roster-row">
                   <div className="roster-row-left">
-                    <Avatar src={c.avatar} />
+                    <Avatar src={c.avatar} fictional={c.fictional} />
                     <div>
-                      <div className="roster-name">{c.name}</div>
+                      <div className="roster-name">
+                        {c.name}
+                        {c.fictional && <FictifBadge />}
+                      </div>
                       <div className="roster-cls">
                         {c.cls || 'Carrière non précisée'} · {c.skills.length} compétences importées · {c.pv.current}/{c.pv.max} PV
                       </div>

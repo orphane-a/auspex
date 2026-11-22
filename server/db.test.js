@@ -177,3 +177,27 @@ describe('resetTable', () => {
     expect(typeof before).toBe('string')
   })
 })
+
+describe('personnages fictifs (ticket 94)', () => {
+  it("l'indicateur fictif vaut faux par défaut et vrai si demandé", () => {
+    db.resetTable()
+    const real = db.addCharacter({ name: 'Alice', skills: [] })
+    const fake = db.addCharacter({ name: 'Vex', skills: [], fictional: true })
+    expect(real.fictional).toBe(false)
+    expect(fake.fictional).toBe(true)
+  })
+
+  it('removeFictionalCharacters ne retire que les fictifs, ni les PNJ ni le code', () => {
+    db.resetTable()
+    const real = db.addCharacter({ name: 'Alice', skills: [] })
+    const fake = db.addCharacter({ name: 'Vex', skills: [], fictional: true })
+    db.addNpc({ name: 'Culiste' })
+    const npcCount = db.listNpcs().length
+    const code = db.getTableState().code
+
+    expect(db.removeFictionalCharacters()).toEqual([fake.id])
+    expect(db.listCharacters().map((c) => c.id)).toEqual([real.id])
+    expect(db.listNpcs()).toHaveLength(npcCount)
+    expect(db.getTableState().code).toBe(code)
+  })
+})
