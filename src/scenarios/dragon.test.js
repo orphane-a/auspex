@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { dragonScenario } from './dragon.js'
 import { getScenario, stepOutcome } from './index.js'
 import { avatarSvg } from './avatar.js'
+import { npcDodgeScore } from '../gameLogic.js'
 
 describe('scénario du dragon (ticket 97)', () => {
   it('est enregistré sous la valeur attendue par SCENARIO', () => {
@@ -10,10 +11,11 @@ describe('scénario du dragon (ticket 97)', () => {
     expect(getScenario('')).toBeNull()
   })
 
-  it('contient 5 étapes : 4 tests de compétence puis une attaque', () => {
+  it('contient 5 étapes : 4 tests de compétence puis un combat', () => {
     expect(dragonScenario.steps).toHaveLength(5)
     expect(dragonScenario.steps.slice(0, 4).every((s) => s.test && s.success && s.failure)).toBe(true)
-    expect(dragonScenario.steps[4].attack).toBeTruthy()
+    expect(dragonScenario.steps[4].combat.turns.length).toBeGreaterThan(0)
+    expect(dragonScenario.steps[4].combat.rounds).toBeGreaterThan(0)
   })
 
   it('vise à chaque étape une compétence présente chez les 3 personnages', () => {
@@ -45,18 +47,41 @@ describe('scénario du dragon (ticket 97)', () => {
     }
   })
 
-  it("ne joue qu'Aldric, qui porte l'arme de l'attaque finale", () => {
+  it("ne joue qu'Aldric ; chaque tour du combat oppose Aldric et le dragon avec une arme qu'ils portent", () => {
     expect(dragonScenario.characters.filter((c) => c.played).map((c) => c.name)).toEqual(['Aldric'])
-    const { attacker, weapon } = dragonScenario.steps[4].attack
-    const aldric = dragonScenario.characters.find((c) => c.name === attacker)
-    expect(aldric.weapons.map((w) => w.name)).toContain(weapon)
+    const aldric = dragonScenario.characters.find((c) => c.name === 'Aldric')
+    for (const turn of dragonScenario.steps[4].combat.turns) {
+      const attacker = turn.attacker.type === 'npc' ? dragonScenario.npc : dragonScenario.characters.find((c) => c.name === turn.attacker.name)
+      const weapon = attacker.weapons.find((w) => w.name === turn.weapon)
+      expect(weapon).toBeTruthy()
+      expect(weapon.mode[turn.fireMode] ?? weapon.mode.melee).toBe(true)
+      const names = [turn.attacker.name ?? dragonScenario.npc.name, turn.defender.name ?? dragonScenario.npc.name]
+      expect(names.sort()).toEqual([aldric.name, dragonScenario.npc.name].sort())
+    }
   })
 
-  it('a le dragon comme seul PNJ, avec une arme et un bonus d’esquive', () => {
+  it('a le dragon comme seul PNJ, avec une arme', () => {
     expect(Array.isArray(dragonScenario.npc)).toBe(false)
     expect(dragonScenario.npc.name).toBe('Le dragon rouge')
     expect(dragonScenario.npc.weapons.length).toBeGreaterThan(0)
-    expect(dragonScenario.npc.dodgeBonus).toBe(10)
+  })
+
+  // Retour du 22/11 : trop d'échecs pendant le combat. Ces seuils gardent un combat
+  // court et lisible si quelqu'un retouche les chiffres.
+  it('garde un combat court où les coups portent', () => {
+    const { npc, characters, steps } = dragonScenario
+    const aldric = characters.find((c) => c.name === 'Aldric')
+    const sword = aldric.weapons.find((w) => w.name === 'Épée longue')
+    const claws = npc.weapons.find((w) => w.name === 'Griffes')
+    expect(aldric.characteristics.Dex).toBeGreaterThanOrEqual(65)
+    expect(npc.characteristics.Dex).toBeGreaterThanOrEqual(60)
+    expect(npcDodgeScore({ ...npc, dodgeBonus: npc.dodgeBonus })).toBeLessThanOrEqual(15)
+    // Le dragon tombe en deux coups d'épée, quelle que soit la localisation.
+    const worstArmor = Math.max(...Object.values(npc.armor))
+    expect(2 * (sword.damage - worstArmor)).toBeGreaterThanOrEqual(npc.pvBase)
+    // Aldric survit à tous les tours du dragon, même touché à chaque fois.
+    const aldricArmor = Math.min(...Object.values(aldric.armor))
+    expect(steps[4].combat.rounds * (claws.damage - aldricArmor)).toBeLessThan(aldric.pvBase)
   })
 
   it('génère des avatars SVG en data URI, de couleurs distinctes', () => {

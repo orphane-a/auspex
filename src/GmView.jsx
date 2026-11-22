@@ -3,24 +3,8 @@ import Avatar from './Avatar.jsx'
 import PvBar, { PvStatusBadge } from './PvBar.jsx'
 import LaunchModal from './LaunchModal.jsx'
 import AttackModal from './AttackModal.jsx'
-import GuidedPanel from './GuidedPanel.jsx'
 
-// Puces de compétences du scénario guidé (ticket 97) : la meilleure valeur de la
-// table pour chaque compétence est mise en avant, pour montrer qui brille où.
-function DemoSkills({ character, characters }) {
-  const best = (name) => Math.max(...characters.map((c) => c.skills.find((s) => s.name === name)?.score ?? 0))
-  return (
-    <ul className="demo-skills" aria-label={`Compétences de ${character.name}`}>
-      {character.skills.map((s) => (
-        <li key={s.name} className={`demo-skill${s.score === best(s.name) ? ' best' : ''}`}>
-          {s.name} <b>{s.score}</b>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-export default function GmView({ vals, scenario, onManageCharacters }) {
+export default function GmView({ vals, onManageCharacters }) {
   const [copyState, setCopyState] = useState(null) // null | 'ok' | 'error'
 
   // L'API presse-papiers exige un contexte sécurisé : sur une IP du réseau local en
@@ -34,12 +18,7 @@ export default function GmView({ vals, scenario, onManageCharacters }) {
     }
   }
 
-  // En démo, chaque ligne est rattachée à son personnage du scénario (par le nom) pour
-  // afficher son rôle et ses compétences ; hors démo, rien ne change.
-  const demoMember = (name) => scenario?.characters.find((c) => c.name === name) || null
-  const demoNpc = (name) => (scenario && scenario.npc.name === name ? scenario.npc : null)
-
-  const content = (
+  return (
     <>
       <div className="panel">
         {vals.mjDashboard && (
@@ -69,31 +48,23 @@ export default function GmView({ vals, scenario, onManageCharacters }) {
               </p>
             </div>
             <ul className="roster-list">
-              {vals.roster.map((p) => {
-                const member = demoMember(p.name)
-                const companion = member && !member.played
-                const character = member && vals.characters.find((c) => c.id === p.id)
-                return (
-                  <li key={p.id} className={`roster-row roster-row-wrap${p.connected || companion ? '' : ' offline'}`}>
-                    <div className="roster-row-left">
-                      <Avatar src={p.avatar} />
-                      <div>
-                        <h3 className="roster-name">{p.name}</h3>
-                        <div className="roster-cls">
-                          {member ? `${p.cls}, ${member.role}` : p.cls}
-                        </div>
-                      </div>
+              {vals.roster.map((p) => (
+                <li key={p.id} className={`roster-row roster-row-wrap${p.connected ? '' : ' offline'}`}>
+                  <div className="roster-row-left">
+                    <Avatar src={p.avatar} />
+                    <div>
+                      <h3 className="roster-name">{p.name}</h3>
+                      <div className="roster-cls">{p.cls}</div>
                     </div>
-                    <span className={`roster-status${p.connected || companion ? '' : ' offline'}`}>
-                      <span className="status-dot" aria-hidden="true" />
-                      {companion ? 'Compagnon' : p.statusText}
-                    </span>
-                    <PvBar label={`Points de vie de ${p.name}`} current={p.pvCurrent} max={p.pvMax} ratio={p.pvRatio} statusKey={p.pvStatusKey} />
-                    <PvStatusBadge statusKey={p.pvStatusKey} label={p.pvStatusLabel} />
-                    {character && <DemoSkills character={character} characters={vals.characters} />}
-                  </li>
-                )
-              })}
+                  </div>
+                  <span className={`roster-status${p.connected ? '' : ' offline'}`}>
+                    <span className="status-dot" aria-hidden="true" />
+                    {p.statusText}
+                  </span>
+                  <PvBar label={`Points de vie de ${p.name}`} current={p.pvCurrent} max={p.pvMax} ratio={p.pvRatio} statusKey={p.pvStatusKey} />
+                  <PvStatusBadge statusKey={p.pvStatusKey} label={p.pvStatusLabel} />
+                </li>
+              ))}
             </ul>
 
             {vals.npcRoster.length > 0 && (
@@ -108,7 +79,6 @@ export default function GmView({ vals, scenario, onManageCharacters }) {
                   {vals.npcRoster.map((n) => (
                     <li key={n.id} className="roster-row roster-row-wrap">
                       <div className="npc-head">
-                        {demoNpc(n.name) && <Avatar src={demoNpc(n.name).avatar} size="sm" />}
                         <h3 className="roster-name" style={{ fontSize: 18 }}>
                           {n.name}
                         </h3>
@@ -208,13 +178,5 @@ export default function GmView({ vals, scenario, onManageCharacters }) {
       </div>
       <div className="helper-text">Ordonnez un test → il apparaît sur le vox du joueur. Les jets remontent ici en direct.</div>
     </>
-  )
-
-  if (!scenario) return content
-  return (
-    <div className="demo-layout">
-      <GuidedPanel vals={vals} scenario={scenario} />
-      <div className="demo-main">{content}</div>
-    </div>
   )
 }

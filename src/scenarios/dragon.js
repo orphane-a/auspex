@@ -37,7 +37,7 @@ export const dragonScenario = {
       avatar: avatarDataUri({ color: '#2f5fb8', initial: 'A' }),
       pvBase: 40,
       armor: armor(4, { tete: 3 }),
-      characteristics: { For: 45, Agi: 35, Int: 25, Per: 35, Vol: 40, Cha: 35, Dex: 45 },
+      characteristics: { For: 45, Agi: 35, Int: 25, Per: 35, Vol: 40, Cha: 35, Dex: 70 },
       skills: skills({ Perception: 35, Discrétion: 25, Athlétisme: 55, Fouille: 30, 'Connaissance des arcanes': 20, Esquive: 40 }),
       weapons: [{ name: 'Épée longue', modeRaw: null, mode: MELEE, damage: 12 }],
     },
@@ -71,14 +71,18 @@ export const dragonScenario = {
       weapons: [{ name: 'Bâton ferré', modeRaw: null, mode: MELEE, damage: 7 }],
     },
   ],
+  // Combat réglé pour une démo courte (retour du 22/11 : trop d'échecs). Aldric touche
+  // 7 fois sur 10 (Dex 70), le dragon esquive peu (Agi 20 ÷ 2, sans bonus) et tombe en
+  // deux coups d'épée (20 PV, armure 2). Il frappe juste lui aussi (Dex 65), sans
+  // pouvoir abattre Aldric en trois tours (griffes 10 moins armure 4).
   npc: {
     name: 'Le dragon rouge',
     color: '#9c2f22',
     avatar: avatarDataUri({ color: '#9c2f22', pictogram: 'dragon' }),
-    pvBase: 60,
-    armor: armor(3),
-    dodgeBonus: 10,
-    characteristics: { For: 60, Agi: 30, Int: 40, Per: 45, Vol: 50, Cha: 40, Dex: 40 },
+    pvBase: 20,
+    armor: armor(2),
+    dodgeBonus: 0,
+    characteristics: { For: 60, Agi: 20, Int: 40, Per: 45, Vol: 50, Cha: 40, Dex: 65 },
     weapons: [
       { name: 'Griffes', modeRaw: null, mode: MELEE, damage: 10 },
       { name: 'Souffle de feu', modeRaw: 'C/-/-', mode: SINGLE_SHOT, damage: 14 },
@@ -116,7 +120,27 @@ export const dragonScenario = {
     {
       title: 'La salle du trône',
       read: "Au sommet de la tour, un trône brisé. Sur un lit de pièces d'or, le dragon rouge ouvre un œil. La chaleur monte. Aldric lève son épée.",
-      attack: { attacker: 'Aldric', weapon: 'Épée longue', fireMode: 'melee' },
+      // Un tour : Aldric frappe, puis le dragon riposte. Après `rounds` tours sans
+      // victoire, le dragon s'envole (fin « escape ») : la démo ne s'éternise jamais.
+      combat: {
+        rounds: 3,
+        turns: [
+          {
+            attacker: { type: 'character', name: 'Aldric' },
+            defender: { type: 'npc' },
+            weapon: 'Épée longue',
+            fireMode: 'melee',
+            read: 'Aldric charge et abat son épée sur le dragon.',
+          },
+          {
+            attacker: { type: 'npc' },
+            defender: { type: 'character', name: 'Aldric' },
+            weapon: 'Griffes',
+            fireMode: 'melee',
+            read: 'Le dragon rugit et lance ses griffes vers Aldric.',
+          },
+        ],
+      },
     },
   ],
   endings: {
@@ -127,6 +151,10 @@ export const dragonScenario = {
     escape: {
       title: "Le dragon s'envole, l'équipe survit",
       text: 'Blessé, le dragon brise un vitrail et disparaît dans la nuit. Il reviendra peut être.',
+    },
+    retreat: {
+      title: "L'équipe bat en retraite",
+      text: "Aldric tombe à genoux. Ysolde et Brannoc le soutiennent et dévalent l'escalier. Ils reviendront, mieux préparés.",
     },
   },
 }

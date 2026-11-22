@@ -36,7 +36,7 @@ describe('seed en mode démo (SCENARIO=dragon)', () => {
 
     const npcs = db.listNpcs()
     expect(npcs).toHaveLength(1)
-    expect(npcs[0]).toMatchObject({ name: 'Le dragon rouge', dodgeBonus: 10, pv: { current: 60, max: 60 } })
+    expect(npcs[0]).toMatchObject({ name: 'Le dragon rouge', dodgeBonus: 0, pv: { current: 20, max: 20 } })
   })
 
   it('ne duplique rien au redémarrage', async () => {
@@ -62,7 +62,7 @@ describe('seed en mode démo (SCENARIO=dragon)', () => {
     expect(characters[0].pv.current).toBe(40)
     const npcs = db.listNpcs()
     expect(npcs).toHaveLength(1)
-    expect(npcs[0]).toMatchObject({ name: 'Le dragon rouge', dodgeBonus: 10, pv: { current: 60 } })
+    expect(npcs[0]).toMatchObject({ name: 'Le dragon rouge', dodgeBonus: 0, pv: { current: 20 } })
     const state = db.getTableState()
     expect(state).toMatchObject({ request: null, rolls: {}, attack: null })
     expect(state.code).not.toBe(codeBefore)

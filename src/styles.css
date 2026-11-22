@@ -1621,8 +1621,8 @@ input {
   }
 }
 
-/* Scénario guidé (ticket 97) : badge « Démo », panneau guidé à gauche sur
-   ordinateur, en tête sur téléphone. Mêmes jetons que le reste de l'interface. */
+/* Scénario guidé (ticket 97) : badge « Démo », popin du guide posée par dessus
+   Auspex et repères « Cliquez ici ». Mêmes jetons que le reste de l'interface. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1654,55 +1654,6 @@ input {
   border-radius: 999px;
   padding: 5px 12px;
 }
-.app-shell-demo .stage-header,
-.app-shell-demo .route-banner,
-.app-shell-demo .view-tabs {
-  max-width: 1160px;
-}
-.demo-layout {
-  max-width: 1160px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-.demo-main .panel,
-.demo-main .helper-text {
-  max-width: none;
-}
-@media (max-width: 1000px) {
-  .demo-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.guide {
-  background: var(--surface);
-  border: 2px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-.guide-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-.guide-heading {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.guide-count {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text);
-}
 .guide-steps {
   display: flex;
   gap: 6px;
@@ -1724,12 +1675,6 @@ input {
 .guide-steps li.now {
   background: var(--accent);
   border-color: var(--accent);
-}
-.guide-step-num {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--accent);
-  margin: 0;
 }
 .guide-step-title {
   font-size: 24px;
@@ -1759,21 +1704,6 @@ input {
   color: var(--text-2);
   margin-bottom: 4px;
 }
-.guide-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.guide-chip {
-  display: inline-flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 10px;
-}
 .guide-alert {
   border-radius: var(--radius-sm);
   padding: 12px 14px;
@@ -1790,115 +1720,6 @@ input {
 .guide-alert.warn {
   background: #2a2410;
   border: 1px solid #8a7426;
-}
-.guide-live-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.guide-live {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--accent);
-}
-.guide-rolls {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.guide-roll {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-}
-.guide-roll.ok {
-  border-color: var(--border-strong);
-}
-.guide-roll.ko {
-  border-color: var(--danger-border);
-}
-.guide-roll-who {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.guide-roll-name {
-  font-weight: 600;
-}
-.guide-roll-sub {
-  font-size: 13px;
-  color: var(--text-2);
-  font-family: var(--font-mono);
-}
-.guide-roll-res {
-  margin-left: auto;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-}
-.guide-roll-res span {
-  font-size: 13px;
-  color: var(--text-2);
-}
-.guide-roll.ok .guide-roll-res b {
-  color: var(--accent);
-}
-.guide-roll.ko .guide-roll-res b {
-  color: var(--danger);
-}
-.guide-roll.wait .guide-roll-res b {
-  color: var(--text-2);
-  font-weight: 500;
-}
-.guide-rule {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-2);
-}
-.guide-attack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-}
-.guide-nav,
-.guide-btn-row {
-  display: flex;
-  gap: 10px;
-}
-.guide-nav > *,
-.guide-btn-row > * {
-  flex: 1;
-}
-.guide-short {
-  display: none;
-}
-@media (max-width: 420px) {
-  .guide-long {
-    display: none;
-  }
-  .guide-short {
-    display: inline;
-  }
-}
-.guide-hint {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-2);
-  border-top: 1px solid var(--border-soft);
-  padding-top: 12px;
 }
 .guide-link {
   align-self: flex-start;
@@ -1965,32 +1786,247 @@ input {
     animation: none;
   }
 }
-.demo-skills {
-  flex: 1 1 100%;
+.guide-btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.guide-btn-row > * {
+  flex: 1;
+}
+
+/* Popin du guide : en bas à droite sur ordinateur, en bas de l'écran sur téléphone.
+   Elle passe en haut quand elle cacherait le bouton à cliquer. */
+.demo-pop {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+.demo-pop.top {
+  bottom: auto;
+  top: 20px;
+}
+.demo-pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.demo-pop-title {
+  font-weight: 600;
+  font-size: 17px;
+}
+.demo-meta {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.demo-pop-toggle {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.demo-pop-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.demo-pop.collapsed .demo-say.compact {
+  margin: 0;
+  padding: 10px 16px 14px;
+}
+.demo-story-line {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.demo-say {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.demo-say-tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+}
+.demo-rolls {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
 }
-.demo-skill {
-  font-size: 13px;
-  background: var(--bg);
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  padding: 2px 8px;
+.demo-rolls li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+.demo-rolls li.ok b {
+  color: var(--accent);
+}
+.demo-rolls li.ko {
+  border-color: var(--danger-border);
+}
+.demo-rolls li.wait b {
   color: var(--text-2);
+  font-weight: 400;
 }
-.demo-skill b {
+.demo-pop-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.demo-solo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.demo-solo input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+/* Repère « Cliquez ici » : un cadre qui pulse autour du vrai bouton d'Auspex. Il
+   ne capte aucun clic, le bouton reste cliquable dessous. */
+.demo-coach {
+  position: fixed;
+  z-index: 35;
+  pointer-events: none;
+  border: 3px solid var(--warn);
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.45);
+  animation: demoPulse 1.4s ease-in-out infinite;
+}
+.demo-coach-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+.demo-coach-label.below {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+@keyframes demoPulse {
+  0%,
+  100% {
+    outline: 0 solid transparent;
+  }
+  50% {
+    outline: 6px solid rgba(255, 200, 80, 0.35);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-coach {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .demo-pop {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 55vh;
+  }
+  .demo-pop.top {
+    top: 8px;
+  }
+}
+
+/* Accueil de la démo : choix du côté de la table. */
+.demo-home {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px;
   color: var(--text);
-  font-family: var(--font-mono);
+}
+.demo-home-title {
+  font-size: 32px;
+  margin: 12px 0 8px;
+}
+.demo-home-lead {
+  font-size: 18px;
+  color: var(--text-2);
+  margin: 0 0 24px;
+}
+.demo-home-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.demo-home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 16px;
+}
+.demo-home-card:hover,
+.demo-home-card:focus-visible {
+  border-color: var(--accent);
+}
+.demo-home-card-title {
+  font-size: 20px;
   font-weight: 600;
-}
-.demo-skill.best {
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-.npc-head .avatar + .roster-name {
-  flex: 1;
+  color: var(--accent);
 }

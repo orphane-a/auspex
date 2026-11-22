@@ -6,6 +6,8 @@ import MjHome from './screens/MjHome.jsx'
 import JoinTable from './screens/JoinTable.jsx'
 import SplitScreen from './SplitScreen.jsx'
 import { useScenario } from './useScenario'
+import DemoGuide from './demo/DemoGuide.jsx'
+import DemoHome from './demo/DemoHome.jsx'
 
 const ROUTES = { '/mj': 'mj', '/joueur': 'joueur' }
 // Dans une iframe de l'écran partagé, le bandeau « ouvrir l'autre vue » est inutile.
@@ -13,8 +15,17 @@ const isEmbedded = window.self !== window.top
 
 export default function App() {
   // La racine affiche les deux vues côte à côte ; /mj et /joueur restent des vues seules.
-  if (window.location.pathname === '/') return <SplitScreen />
+  if (window.location.pathname === '/') return <Root />
   return <TableApp />
+}
+
+// En démo, la racine laisse choisir son côté de la table (ticket 97, retour du
+// 22/11) : on peut jouer seul côté MJ ou côté joueur, ou à deux côte à côte.
+function Root() {
+  const { loading, scenario } = useScenario()
+  if (loading) return null
+  const bothViews = new URLSearchParams(window.location.search).get('vues') === 'deux'
+  return scenario && !bothViews ? <DemoHome scenario={scenario} /> : <SplitScreen />
 }
 
 function TableApp() {
@@ -24,14 +35,13 @@ function TableApp() {
   const vals = useTableState()
   const { scenario } = useScenario()
   const activeView = routeView ?? view
-  const demoMj = !!scenario && activeView === 'mj'
 
-  // En démo, une table vide reste sur la vue MJ : le panneau guidé propose alors
+  // En démo, une table vide reste sur la vue MJ : la popin du guide propose alors
   // de recommencer la démo plutôt que d'importer des fiches.
   const showMjHome = mjSubView === 'home' || (mjSubView === null && vals.characters.length === 0 && !scenario)
 
   return (
-    <div className={`app-shell${demoMj && !showMjHome ? ' app-shell-demo' : ''}`}>
+    <div className="app-shell">
       <header className="stage-header">
         <div className="brand">
           <svg className="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="3" style={{ color: 'var(--accent)' }}>
@@ -81,13 +91,15 @@ function TableApp() {
         showMjHome ? (
           <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} />
         ) : (
-          <GmView vals={vals} scenario={scenario} onManageCharacters={() => setMjSubView('home')} />
+          <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />
         )
       ) : vals.myCharacter ? (
         <PlayerView vals={vals} />
       ) : (
         <JoinTable vals={vals} />
       )}
+
+      {scenario && !vals.loading && <DemoGuide key={activeView} vals={vals} scenario={scenario} mode={activeView} embedded={isEmbedded} />}
     </div>
   )
 }
