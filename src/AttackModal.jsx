@@ -1,3 +1,5 @@
+import { FictifBadge } from './Avatar.jsx'
+
 function EntityPickRow({ label, options, emptyHint, showStats }) {
   return (
     <>
@@ -13,6 +15,7 @@ function EntityPickRow({ label, options, emptyHint, showStats }) {
               <span className="entity-pick-box">{o.isActive ? '▓' : ' '}</span>
               <span className="entity-pick-name">
                 {o.name}
+                {o.fictional && <FictifBadge />}
                 {!o.connected ? ' (non connecté)' : ''}
               </span>
               {showStats && (
@@ -101,6 +104,12 @@ export default function AttackModal({ vals }) {
             </>
           )}
 
+          {vals.attackModalAttackerFictional && vals.attackModalAttackerEntity && (
+            <div className="whoall-hint">{vals.attackModalAttackerEntity.name} est un personnage fictif : son jet d'attaque sera lancé automatiquement.</div>
+          )}
+          {vals.attackModalDefenderFictional && vals.attackModalDefenderEntity && (
+            <div className="whoall-hint">{vals.attackModalDefenderEntity.name} est un personnage fictif : son esquive sera lancée automatiquement.</div>
+          )}
           {vals.attackerIsDefender && <div className="form-error">Un combattant ne peut pas s'attaquer lui-même.</div>}
           {vals.attackerCharacterDisconnected && (
             <div className="form-error">L'attaquant n'est pas connecté — il ne pourra pas lancer son propre jet.</div>

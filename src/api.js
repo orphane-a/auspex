@@ -12,12 +12,16 @@ async function request(path, options) {
 
 export const api = {
   getTable: () => request('/table'),
+  // Mode démo (ticket 97) : { scenario: 'dragon' } ou { scenario: null }.
+  getScenario: () => request('/scenario'),
   resetTable: () => request('/table/reset', { method: 'POST' }),
   endTest: () => request('/table/end-test', { method: 'POST' }),
   createRequest: (body) => request('/table/request', { method: 'POST', body: JSON.stringify(body) }),
   rollDice: (characterId) => request('/table/roll', { method: 'POST', body: JSON.stringify({ characterId }) }),
   joinTable: (code, characterId) => request('/table/join', { method: 'POST', body: JSON.stringify({ code, characterId }) }),
   uploadCharacter: (formData) => request('/characters', { method: 'POST', body: formData }),
+  removeFictional: () => request('/characters/fictional', { method: 'DELETE' }),
+  addFictional: () => request('/characters/fictional', { method: 'POST' }),
   deleteCharacter: (id) => request(`/characters/${id}`, { method: 'DELETE' }),
   updateSkillScore: (characterId, skillName, score) =>
     request(`/characters/${characterId}/skills/${encodeURIComponent(skillName)}`, {

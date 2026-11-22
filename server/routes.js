@@ -2,15 +2,33 @@ import { Router } from 'express'
 import multer from 'multer'
 import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
 import { resolveRoll, degreesFromRoll } from './game.js'
-import { seedIfEmpty } from './seed.js'
+import { activeScenario, addFictionalCharacters, fictionalEnabled, resetScenarioTable, seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
 import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
 import * as db from './db.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
 
-export function createRoutes({ presence, buildSnapshot }) {
+// Délai avant le jet automatique d'un personnage fictif (ticket 94, souhaitable 4) :
+// le MJ voit passer « Jet automatique… » avant le résultat. Les tests passent 0.
+const DEFAULT_AUTO_ROLL_DELAY_MS = 1500
+
+export function createRoutes({ presence, buildSnapshot, autoRollDelayMs }) {
   const router = Router()
+  const envDelay = Number(process.env.AUSPEX_FICTIFS_DELAI_MS)
+  const autoDelay = autoRollDelayMs ?? (Number.isFinite(envDelay) && envDelay >= 0 ? envDelay : DEFAULT_AUTO_ROLL_DELAY_MS)
+
+  // Une action automatique part après le délai, hors de la requête HTTP : une erreur
+  // y est journalisée plutôt que de faire tomber le serveur.
+  function later(fn) {
+    setTimeout(() => {
+      try {
+        fn()
+      } catch (err) {
+        console.warn('Jet automatique d\'un personnage fictif impossible —', err.message)
+      }
+    }, autoDelay)
+  }
 
   const snapshot = () => buildSnapshot(presence.isConnected)
   function respondWithSnapshot(res, status, extra) {
@@ -20,9 +38,16 @@ export function createRoutes({ presence, buildSnapshot }) {
 
   router.get('/table', (req, res) => res.json(snapshot()))
 
+  // Mode démo (ticket 97) : exposé par une route à part plutôt que dans le snapshot,
+  // pour ne pas toucher au protocole socket. Les textes du scénario restent côté
+  // client (src/scenarios/), seul l'identifiant transite.
+  router.get('/scenario', (req, res) => res.json({ scenario: activeScenario()?.id ?? null }))
+
   router.post('/table/reset', async (req, res) => {
-    db.resetTable()
-    await seedIfEmpty() // dev convenience: re-seeds Djoko right away instead of leaving MjHome blank
+    if (!(await resetScenarioTable())) {
+      db.resetTable()
+      await seedIfEmpty() // dev convenience: re-seeds Djoko right away instead of leaving MjHome blank
+    }
     respondWithSnapshot(res, 200)
   })
 
@@ -31,14 +56,39 @@ export function createRoutes({ presence, buildSnapshot }) {
     respondWithSnapshot(res, 200)
   })
 
+  // Même calcul pour un vrai joueur et pour un fictif (ticket 94, exigence 6).
+  function rollForCharacter(character, request) {
+    const linkedCharacteristic = characteristicForSkillName(request.skill)
+    const score = effectiveSkillScore(character, request.skill, linkedCharacteristic)
+    return resolveRoll(score, request.malus)
+  }
+
+  // Jets des fictifs concernés par le test `requestId`. Ignoré si le test a changé
+  // entre-temps, si le fictif a été retiré ou s'il a déjà lancé.
+  function autoRollFictional(requestId) {
+    const state = db.getTableState()
+    if (!state.request || state.request.id !== requestId) return
+    let changed = false
+    for (const id of state.request.concernedCharacterIds) {
+      if (state.rolls[id]) continue
+      const character = db.getCharacter(Number(id))
+      if (!character || !character.fictional) continue
+      db.patchRoll(id, { ...rollForCharacter(character, state.request), auto: true })
+      changed = true
+    }
+    if (changed) presence.broadcast()
+  }
+
   router.post('/table/request', (req, res) => {
     const { skill, malus, concernedCharacterIds } = req.body
     if (!skill || !Array.isArray(concernedCharacterIds) || concernedCharacterIds.length === 0) {
       return res.status(400).json({ error: 'Compétence et joueurs concernés requis.' })
     }
-    db.setRequest({ id: Date.now(), skill, malus: malus || null, concernedCharacterIds })
+    const request = { id: Date.now(), skill, malus: malus || null, concernedCharacterIds }
+    db.setRequest(request)
     db.setRolls({})
     respondWithSnapshot(res, 200)
+    later(() => autoRollFictional(request.id))
   })
 
   router.post('/table/roll', (req, res) => {
@@ -51,9 +101,7 @@ export function createRoutes({ presence, buildSnapshot }) {
     if (state.rolls[characterId]) return res.status(409).json({ error: 'Ce personnage a déjà lancé le dé.' })
     const character = db.getCharacter(Number(characterId))
     if (!character) return res.status(404).json({ error: 'Personnage introuvable.' })
-    const linkedCharacteristic = characteristicForSkillName(state.request.skill)
-    const score = effectiveSkillScore(character, state.request.skill, linkedCharacteristic)
-    const roll = resolveRoll(score, state.request.malus)
+    const roll = rollForCharacter(character, state.request)
     db.patchRoll(characterId, roll)
     respondWithSnapshot(res, 200, { roll })
   })
@@ -66,7 +114,38 @@ export function createRoutes({ presence, buildSnapshot }) {
     }
     const character = db.getCharacter(Number(characterId))
     if (!character) return res.status(404).json({ error: 'Personnage introuvable.' })
+    if (character.fictional) {
+      return res.status(403).json({ error: 'Ce personnage fictif ne peut pas être choisi par un joueur.' })
+    }
     res.json({ character, code: state.code })
+  })
+
+  // Retrait des personnages fictifs (ticket 94, exigence 9) : vrais personnages, PNJ
+  // et code de table intacts. Un test en cours continue pour les autres ; une attaque
+  // qui impliquait un fictif est annulée, faute de combattant à afficher.
+  router.delete('/characters/fictional', (req, res) => {
+    const removedIds = db.removeFictionalCharacters()
+    const state = db.getTableState()
+    if (state.request && removedIds.length > 0) {
+      const remaining = state.request.concernedCharacterIds.filter((id) => !removedIds.includes(Number(id)))
+      if (remaining.length !== state.request.concernedCharacterIds.length) {
+        db.setRequest({ ...state.request, concernedCharacterIds: remaining, fictionalRemoved: true })
+        const rolls = Object.fromEntries(Object.entries(state.rolls).filter(([id]) => !removedIds.includes(Number(id))))
+        db.setRolls(rolls)
+      }
+    }
+    const involves = (side) => side.type === 'character' && removedIds.includes(side.id)
+    if (state.attack && (involves(state.attack.attacker) || involves(state.attack.defender))) db.setAttack(null)
+    respondWithSnapshot(res, 200, { removed: removedIds.length })
+  })
+
+  router.post('/characters/fictional', async (req, res) => {
+    if (!fictionalEnabled()) {
+      return res.status(403).json({ error: 'Les personnages fictifs sont désactivés sur ce serveur.' })
+    }
+    const added = await addFictionalCharacters()
+    if (added === 0) return res.status(409).json({ error: 'Les personnages fictifs sont déjà à la table.' })
+    respondWithSnapshot(res, 201, { added })
   })
 
   router.post('/characters', upload.single('file'), async (req, res) => {
@@ -306,7 +385,8 @@ export function createRoutes({ presence, buildSnapshot }) {
     }
     // Un personnage attaquant doit désormais cliquer lui-même son jet (nouveau),
     // donc rester connecté — même contrainte que le personnage visé (inchangé V2).
-    if (attackerType === 'character' && !presence.isConnected(attacker.id)) {
+    // Un fictif lance son jet automatiquement : jamais concerné (ticket 94).
+    if (attackerType === 'character' && !attacker.fictional && !presence.isConnected(attacker.id)) {
       return res.status(400).json({ error: "L'attaquant doit être connecté." })
     }
 
@@ -318,7 +398,7 @@ export function createRoutes({ presence, buildSnapshot }) {
     }
     // Un PNJ n'a jamais de client (§3) donc jamais cette contrainte ; un Joueur visé
     // doit rester connecté pour pouvoir cliquer son propre jet d'esquive (inchangé V2).
-    if (defenderType === 'character' && !presence.isConnected(defender.id)) {
+    if (defenderType === 'character' && !defender.fictional && !presence.isConnected(defender.id)) {
       return res.status(400).json({ error: 'La cible doit être connectée.' })
     }
     const existing = db.getTableState().attack
@@ -340,14 +420,45 @@ export function createRoutes({ presence, buildSnapshot }) {
 
     if (attackerType === 'character') {
       db.setAttack({ ...base, attackRoll: null, degrees: null, outcome: 'pending-attack-roll' })
-      return respondWithSnapshot(res, 200)
+      respondWithSnapshot(res, 200)
+      return later(() => advanceFictionalAttack(base.id))
     }
 
     const result = resolveRoll(attacker.characteristics.Dex || 0, null)
     const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
     db.setAttack({ ...base, attackRoll: result.roll, degrees: result.degrees, outcome })
     respondWithSnapshot(res, 200)
+    later(() => advanceFictionalAttack(base.id))
   })
+
+  // Jet d'attaque d'un personnage, cliqué par le joueur ou lancé pour un fictif.
+  function resolveCharacterAttackRoll(attack, attacker) {
+    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
+    const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
+    db.setAttack({ ...attack, attackRoll: result.roll, degrees: result.degrees, outcome })
+  }
+
+  function isFictionalSide(side) {
+    return side.type === 'character' && !!db.getCharacter(side.id)?.fictional
+  }
+
+  // Fait avancer seule une séquence où un fictif doit lancer (ticket 94, exigence 7) :
+  // son jet d'attaque, puis, s'il est visé, son esquive. Ignoré si l'attaque a changé.
+  function advanceFictionalAttack(attackId) {
+    const attack = db.getTableState().attack
+    if (!attack || attack.id !== attackId) return
+    if (attack.outcome === 'pending-attack-roll' && isFictionalSide(attack.attacker)) {
+      resolveCharacterAttackRoll(attack, db.getCharacter(attack.attacker.id))
+      presence.broadcast()
+      later(() => advanceFictionalAttack(attackId))
+      return
+    }
+    if (attack.outcome === 'pending-dodge' && isFictionalSide(attack.defender)) {
+      const result = resolveDodge(attack)
+      if (result.error) console.warn('Esquive automatique impossible —', result.error)
+      presence.broadcast()
+    }
+  }
 
   // Étape 1/3, suite (V3 §5, v2) : le personnage attaquant clique lui-même son jet
   // — vérification d'identité, comme pour l'esquive d'un joueur, pour qu'un autre
@@ -363,10 +474,9 @@ export function createRoutes({ presence, buildSnapshot }) {
     const attacker = db.getCharacter(attack.attacker.id)
     if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
 
-    const result = resolveRoll(attacker.characteristics.Dex || 0, null)
-    const outcome = result.status === 'fail' ? 'miss' : 'pending-dodge'
-    db.setAttack({ ...attack, attackRoll: result.roll, degrees: result.degrees, outcome })
+    resolveCharacterAttackRoll(attack, attacker)
     respondWithSnapshot(res, 200)
+    later(() => advanceFictionalAttack(attack.id))
   })
 
   // Étapes 2 et 3 (V3 §5) : le jet d'esquive est résolu soit par le joueur visé
@@ -376,38 +486,27 @@ export function createRoutes({ presence, buildSnapshot }) {
   // score calculé côté serveur via npcDodgeScore). Échec ⇒ dégâts depuis le profil
   // de l'arme choisie à l'étape 1 (resolveWeaponDamage), `attackRoll` ne servant
   // plus qu'à la localisation (chiffres inversés, inchangé depuis la v1).
-  router.post('/table/attack/dodge', (req, res) => {
-    const attack = db.getTableState().attack
-    if (!attack || attack.outcome !== 'pending-dodge') {
-      return res.status(409).json({ error: "Aucune esquive en attente." })
-    }
-
+  // La même résolution sert aussi à l'esquive automatique d'un fictif (ticket 94).
+  function resolveDodge(attack) {
     const attacker = getCombatant(attack.attacker.type, attack.attacker.id)
-    if (!attacker) return res.status(404).json({ error: 'Attaquant introuvable.' })
+    if (!attacker) return { status: 404, error: 'Attaquant introuvable.' }
     const weapon = attacker.weapons.find((w) => w.name === attack.weaponName)
-    if (!weapon) return res.status(404).json({ error: 'Arme introuvable.' })
+    if (!weapon) return { status: 404, error: 'Arme introuvable.' }
 
     const defender = getCombatant(attack.defender.type, attack.defender.id)
     if (!defender) {
-      return res.status(404).json({ error: attack.defender.type === 'npc' ? 'PNJ introuvable.' : 'Personnage introuvable.' })
+      return { status: 404, error: attack.defender.type === 'npc' ? 'PNJ introuvable.' : 'Personnage introuvable.' }
     }
 
-    let effectiveEsquive
-    if (attack.defender.type === 'character') {
-      if (Number(req.body.characterId) !== attack.defender.id) {
-        return res.status(403).json({ error: "Ce personnage n'est pas visé par cette attaque." })
-      }
-      effectiveEsquive = effectiveSkillScore(defender, 'Esquive', 'Agi') + defender.dodgeBonus
-    } else {
-      effectiveEsquive = npcDodgeScore(defender)
-    }
+    const effectiveEsquive =
+      attack.defender.type === 'character' ? effectiveSkillScore(defender, 'Esquive', 'Agi') + defender.dodgeBonus : npcDodgeScore(defender)
 
     const dodgeRoll = rollD100()
     const { degrees: dodgeDegrees } = degreesFromRoll(dodgeRoll, effectiveEsquive)
 
     if (dodgeRoll <= effectiveEsquive) {
       db.setAttack({ ...attack, dodgeRoll, dodgeDegrees, outcome: 'dodged' })
-      return respondWithSnapshot(res, 200)
+      return { status: 200 }
     }
 
     const result = resolveWeaponDamage(defender, { attackRoll: attack.attackRoll, degrees: attack.degrees, weapon, fireMode: attack.fireMode })
@@ -421,8 +520,20 @@ export function createRoutes({ presence, buildSnapshot }) {
       bullets: result.bullets,
       damage: { locationKey: result.locationKey, locationLabel, perBullet: result.perBullet, totalDamage: result.totalDamage },
     })
-    const extra = attack.defender.type === 'npc' ? { npc: updated } : { character: updated }
-    respondWithSnapshot(res, 200, extra)
+    return { status: 200, extra: attack.defender.type === 'npc' ? { npc: updated } : { character: updated } }
+  }
+
+  router.post('/table/attack/dodge', (req, res) => {
+    const attack = db.getTableState().attack
+    if (!attack || attack.outcome !== 'pending-dodge') {
+      return res.status(409).json({ error: "Aucune esquive en attente." })
+    }
+    if (attack.defender.type === 'character' && Number(req.body.characterId) !== attack.defender.id) {
+      return res.status(403).json({ error: "Ce personnage n'est pas visé par cette attaque." })
+    }
+    const result = resolveDodge(attack)
+    if (result.error) return res.status(result.status).json({ error: result.error })
+    respondWithSnapshot(res, 200, result.extra)
   })
 
   // Filet de sécurité MJ (V3 §5 v2) : débloque une séquence restée coincée en

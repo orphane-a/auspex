@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Avatar from './Avatar.jsx'
+import Avatar, { FictifBadge, Spinner } from './Avatar.jsx'
 import PvBar, { PvStatusBadge } from './PvBar.jsx'
 import LaunchModal from './LaunchModal.jsx'
 import AttackModal from './AttackModal.jsx'
@@ -47,13 +47,19 @@ export default function GmView({ vals, onManageCharacters }) {
                 <strong>{vals.connectedCount}</strong> présent{vals.connectedCount > 1 ? 's' : ''} sur {vals.totalCount}
               </p>
             </div>
+            {vals.roster.length === 0 && (
+              <p className="whoall-hint">Aucun personnage à la table. Importez une fiche ou ajoutez les personnages fictifs depuis l'écran Personnages.</p>
+            )}
             <ul className="roster-list">
               {vals.roster.map((p) => (
                 <li key={p.id} className={`roster-row roster-row-wrap${p.connected ? '' : ' offline'}`}>
                   <div className="roster-row-left">
-                    <Avatar src={p.avatar} />
+                    <Avatar src={p.avatar} fictional={p.fictional} />
                     <div>
-                      <h3 className="roster-name">{p.name}</h3>
+                      <h3 className="roster-name">
+                        {p.name}
+                        {p.fictional && <FictifBadge />}
+                      </h3>
                       <div className="roster-cls">{p.cls}</div>
                     </div>
                   </div>
@@ -104,11 +110,23 @@ export default function GmView({ vals, onManageCharacters }) {
                   </button>
                 </div>
                 {vals.attack.outcome === 'pending-attack-roll' ? (
-                  <div className="attack-card-status">En attente du jet d'attaque de {vals.attackAttackerEntity?.name}…</div>
+                  vals.attackAttackerFictional ? (
+                    <div className="attack-card-status auto-roll" role="status">
+                      <Spinner />
+                      Jet d'attaque automatique de {vals.attackAttackerEntity?.name}…
+                    </div>
+                  ) : (
+                    <div className="attack-card-status">En attente du jet d'attaque de {vals.attackAttackerEntity?.name}…</div>
+                  )
                 ) : vals.attack.outcome === 'pending-dodge' ? (
                   <div className="attack-card-status">
                     Touché ({vals.attackRollDegreeText})
-                    {vals.attackPendingForNpcDefender ? (
+                    {vals.attackDefenderFictional ? (
+                      <span className="auto-roll" role="status" style={{ display: 'flex', marginTop: 8 }}>
+                        <Spinner />
+                        Esquive automatique de {vals.attackDefenderEntity?.name}…
+                      </span>
+                    ) : vals.attackPendingForNpcDefender ? (
                       <button className="secondary-btn" style={{ display: 'block', marginTop: 8 }} onClick={vals.rollNpcDodge} disabled={vals.npcDodging}>
                         🎲 Lancer l'esquive du PNJ
                       </button>
@@ -150,16 +168,25 @@ export default function GmView({ vals, onManageCharacters }) {
                 EN DIRECT · {vals.receivedText}
               </div>
             </div>
+            {vals.fictionalRemovedDuringTest && (
+              <p className="msg-info" role="status">
+                Les personnages fictifs ont été retirés. Le test continue pour les autres personnages.
+              </p>
+            )}
             <div className="rolls-list">
               {vals.rollsList.map((r) => (
                 <div key={r.id} className={`roll-row${r.isSuccess ? ' is-success' : r.isFail ? ' is-fail' : ''}`}>
-                  <Avatar src={r.avatar} />
+                  <Avatar src={r.avatar} fictional={r.fictional} />
                   <div style={{ flex: 1 }}>
-                    <div className="roll-row-name">{r.name}</div>
+                    <div className="roll-row-name">
+                      {r.name}
+                      {r.fictional && <FictifBadge />}
+                    </div>
                     <div className="roll-row-cls">{r.cls}</div>
                   </div>
                   <div className="roll-row-result">
-                    <div className="roll-row-label">
+                    <div className={`roll-row-label${r.isAuto ? ' auto-roll' : ''}`} role={r.isAuto ? 'status' : undefined}>
+                      {r.isAuto && <Spinner />}
                       {r.label}
                     </div>
                     <div className="roll-row-degree">{r.degreeText}</div>

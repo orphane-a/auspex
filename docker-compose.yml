@@ -20,8 +20,33 @@ services:
       - traefik.http.routers.auspex.tls.certresolver=letsencrypt
       - traefik.http.services.auspex.loadbalancer.server.port=3001
 
+  # Instance de démo du scénario guidé (ticket 97) : même image, base séparée
+  # (volume dédié) et SCENARIO=dragon. Elle ne partage aucune donnée avec la table
+  # de Djoko, servie par le service « auspex » ci-dessus, qui reste inchangé.
+  auspex-demo:
+    build: .
+    restart: unless-stopped
+    environment:
+      - SCENARIO=dragon
+    volumes:
+      - auspex-demo-data:/data
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.auspex-demo-http.entrypoints=http
+      - traefik.http.routers.auspex-demo-http.rule=Host(`demo.auspex.orphane.fr`)
+      - traefik.http.routers.auspex-demo-http.middlewares=auspex-demo-https
+      - traefik.http.middlewares.auspex-demo-https.redirectscheme.scheme=https
+      - traefik.http.routers.auspex-demo.entrypoints=https
+      - traefik.http.routers.auspex-demo.rule=Host(`demo.auspex.orphane.fr`)
+      - traefik.http.routers.auspex-demo.tls=true
+      - traefik.http.routers.auspex-demo.tls.certresolver=letsencrypt
+      - traefik.http.services.auspex-demo.loadbalancer.server.port=3001
 volumes:
   auspex-data:
+  auspex-demo-data:
 
 networks:
   coolify:

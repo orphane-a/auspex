@@ -69,6 +69,13 @@ if (!characterColumns.includes('weapons')) {
   db.exec("ALTER TABLE characters ADD COLUMN weapons TEXT NOT NULL DEFAULT '[]'")
 }
 
+// Personnages joueurs fictifs (ticket 94) : amorcés pour tester seul une table
+// complète, toujours présents, jamais choisis par un joueur. 0 pour toute fiche
+// existante ou importée par le MJ.
+if (!characterColumns.includes('fictional')) {
+  db.exec('ALTER TABLE characters ADD COLUMN fictional INTEGER NOT NULL DEFAULT 0')
+}
+
 const tableStateColumns = db.prepare('PRAGMA table_info(table_state)').all().map((c) => c.name)
 if (!tableStateColumns.includes('attack')) {
   db.exec('ALTER TABLE table_state ADD COLUMN attack TEXT')
@@ -166,6 +173,7 @@ function rowToCharacter(row) {
     characteristics: JSON.parse(row.characteristics),
     dodgeBonus: row.dodge_bonus,
     weapons: JSON.parse(row.weapons),
+    fictional: !!row.fictional,
   }
 }
 
@@ -178,10 +186,10 @@ export function getCharacter(id) {
   return row ? rowToCharacter(row) : null
 }
 
-export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons }) {
+export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons, fictional }) {
   const result = db
     .prepare(
-      'INSERT INTO characters (name, cls, skills, avatar, pv_base, pv_current, pv_bonuses, armor, characteristics, weapons) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO characters (name, cls, skills, avatar, pv_base, pv_current, pv_bonuses, armor, characteristics, weapons, fictional) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     )
     .run(
       name,
@@ -194,12 +202,22 @@ export function addCharacter({ name, cls, skills, avatar, pvBase, pvCurrent, arm
       JSON.stringify(armor || {}),
       JSON.stringify(characteristics || {}),
       JSON.stringify(weapons || []),
+      fictional ? 1 : 0,
     )
   return getCharacter(result.lastInsertRowid)
 }
 
 export function removeCharacter(id) {
   db.prepare('DELETE FROM characters WHERE id = ?').run(id)
+}
+
+// Ne touche qu'aux fictifs : vrais personnages, PNJ et code de table restent
+// intacts. Renvoie les identifiants retirés pour nettoyer le test ou l'attaque
+// en cours qui les concernait.
+export function removeFictionalCharacters() {
+  const ids = db.prepare('SELECT id FROM characters WHERE fictional = 1').all().map((r) => r.id)
+  db.prepare('DELETE FROM characters WHERE fictional = 1').run()
+  return ids
 }
 
 export function updateSkillScore(characterId, skillName, score) {

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import Avatar from '../Avatar.jsx'
 
-export default function JoinTable({ vals }) {
-  const [code, setCode] = useState('')
+// En démo (ticket 97), `lockedCode` est le code de la table de démo : il est déjà
+// rempli et ne se modifie pas. Hors démo, le joueur tape le code donné par le MJ.
+export default function JoinTable({ vals, lockedCode }) {
+  const [typedCode, setCode] = useState('')
+  const code = lockedCode ?? typedCode
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
 
@@ -28,8 +31,10 @@ export default function JoinTable({ vals }) {
         <div className="section-label">Code de la table</div>
         <input
           className="text-input"
+          aria-label="Code de la table"
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          readOnly={lockedCode != null}
           placeholder="Ex. XR-4417"
           autoCapitalize="characters"
         />
@@ -38,11 +43,11 @@ export default function JoinTable({ vals }) {
         <div className="section-label" style={{ marginTop: 20 }}>
           Choisir son personnage
         </div>
-        {vals.characters.length === 0 ? (
+        {vals.joinableCharacters.length === 0 ? (
           <div className="whoall-hint">Aucune fiche n'a encore été importée par le MJ.</div>
         ) : (
           <div className="selectable-list">
-            {vals.characters.map((c) => (
+            {vals.joinableCharacters.map((c) => (
               <button key={c.id} className="selectable-row" disabled={joining} onClick={() => handlePick(c.id)}>
                 <Avatar src={c.avatar} />
                 <span className="selectable-label chosen">{c.name}</span>

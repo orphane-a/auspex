@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auspex, maquette du ticket 97 : scénario guidé</title>
+<style>
+:root{
+  --bg:#07120c;--surface:#0e1f16;--surface-2:#133022;--border:#2a5c40;--border-soft:#1d3f2c;--border-strong:#4f8f69;
+  --text:#eaf6ee;--text-2:#b3d1bd;--accent:#5ef29c;--accent-ink:#04140b;--warn:#f2c94c;--danger:#ff9a70;
+  --danger-bg:#2a1712;--danger-border:#a8573a;--amber:#ffb184;--focus:#ffe14d;--radius:12px;--radius-sm:8px;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#050c08;color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.doc{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.doc-head h1{margin:0 0 6px;font-size:30px}
+.doc-head p{margin:0;color:var(--text-2);max-width:780px}
+.screen{margin-top:56px}
+.screen>h2{margin:0 0 4px;font-size:22px;color:var(--accent);font-family:var(--mono);font-weight:600}
+.screen>p.note{margin:0 0 18px;color:var(--text-2);max-width:820px}
+.row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.label-dev{font-size:13px;color:var(--text-2);margin:0 0 8px;font-family:var(--mono)}
+/* cadres */
+.desk{width:1040px;max-width:100%;background:var(--bg);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.phone{width:375px;max-width:100%;background:var(--bg);border:1px solid var(--border-strong);border-radius:28px;overflow:hidden}
+.app-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand b{display:block;font-family:var(--mono);font-size:20px;letter-spacing:.14em;color:var(--accent);line-height:1.1}
+.brand small{display:block;font-size:14px;color:var(--text-2)}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px 12px}
+.pill.demo{border-style:dashed;border-color:var(--warn);color:var(--warn)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.grid{display:grid;grid-template-columns:420px 1fr;gap:24px;padding:24px}
+.stack{display:flex;flex-direction:column;gap:20px;padding:20px 16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.card h3,.card h4{margin:0}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.sec-head h3{font-size:20px}
+.sec-head p{margin:0;color:var(--text-2);font-size:15px}
+.muted{color:var(--text-2)}
+.mono{font-family:var(--mono)}
+/* boutons */
+.btn{min-height:48px;padding:0 20px;border-radius:var(--radius-sm);font:inherit;font-size:16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--accent);color:var(--accent-ink);border:2px solid var(--accent)}
+.btn-secondary{background:transparent;color:var(--text);border:2px solid var(--border);font-weight:500}
+.btn-ghost{background:transparent;color:var(--text-2);border:2px solid transparent;font-weight:500}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+/* panneau guidé */
+.guide{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:16px}
+.guide-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.guide-top h3{font-size:15px;font-weight:600;color:var(--text-2)}
+.steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.steps li{flex:1;height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+.steps li.done{background:var(--border-strong);border-color:var(--border-strong)}
+.steps li.now{background:var(--accent);border-color:var(--accent)}
+.step-num{font-family:var(--mono);font-size:14px;color:var(--accent);margin:0}
+.step-title{font-size:24px;line-height:1.2;margin:2px 0 0;font-weight:600}
+.read{background:var(--bg);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px 16px;font-size:17px;line-height:1.6}
+.read .tag{display:block;font-size:13px;color:var(--text-2);margin-bottom:4px}
+.read.ok{border-color:var(--border-strong)}
+.read.ko{border-color:var(--danger-border);background:var(--danger-bg)}
+.test-line{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:4px 10px}
+.hint{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--text-2);border-top:1px solid var(--border-soft);padding-top:12px}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.alert{display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius-sm);padding:12px 14px;font-size:15px}
+.alert.err{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--text)}
+.alert.err b{color:var(--danger)}
+.alert.info{background:var(--surface-2);border:1px solid var(--border)}
+.alert.warn{background:#2a2410;border:1px solid #8a7426}
+/* roster */
+.roster{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.who{display:flex;align-items:center;gap:12px}
+.av{width:48px;height:48px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:20px;color:#fff;border:2px solid var(--border)}
+.av.lg{width:72px;height:72px;font-size:30px}
+.av.sm{width:36px;height:36px;font-size:15px}
+.av-aldric{background:#2f5fb8}.av-ysolde{background:#2c6b44}.av-brannoc{background:#6a43a8}.av-dragon{background:#9c2f22}
+.name{font-weight:600;font-size:18px;margin:0}
+.cls{margin:0;font-size:14px;color:var(--text-2)}
+.status{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text-2);white-space:nowrap}
+.status.on{color:var(--text)}
+.pv{margin-top:12px}
+.pv-h{display:flex;justify-content:space-between;font-size:14px;color:var(--text-2)}
+.pv-h b{font-family:var(--mono);color:var(--text);font-size:16px}
+.track{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-top:4px}
+.fill{height:100%;background:var(--accent);border-radius:999px}
+.fill.warn{background:var(--warn)}.fill.bad{background:var(--danger)}
+.skills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sk{font-size:13px;background:var(--bg);border:1px solid var(--border-soft);border-radius:6px;padding:2px 8px;color:var(--text-2)}
+.sk b{color:var(--text);font-family:var(--mono);font-weight:600}
+.sk.best{border-color:var(--border-strong);color:var(--text)}
+/* résultats */
+.live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--accent)}
+.rolls{display:flex;flex-direction:column;gap:8px}
+.roll{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+.roll .res{margin-left:auto;text-align:right}
+.roll .res b{display:block;font-size:16px}
+.roll .res span{font-size:13px;color:var(--text-2);font-family:var(--mono)}
+.roll.ok{border-color:var(--border-strong)}.roll.ok .res b{color:var(--accent)}
+.roll.ko{border-color:var(--danger-border)}.roll.ko .res b{color:var(--danger)}
+.roll.wait .res b{color:var(--text-2);font-weight:500}
+.spinner{width:18px;height:18px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);display:inline-block;animation:spin 1s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+.skel{background:var(--surface-2);border-radius:6px;height:14px}
+/* joueur */
+.order{display:inline-block;font-family:var(--mono);font-size:14px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:4px 12px}
+.req-skill{font-size:30px;font-weight:600;margin:10px 0 4px}
+.dice{width:150px;height:150px;border-radius:50%;margin:16px auto;background:var(--accent);color:var(--accent-ink);border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;font-weight:700;font-size:20px;cursor:pointer}
+.dice small{font-family:var(--mono);font-size:13px;font-weight:500}
+.result{border-radius:var(--radius);padding:20px;text-align:center;border:2px solid var(--border-strong)}
+.result.ok{background:#0f2a1b}.result.ko{background:var(--danger-bg);border-color:var(--danger-border)}
+.result .big{font-size:30px;font-weight:700;color:var(--accent)}
+.result.ko .big{color:var(--danger)}
+.center{text-align:center}
+.end{text-align:center;padding:28px 20px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.end h3{font-size:28px}
+.dlg{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px;max-width:420px}
+.dlg h4{font-size:20px}
+.log{font-family:var(--mono);font-size:13px;background:#020604;border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px;color:var(--text-2);white-space:pre-wrap;margin:0}
+.log .w{color:var(--warn)}
+@media (max-width:1080px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="doc">
+<header class="doc-head">
+<h1>Scénario guidé : la démo du dragon</h1>
+<p>Maquette du ticket 97. Une instance de démo d'Auspex, séparée de la table de Djoko, avec trois héros, un dragon et un panneau qui guide le Maître de jeu en cinq étapes. Les écrans suivent le parcours de la démo, d'abord sur ordinateur puis sur téléphone.</p>
+</header>
+
+<!-- ============ ÉCRAN 1 ============ -->
+<section class="screen">
+<h2>1. Ouverture de la démo, vue Maître de jeu</h2>
+<p class="note">La table est prête dès l'ouverture : trois personnages avec avatars et compétences, le dragon comme seul PNJ, le panneau sur l'étape 1. Le badge « Démo » rappelle qu'on n'est pas sur la vraie table.</p>
+<div class="desk">
+<div class="app-head">
+<div class="brand"><svg aria-hidden="true" width="34" height="34" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><b>AUSPEX</b><small>Maître de jeu</small></div></div>
+<div class="btn-row"><span class="pill demo">Démo</span><span class="pill"><span class="dot"></span>En ligne</span></div>
+</div>
+<div class="grid">
+<!-- panneau guidé -->
+<aside class="guide" aria-labelledby="g1">
+<div class="guide-top"><h3 id="g1">Scénario guidé</h3><span class="muted" style="font-size:14px">Étape 1 sur 5</span></div>
+<ol class="steps" aria-label="Progression : étape 1 sur 5"><li class="now"></li><li></li><li></li><li></li><li></li></ol>
+<div><p class="step-num">Étape 1</p><h4 class="step-title">La porte dérobée</h4></div>
+<div class="read"><span class="tag">À lire aux joueurs</span>La nuit tombe sur le château de Pierrenoire. Les grandes portes sont closes. On raconte qu'une vieille porte de service se cache quelque part dans la muraille, sous le lierre.</div>
+<div class="test-line"><span class="chip">Test de Perception</span><span class="chip">Sans malus</span><span class="chip">Aldric, Ysolde, Brannoc</span></div>
+<button class="btn btn-primary btn-block" type="button">Lancer le test</button>
+<div class="nav"><button class="btn btn-secondary" type="button" disabled>Étape précédente</button><button class="btn btn-secondary" type="button">Étape suivante</button></div>
+<p class="hint"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5ef29c" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:2px"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Ouvrez la vue joueur dans une autre fenêtre et choisissez Aldric. Code de la table : <b class="mono" style="color:var(--text)">DR-4127</b></span></p>
+<button class="btn btn-ghost" type="button" style="align-self:flex-start;padding:0">Recommencer la démo</button>
+</aside>
+<!-- table -->
+<div style="display:flex;flex-direction:column;gap:22px">
+<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+<div><h3 style="font-size:15px;font-weight:500;color:var(--text-2)">Code d'accès de la table</h3><p class="mono" style="margin:2px 0 0;font-size:40px;font-weight:600;letter-spacing:.08em;line-height:1.1">DR-4127</p></div>
+<div class="btn-row"><button class="btn btn-primary" type="button">Copier le code</button><button class="btn btn-secondary" type="button">Personnages</button></div>
+</div>
+<div>
+<div class="sec-head"><h3>Joueurs</h3><p><b style="color:var(--text)">0</b> présent sur 3</p></div>
+<ul class="roster">
+<li class="card"><div class="who"><div class="av av-aldric" aria-hidden="true">A</div><div><p class="name">Aldric</p><p class="cls">Chevalier, héros de la démo</p></div><span class="status"><span class="dot" style="background:transparent;border:2px solid var(--text-2)"></span>Pas encore rejoint</span></div>
+<div class="pv"><div class="pv-h"><span>Points de vie</span><b>40 <span class="muted">/ 40</span></b></div><div class="track" role="progressbar" aria-label="Points de vie d'Aldric" aria-valuemin="0" aria-valuemax="40" aria-valuenow="40"><div class="fill" style="width:100%"></div></div></div>
+<div class="skills"><span class="sk">Perception <b>35</b></span><span class="sk">Discrétion <b>25</b></span><span class="sk best">Athlétisme <b>55</b></span><span class="sk">Fouille <b>30</b></span><span class="sk">Arcanes <b>20</b></span><span class="sk">Esquive <b>40</b></span></div></li>
+<li class="card"><div class="who"><div class="av av-ysolde" aria-hidden="true">Y</div><div><p class="name">Ysolde</p><p class="cls">Rôdeuse, jouée par le MJ</p></div><span class="status on"><span class="dot"></span>Compagnon</span></div>
+<div class="pv"><div class="pv-h"><span>Points de vie</span><b>32 <span class="muted">/ 32</span></b></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+<div class="skills"><span class="sk best">Perception <b>55</b></span><span class="sk best">Discrétion <b>60</b></span><span class="sk">Athlétisme <b>40</b></span><span class="sk">Fouille <b>35</b></span><span class="sk">Arcanes <b>25</b></span><span class="sk">Esquive <b>50</b></span></div></li>
+<li class="card"><div class="who"><div class="av av-brannoc" aria-hidden="true">B</div><div><p class="name">Brannoc</p><p class="cls">Mage, joué par le MJ</p></div><span class="status on"><span class="dot"></span>Compagnon</span></div>
+<div class="pv"><div class="pv-h"><span>Points de vie</span><b>26 <span class="muted">/ 26</span></b></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+<div class="skills"><span class="sk">Perception <b>40</b></span><span class="sk">Discrétion <b>30</b></span><span class="sk">Athlétisme <b>20</b></span><span class="sk best">Fouille <b>50</b></span><span class="sk best">Arcanes <b>65</b></span><span class="sk">Esquive <b>30</b></span></div></li>
+</ul>
+</div>
+<div>
+<div class="sec-head"><h3>PNJ en jeu</h3><p><b style="color:var(--text)">1</b> actif</p></div>
+<div class="card"><div class="who"><div class="av av-dragon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c3-1 5-4 6-8l3 3 3-6 2 5 4-2-3 8"/><path d="M3 18h18"/></svg></div><div><p class="name">Le dragon rouge</p><p class="cls">Griffes et souffle, bonus d'esquive +10</p></div></div>
+<div class="pv"><div class="pv-h"><span>Points de vie</span><b>60 <span class="muted">/ 60</span></b></div><div class="track"><div class="fill" style="width:100%"></div></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 2 ============ -->
+<section class="screen">
+<h2>2. Test lancé, en attente des jets</h2>
+<p class="note">Après « Lancer le test », la demande part par la route existante. Le bouton passe en chargement, puis les trois personnages apparaissent en attente. « Lancer pour les compagnons » devient disponible.</p>
+<div class="row">
+<div style="width:420px;max-width:100%">
+<p class="label-dev">État chargement : envoi de la demande</p>
+<div class="guide">
+<div><p class="step-num">Étape 1</p><h4 class="step-title">La porte dérobée</h4></div>
+<button class="btn btn-primary btn-block" type="button" disabled><span class="spinner" aria-hidden="true"></span>Envoi de la demande…</button>
+</div>
+<p class="label-dev" style="margin-top:24px">État erreur : serveur injoignable</p>
+<div class="guide">
+<div class="alert err" role="alert"><b>!</b><span>Le test n'a pas pu être lancé. Vérifiez que le serveur de démo tourne, puis réessayez.</span></div>
+<button class="btn btn-primary btn-block" type="button">Réessayer</button>
+</div>
+</div>
+<div style="width:560px;max-width:100%">
+<p class="label-dev">État succès : demande envoyée</p>
+<div class="guide">
+<div class="guide-top"><h3>Scénario guidé</h3><span class="muted" style="font-size:14px">Étape 1 sur 5</span></div>
+<div class="sec-head" style="margin:0"><h3>Perception</h3><span class="live"><span class="dot"></span>En direct, 0 jet sur 3</span></div>
+<div class="rolls">
+<div class="roll wait"><div class="av sm av-aldric" aria-hidden="true">A</div><div><b>Aldric</b><div class="cls">Joué par le joueur</div></div><div class="res"><b>En attente du joueur</b></div></div>
+<div class="roll wait"><div class="av sm av-ysolde" aria-hidden="true">Y</div><div><b>Ysolde</b><div class="cls">Compagnon</div></div><div class="res"><b>En attente</b></div></div>
+<div class="roll wait"><div class="av sm av-brannoc" aria-hidden="true">B</div><div><b>Brannoc</b><div class="cls">Compagnon</div></div><div class="res"><b>En attente</b></div></div>
+</div>
+<button class="btn btn-primary btn-block" type="button">Lancer pour les compagnons</button>
+<div class="nav"><button class="btn btn-secondary" type="button" disabled>Étape précédente</button><button class="btn btn-secondary" type="button">Étape suivante</button></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 3 ============ -->
+<section class="screen">
+<h2>3. Jets des compagnons, étape 2</h2>
+<p class="note">Le MJ lance pour Ysolde et Brannoc. Leurs résultats arrivent comme ceux d'un joueur. Aldric reste en attente. Un second clic renvoie le message du serveur, affiché sans bloquer.</p>
+<div class="row">
+<div style="width:560px;max-width:100%">
+<div class="guide">
+<div class="guide-top"><h3>Scénario guidé</h3><span class="muted" style="font-size:14px">Étape 2 sur 5</span></div>
+<ol class="steps" aria-label="Progression : étape 2 sur 5"><li class="done"></li><li class="now"></li><li></li><li></li><li></li></ol>
+<div><p class="step-num">Étape 2</p><h4 class="step-title">La cour aux sentinelles</h4></div>
+<div class="read"><span class="tag">À lire aux joueurs</span>Derrière la muraille, une cour pavée. Deux gardes de pierre semblent dormir debout, mais leurs yeux brillent dans le noir. Il faut traverser sans bruit.</div>
+<div class="test-line"><span class="chip">Test de Discrétion</span><span class="chip">Malus +10</span></div>
+<div class="sec-head" style="margin:0"><h3>Discrétion</h3><span class="live"><span class="dot"></span>En direct, 2 jets sur 3</span></div>
+<div class="rolls">
+<div class="roll wait"><div class="av sm av-aldric" aria-hidden="true">A</div><div><b>Aldric</b><div class="cls">Joué par le joueur</div></div><div class="res"><b>En attente du joueur</b></div></div>
+<div class="roll ok"><div class="av sm av-ysolde" aria-hidden="true">Y</div><div><b>Ysolde</b><div class="cls">Jet 31, cible 50</div></div><div class="res"><b>Réussite</b><span>1 degré</span></div></div>
+<div class="roll ko"><div class="av sm av-brannoc" aria-hidden="true">B</div><div><b>Brannoc</b><div class="cls">Jet 74, cible 20</div></div><div class="res"><b>Échec</b><span>5 degrés</span></div></div>
+</div>
+<div class="alert err" role="alert"><b>!</b><span>Ce personnage a déjà lancé le dé.</span></div>
+<button class="btn btn-primary btn-block" type="button" disabled>Lancer pour les compagnons</button>
+<div class="nav"><button class="btn btn-secondary" type="button">Étape précédente</button><button class="btn btn-secondary" type="button">Étape suivante</button></div>
+</div>
+</div>
+<div style="width:420px;max-width:100%">
+<p class="label-dev">Suite affichée après les jets</p>
+<div class="guide">
+<div class="read ok"><span class="tag">Suite si l'équipe réussit</span>Ysolde guide les autres d'ombre en ombre. Les gardes de pierre ne bougent pas. L'équipe atteint la porte de la bibliothèque.</div>
+<div class="read ko"><span class="tag">Suite si toute l'équipe échoue</span>Un caillou roule sous une botte. Les gardes tournent la tête, lentement. L'équipe court se cacher dans la bibliothèque, essoufflée mais entière.</div>
+<p class="muted" style="margin:0;font-size:14px">Règle : l'étape est réussie dès qu'un personnage réussit. Un échec ne bloque jamais la démo.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 4 ============ -->
+<section class="screen">
+<h2>4. Vue joueur avec Aldric</h2>
+<p class="note">Aucune logique nouvelle côté joueur : il rejoint avec le code, choisit Aldric, reçoit la demande, lance et voit son résultat avec celui de ses compagnons.</p>
+<div class="row">
+<div>
+<p class="label-dev">Choix du personnage</p>
+<div class="phone"><div class="stack">
+<h3 style="margin:0;font-size:22px">Choisissez votre personnage</h3>
+<p class="muted" style="margin:0">Table <b class="mono" style="color:var(--text)">DR-4127</b></p>
+<button class="card who" type="button" style="text-align:left;font:inherit;color:inherit;border:2px solid var(--accent);cursor:pointer"><div class="av av-aldric" aria-hidden="true">A</div><div><p class="name">Aldric</p><p class="cls">Chevalier</p></div></button>
+<button class="card who" type="button" style="text-align:left;font:inherit;color:inherit;cursor:pointer"><div class="av av-ysolde" aria-hidden="true">Y</div><div><p class="name">Ysolde</p><p class="cls">Rôdeuse</p></div></button>
+<button class="card who" type="button" style="text-align:left;font:inherit;color:inherit;cursor:pointer"><div class="av av-brannoc" aria-hidden="true">B</div><div><p class="name">Brannoc</p><p class="cls">Mage</p></div></button>
+</div></div>
+</div>
+<div>
+<p class="label-dev">Demande reçue en direct</p>
+<div class="phone"><div class="stack center">
+<div class="who" style="text-align:left"><div class="av sm av-aldric" aria-hidden="true">A</div><div><p class="name" style="font-size:16px">Aldric</p><p class="cls">Chevalier, table DR-4127</p></div></div>
+<div><span class="order">Ordre du MJ</span><p class="req-skill">Perception</p><p class="muted" style="margin:0">Sans malus</p></div>
+<button class="dice" type="button">Lancer<small>1d100</small></button>
+<p class="muted" style="margin:0;font-size:14px">Le seuil est calculé pour vous.</p>
+</div></div>
+</div>
+<div>
+<p class="label-dev">Résultat</p>
+<div class="phone"><div class="stack">
+<div class="result ok"><p class="muted" style="margin:0">Perception</p><p class="big" style="margin:4px 0">Réussite</p><p class="mono muted" style="margin:0">Jet 22, cible 35, 1 degré</p></div>
+<p class="muted" style="margin:0;font-size:14px">Le reste de l'équipe</p>
+<div class="rolls">
+<div class="roll ok"><div class="av sm av-ysolde" aria-hidden="true">Y</div><b>Ysolde</b><div class="res"><b>Réussite</b><span>2 degrés</span></div></div>
+<div class="roll ko"><div class="av sm av-brannoc" aria-hidden="true">B</div><b>Brannoc</b><div class="res"><b>Échec</b><span>1 degré</span></div></div>
+</div>
+<button class="btn btn-secondary btn-block" type="button">Mes compétences</button>
+</div></div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 5 ============ -->
+<section class="screen">
+<h2>5. Étape 5, le combat contre le dragon</h2>
+<p class="note">Le panneau prépare l'attaque d'Aldric contre le dragon avec la séquence existante. Les PV du dragon baissent dans les deux vues.</p>
+<div class="row">
+<div style="width:520px;max-width:100%">
+<div class="guide">
+<div class="guide-top"><h3>Scénario guidé</h3><span class="muted" style="font-size:14px">Étape 5 sur 5</span></div>
+<ol class="steps" aria-label="Progression : étape 5 sur 5"><li class="done"></li><li class="done"></li><li class="done"></li><li class="done"></li><li class="now"></li></ol>
+<div><p class="step-num">Étape 5</p><h4 class="step-title">La salle du trône</h4></div>
+<div class="read"><span class="tag">À lire aux joueurs</span>Au sommet de la tour, un trône brisé. Sur un lit de pièces d'or, le dragon rouge ouvre un œil. La chaleur monte. Aldric lève son épée.</div>
+<div class="test-line"><span class="chip">Attaque d'Aldric</span><span class="chip">Épée longue</span><span class="chip">Esquive possible du dragon</span></div>
+<button class="btn btn-primary btn-block" type="button">Lancer l'attaque d'Aldric</button>
+<div class="card" style="background:var(--bg)"><p style="margin:0 0 6px;font-weight:600">Aldric attaque le dragon rouge</p><p class="muted" style="margin:0 0 10px">Touché, 2 degrés. Le dragon n'a pas esquivé. 9 dégâts.</p>
+<div class="pv-h"><span>Points de vie du dragon</span><b>51 <span class="muted">/ 60</span></b></div><div class="track"><div class="fill" style="width:85%"></div></div></div>
+<div class="nav"><button class="btn btn-secondary" type="button">Étape précédente</button><button class="btn btn-secondary" type="button">Terminer la démo</button></div>
+</div>
+</div>
+<div>
+<p class="label-dev">Côté joueur, au même moment</p>
+<div class="phone"><div class="stack center">
+<div class="card" style="text-align:left;padding:12px 14px"><b>Aldric attaque le dragon rouge</b></div>
+<div><span class="order">Vous attaquez</span><p class="req-skill">Test de Dextérité</p></div>
+<div class="test-line" style="justify-content:center"><span class="chip">Arme : épée longue</span><span class="chip">Seuil 45</span></div>
+<button class="dice" type="button">Lancer<small>1d100</small></button>
+</div></div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 6 ============ -->
+<section class="screen">
+<h2>6. Fin de la démo et recommencer</h2>
+<p class="note">L'écran de fin dépend des PV du dragon. « Recommencer la démo » demande confirmation, remet la table à zéro et revient à l'étape 1.</p>
+<div class="row">
+<div style="width:420px;max-width:100%">
+<div class="guide end">
+<svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#5ef29c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 .8-4.5 4.3 1 6.2L12 16.5 6.5 19.3l1-6.2L3 8.8 9 8z"/></svg>
+<h3 style="margin:0">Le dragon est vaincu</h3>
+<p class="muted" style="margin:0">Le château retrouve le silence. Aldric, Ysolde et Brannoc repartent avec une écaille rouge en souvenir.</p>
+<button class="btn btn-primary btn-block" type="button">Recommencer la démo</button>
+</div>
+<p class="label-dev" style="margin-top:20px">Variante si le dragon a encore des PV</p>
+<div class="guide end">
+<h3 style="margin:0">Le dragon s'envole, l'équipe survit</h3>
+<p class="muted" style="margin:0">Blessé, le dragon brise un vitrail et disparaît dans la nuit. Il reviendra peut être.</p>
+</div>
+</div>
+<div style="width:420px;max-width:100%">
+<p class="label-dev">Confirmation</p>
+<div class="dlg" role="dialog" aria-labelledby="dlg1">
+<h4 id="dlg1" style="margin:0">Recommencer la démo ?</h4>
+<p class="muted" style="margin:0">Les PV et les jets sont remis à zéro. Aldric, Ysolde, Brannoc et le dragon sont recréés. La table de Djoko n'est pas touchée.</p>
+<div class="btn-row"><button class="btn btn-primary" type="button">Recommencer</button><button class="btn btn-secondary" type="button">Annuler</button></div>
+</div>
+<p class="label-dev" style="margin-top:20px">Chargement, puis succès</p>
+<div class="guide"><button class="btn btn-primary btn-block" type="button" disabled><span class="spinner" aria-hidden="true"></span>Remise à zéro…</button>
+<div class="alert info" role="status"><span class="dot" style="margin-top:7px"></span><span>La démo est prête. Retour à l'étape 1.</span></div></div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 7 ============ -->
+<section class="screen">
+<h2>7. États vides et cas d'erreur</h2>
+<p class="note">Sans mode démo, le panneau n'existe pas. Pendant le premier démarrage, la table se remplit. Un scénario inconnu est signalé dans les journaux du serveur.</p>
+<div class="row">
+<div style="width:420px;max-width:100%">
+<p class="label-dev">Vide : démarrage, table en cours de préparation</p>
+<div class="guide">
+<div class="guide-top"><h3>Scénario guidé</h3></div>
+<p style="margin:0">Préparation de la table de démo…</p>
+<div class="skel" style="width:70%"></div><div class="skel" style="width:90%"></div><div class="skel" style="width:50%"></div>
+<button class="btn btn-primary btn-block" type="button" disabled>Lancer le test</button>
+</div>
+<p class="label-dev" style="margin-top:20px">Erreur : aucun personnage trouvé</p>
+<div class="guide">
+<div class="alert warn" role="alert"><span>La table de démo est vide. Recommencez la démo pour recréer les personnages et le dragon.</span></div>
+<button class="btn btn-primary btn-block" type="button">Recommencer la démo</button>
+</div>
+</div>
+<div style="width:520px;max-width:100%">
+<p class="label-dev">Instance lancée avec SCENARIO=inconnu</p>
+<pre class="log">[auspex] démarrage sur le port 3001
+<span class="w">[auspex] Scénario inconnu : inconnu</span>
+[auspex] seed habituel : Djoko et PNJ_test</pre>
+<p class="label-dev" style="margin-top:20px">Sans mode démo : vue MJ actuelle, sans panneau ni badge</p>
+<div class="card"><p style="margin:0">Code d'accès, joueurs, PNJ, « Ordonner un test » et « Lancer une attaque » restent comme aujourd'hui.</p></div>
+</div>
+</div>
+</section>
+
+<!-- ============ ÉCRAN 8 ============ -->
+<section class="screen">
+<h2>8. Vue Maître de jeu sur téléphone</h2>
+<p class="note">À 375 pixels, le panneau guidé passe en tête, au dessus du code et de la liste. Les boutons prennent toute la largeur.</p>
+<div class="row">
+<div class="phone">
+<div class="app-head" style="padding:14px 16px"><div class="brand"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 56 56" fill="none" stroke="#5ef29c" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><b>AUSPEX</b><small>Maître de jeu</small></div></div><span class="pill demo">Démo</span></div>
+<div class="stack">
+<aside class="guide" style="padding:16px">
+<div class="guide-top"><h3>Scénario guidé</h3><span class="muted" style="font-size:14px">Étape 3 sur 5</span></div>
+<ol class="steps" aria-label="Progression : étape 3 sur 5"><li class="done"></li><li class="done"></li><li class="now"></li><li></li><li></li></ol>
+<div><p class="step-num">Étape 3</p><h4 class="step-title" style="font-size:22px">La bibliothèque</h4></div>
+<div class="read" style="font-size:16px"><span class="tag">À lire aux joueurs</span>Des rayons couverts de poussière montent jusqu'au plafond. Quelque part ici dort un plan du château, roulé dans un étui de cuir.</div>
+<div class="test-line"><span class="chip">Test de Fouille</span><span class="chip">Sans malus</span></div>
+<button class="btn btn-primary btn-block" type="button">Lancer le test</button>
+<div class="nav"><button class="btn btn-secondary" type="button" style="flex:1;padding:0 10px">Précédente</button><button class="btn btn-secondary" type="button" style="flex:1;padding:0 10px">Suivante</button></div>
+</aside>
+<div class="card" style="text-align:center"><p class="muted" style="margin:0;font-size:14px">Code d'accès de la table</p><p class="mono" style="margin:0;font-size:34px;font-weight:600;letter-spacing:.08em">DR-4127</p><button class="btn btn-primary btn-block" type="button" style="margin-top:10px">Copier le code</button></div>
+<div class="sec-head" style="margin:0"><h3>Joueurs</h3><p><b style="color:var(--text)">1</b> présent sur 3</p></div>
+<div class="card who"><div class="av sm av-aldric" aria-hidden="true">A</div><div><p class="name" style="font-size:16px">Aldric</p><p class="cls">40 / 40 PV</p></div><span class="status on"><span class="dot"></span>Connecté</span></div>
+<div class="card who"><div class="av sm av-ysolde" aria-hidden="true">Y</div><div><p class="name" style="font-size:16px">Ysolde</p><p class="cls">32 / 32 PV</p></div><span class="status on">Compagnon</span></div>
+<div class="card who"><div class="av sm av-brannoc" aria-hidden="true">B</div><div><p class="name" style="font-size:16px">Brannoc</p><p class="cls">26 / 26 PV</p></div><span class="status on">Compagnon</span></div>
+<div class="sec-head" style="margin:0"><h3>PNJ en jeu</h3><p>1 actif</p></div>
+<div class="card who"><div class="av sm av-dragon" aria-hidden="true">D</div><div><p class="name" style="font-size:16px">Le dragon rouge</p><p class="cls">60 / 60 PV</p></div></div>
+</div>
+</div>
+<div class="phone">
+<div class="stack">
+<p class="label-dev" style="margin:0">Étape 4 sur téléphone, jets terminés</p>
+<div class="guide" style="padding:16px">
+<div><p class="step-num">Étape 4</p><h4 class="step-title" style="font-size:22px">L'escalier effondré</h4></div>
+<div class="sec-head" style="margin:0"><h3>Athlétisme</h3><span class="live"><span class="dot"></span>3 jets sur 3</span></div>
+<div class="rolls">
+<div class="roll ok"><div class="av sm av-aldric" aria-hidden="true">A</div><b>Aldric</b><div class="res"><b>Réussite</b><span>3 degrés</span></div></div>
+<div class="roll ko"><div class="av sm av-ysolde" aria-hidden="true">Y</div><b>Ysolde</b><div class="res"><b>Échec</b><span>1 degré</span></div></div>
+<div class="roll ko"><div class="av sm av-brannoc" aria-hidden="true">B</div><b>Brannoc</b><div class="res"><b>Échec</b><span>4 degrés</span></div></div>
+</div>
+<div class="read ok" style="font-size:16px"><span class="tag">Suite : l'équipe réussit</span>Aldric saute le premier et tend la main aux autres. La porte de la tour est juste au dessus.</div>
+<button class="btn btn-secondary btn-block" type="button">Étape suivante</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+</div>
+</body>
+</html>
