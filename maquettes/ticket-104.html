@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auspex, maquette du ticket 104 : thème médiéval</title>
+<style>
+/* Avant : jetons actuels de :root[data-ambiance='medieval'] (src/styles.css). */
+.old{--bg:#efe2c4;--surface:#f8efd9;--surface-2:#e6d3a8;--border:#a9895a;--border-soft:#d2bb8d;--border-strong:#7f6238;
+  --text:#2a1a0c;--text-2:#5b4126;--text-strong:#1a0f05;--accent:#7a4d08;--accent-hover:#5e3b06;--accent-ink:#fff8e6;
+  --warn:#7a5400;--warn-ink:#fff8e6;--danger:#9a1b1b;--focus:#1d4fa8;
+  --or:transparent;--ombre:none;--pv-sain:#7a4d08;--pv-blesse:#7a5400;--pv-critique:#9a1b1b}
+/* Après : proposition du ticket 104. Seuls --bg, --surface, --surface-2, --border, --border-soft, --border-strong changent
+   dans la palette testée ; --or, --ombre-*, --pv-* sont de nouveaux jetons décoratifs (jamais utilisés pour du texte). */
+.med{--bg:#e6d2a3;--surface:#fdf8ea;--surface-2:#eedcb0;--border:#9c7c4c;--border-soft:#d6bf8e;--border-strong:#6e522c;
+  --text:#2a1a0c;--text-2:#5b4126;--text-strong:#1a0f05;--accent:#7a4d08;--accent-hover:#5e3b06;--accent-ink:#fff8e6;
+  --warn:#7a5400;--warn-ink:#fff8e6;--danger:#9a1b1b;--focus:#1d4fa8;
+  --or:#b8862b;--encre:#4a2e04;
+  --ombre:0 1px 0 rgba(110,82,44,.35),0 6px 16px rgba(42,26,12,.18);
+  --ombre-modale:0 0 0 4px #fdf8ea,0 0 0 6px #b8862b,0 18px 48px rgba(42,26,12,.45);
+  --pv-sain:#2f6a32;--pv-blesse:#8a5a00;--pv-critique:#8e1414;
+  --demo-dim:rgba(30,18,6,.55);--demo-dim-reduit:rgba(30,18,6,.32);--demo-dim-modale:rgba(30,18,6,.25)}
+:root{--sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --title:Georgia,'Times New Roman',serif;--radius:12px;--radius-sm:8px}
+*{box-sizing:border-box}
+body{margin:0;background:#ddc79a;color:#2a1a0c;font-family:var(--sans);font-size:16px;line-height:1.5}
+:focus-visible{outline:3px solid #1d4fa8;outline-offset:3px}
+.doc{max-width:1360px;margin:0 auto;padding:40px 20px 80px}
+.doc-head h1{margin:0 0 6px;font-size:30px;font-family:var(--title);color:#1a0f05}
+.doc-head p{margin:0 0 6px;color:#5b4126;max-width:860px}
+.screen{margin-top:56px}
+.screen>h2{margin:0 0 4px;font-size:22px;color:#7a4d08;font-family:var(--mono);font-weight:600}
+.screen>p.note{margin:0 0 18px;color:#5b4126;max-width:880px}
+.row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.label-dev{font-size:13px;color:#5b4126;margin:0 0 8px;font-family:var(--mono)}
+.scroll-x{max-width:100%;overflow-x:auto;padding-bottom:6px}
+.legend{margin:12px 0 0;padding:0;list-style:none;display:flex;gap:8px 20px;flex-wrap:wrap;font-size:14px;color:#5b4126}
+.ok{color:#245c2a;font-weight:600}
+.mono{font-family:var(--mono);font-size:.92em}
+
+/* Cadres d'écran */
+.viewport{position:relative;isolation:isolate;background:var(--bg);color:var(--text);border:2px solid #6e522c;border-radius:10px;overflow:hidden;flex:none;font-family:var(--sans)}
+.vp-1280x720{width:1280px;height:720px}
+.vp-1024x600{width:1024px;height:600px}
+.vp-620{width:620px;height:430px}
+.vp-375{width:375px;height:740px;border-radius:28px}
+.vp-375.court{height:auto;min-height:240px}
+
+/* Texture parchemin : grain plus marqué et vignettage chaud (après) */
+.med.viewport{background-color:var(--bg);background-image:radial-gradient(ellipse at 50% 35%,transparent 45%,rgba(110,70,10,.22) 100%),repeating-radial-gradient(circle at 30% 20%,rgba(122,77,8,.035) 0 2px,transparent 2px 5px)}
+.old.viewport{background-image:radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(122,77,8,.16) 100%)}
+
+/* ===== Décor (après) : sous le contenu, aucun clic capté ===== */
+.decor{position:absolute;pointer-events:none;z-index:-1}
+.frise{left:0;right:0;bottom:0;height:96px;opacity:.26}
+.frise svg{display:block;width:100%;height:100%}
+.dragon{right:18px;bottom:54px;width:190px;height:134px;opacity:.32}
+.blason{right:0;bottom:0;width:150px;height:150px;opacity:.3}
+
+/* En-tête */
+.hdr{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 28px;border-bottom:3px double var(--border-strong)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-title{margin:0;font-family:var(--title);font-size:22px;line-height:1.1;letter-spacing:.08em;color:var(--accent);font-weight:600}
+.med .brand-title{letter-spacing:.14em;text-shadow:0 1px 0 rgba(184,134,43,.45)}
+.brand-sub{margin:2px 0 0;font-size:14px;color:var(--text-2)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;font:inherit;font-size:14px;font-weight:500;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:999px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.divider-old{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);padding:0 12px;background:var(--bg);color:var(--border-strong);font-size:13px;letter-spacing:.3em;line-height:1}
+.divider-new{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);padding:0 10px;background:var(--bg);line-height:0}
+.divider-new svg{width:150px;height:20px;display:block}
+/* Badge « Démo » : avant pastille pointillée, après fanion */
+.chip-old{font-size:14px;font-weight:600;color:var(--warn);background:var(--surface);border:1px dashed var(--warn);border-radius:999px;padding:5px 12px}
+.fanion{position:relative;display:inline-flex;align-items:center;min-height:32px;padding:0 22px 0 12px;font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--warn-ink);background:var(--warn);clip-path:polygon(0 0,100% 0,calc(100% - 10px) 50%,100% 100%,0 100%);box-shadow:inset 0 2px 0 rgba(255,248,230,.25)}
+.fanion::before{content:'';width:8px;height:8px;margin-right:8px;transform:rotate(45deg);border:1.5px solid var(--warn-ink)}
+
+/* Panneaux, cartes */
+.main{display:grid;grid-template-columns:300px 1fr 1fr;gap:20px;padding:26px 28px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--ombre);overflow:hidden}
+.med .panel{border:2px solid var(--border-strong)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;font-size:15px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border-soft)}
+.old .panel-head{box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--border-soft);color:var(--text-2);font-size:14px}
+/* Bandeau héraldique : aplat parchemin foncé, liseré or, écu devant le titre */
+.med .panel-head{background:var(--surface-2);border-bottom:2px solid var(--or);box-shadow:inset 0 -4px 0 var(--surface-2),inset 0 -5px 0 rgba(110,82,44,.35);font-family:var(--title);letter-spacing:.04em}
+.med .panel-head .ecu{width:14px;height:16px;flex:none;color:var(--accent)}
+.panel-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.code{margin:0;font-family:var(--mono);font-size:24px;font-weight:600}
+.sec-title{margin:0 0 10px;font-size:18px;font-weight:600}
+.med .sec-title{font-family:var(--title);letter-spacing:.03em;padding-bottom:4px;border-bottom:1px solid var(--or);display:flex;align-items:center;gap:8px}
+.med .sec-title::first-letter{color:var(--accent);font-size:1.3em}
+.orn{color:var(--accent);font-size:.8em}
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.med .card{border:2px solid var(--border-strong);box-shadow:var(--ombre)}
+.card.ennemi{border-color:#b5523f}
+.med .card.ennemi{border-color:var(--danger);box-shadow:0 1px 0 rgba(154,27,27,.35),0 6px 16px rgba(42,26,12,.18)}
+.card-top{display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;flex:none;border-radius:50%;border:4px double var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:14px;background:var(--surface)}
+.med .avatar{background:var(--surface-2);box-shadow:0 0 0 2px var(--or)}
+.ennemi .avatar{border-color:var(--danger)}
+.nom{font-weight:600}
+.etat{font-size:13px;color:var(--text-2)}
+.pv{margin-left:auto;font-family:var(--mono);font-weight:600}
+.pv span{color:var(--text-2);font-weight:500}
+/* Barres de PV */
+.track{height:10px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--border-strong);border-radius:999px;overflow:hidden}
+.fill{height:100%;border-radius:999px;background:var(--pv-sain)}
+.fill.blesse{background:var(--pv-blesse)}.fill.critique{background:var(--pv-critique)}
+.med .track{height:12px;border-radius:3px;background:#f3e6c4;box-shadow:inset 0 0 0 2px var(--border-strong),inset 0 2px 3px rgba(42,26,12,.25)}
+.med .fill{border-radius:0;background-image:linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,0) 60%);background-color:var(--pv-sain);border-right:2px solid var(--encre)}
+.med .fill.blesse{background-color:var(--pv-blesse)}.med .fill.critique{background-color:var(--pv-critique)}
+
+/* Boutons */
+.btn{width:100%;min-height:48px;padding:0 20px;font:inherit;font-weight:600;border-radius:var(--radius-sm);cursor:pointer}
+.primary{background:var(--accent);color:var(--accent-ink);border:2px solid var(--accent)}
+.med .primary{border:2px solid var(--encre);box-shadow:inset 0 0 0 2px var(--or),0 3px 0 var(--encre),0 6px 12px rgba(42,26,12,.25);letter-spacing:.02em}
+.med .primary.survol{background:var(--accent-hover)}
+.med .primary.focus{outline:3px solid var(--focus);outline-offset:4px}
+.secondary{background:transparent;color:var(--text);border:2px solid var(--border-strong);font-weight:500}
+.med .secondary{background:var(--surface)}
+
+/* Repère et voile de démo */
+.cible{position:relative}
+.voile{position:absolute;inset:-6px;z-index:32;pointer-events:none;border-radius:10px;box-shadow:0 0 0 3000px var(--demo-dim)}
+.coach{position:absolute;inset:-6px;z-index:35;pointer-events:none;border:3px solid var(--warn);border-radius:10px;box-shadow:0 0 0 4px rgba(42,26,12,.3)}
+.med .coach{border:4px solid var(--warn);box-shadow:0 0 0 3px #fff8e6,0 0 0 8px rgba(184,134,43,.85),0 0 28px 10px rgba(255,214,120,.55)}
+.coach-label{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);white-space:nowrap;padding:4px 12px;border-radius:999px;background:var(--warn);color:var(--warn-ink);font-size:14px;font-weight:700}
+.med .coach-label{box-shadow:0 0 0 2px #fff8e6,0 0 0 4px var(--or)}
+
+/* Popin du guide : avant cadre simple, après feuillet de manuscrit */
+.pop{position:absolute;right:20px;bottom:20px;z-index:40;width:400px;background:var(--surface);color:var(--text);border:2px solid var(--border-strong);border-radius:var(--radius);box-shadow:0 12px 40px rgba(42,26,12,.3)}
+.med .pop{border:3px double var(--border-strong);border-radius:6px;box-shadow:var(--ombre-modale)}
+.pop .coin{position:absolute;width:22px;height:22px;color:var(--or);pointer-events:none}
+.pop .c1{top:4px;left:4px}.pop .c2{top:4px;right:4px;transform:scaleX(-1)}.pop .c3{bottom:4px;left:4px;transform:scaleY(-1)}.pop .c4{bottom:4px;right:4px;transform:scale(-1,-1)}
+.pop-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 18px 10px;border-bottom:1px solid var(--border)}
+.med .pop-head{background:var(--surface-2);border-bottom:2px solid var(--or);padding:14px 30px 10px}
+.pop-title{margin:0;font-family:var(--title);font-weight:600;font-size:17px}
+.pop-meta{margin:0;font-size:14px;color:var(--text-2)}
+.pop-toggle{flex:none;min-height:44px;padding:0 14px;background:var(--surface-2);color:var(--text);border:1px solid var(--border-strong);border-radius:8px;font:inherit;font-size:14px}
+.med .pop-toggle{background:var(--surface)}
+.pop-body{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.med .pop-body{padding:14px 30px 18px}
+.steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.steps li{flex:1;height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+.steps li.fait{background:var(--accent);border-color:var(--accent)}
+.pop h3{margin:0;font-family:var(--title);font-size:22px;line-height:1.2}
+.med .pop h3::first-letter{font-size:1.35em;color:var(--accent)}
+.say{margin:0;padding:12px 14px;background:var(--bg);border:1px solid var(--accent);border-radius:8px}
+.med .say{background:#fbf1d6;border:1px solid var(--border-strong);border-left-width:1px}
+.say-tag{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:700}
+.lien{background:none;border:none;padding:8px 0;min-height:44px;color:var(--accent);text-decoration:underline;font:inherit;font-size:15px}
+
+/* Accueil de la démo */
+.dh{height:calc(100% - 66px);padding:20px 32px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:36px;align-items:center;max-width:1120px;margin:0 auto}
+.cover{margin:0;height:100%;max-height:440px;border:2px solid var(--border-strong);border-radius:8px;overflow:hidden;background:#1b2233;box-shadow:var(--ombre)}
+.cover svg{display:block;width:100%;height:100%}
+.dh-title{margin:10px 0;font-family:var(--title);font-size:30px;line-height:1.2;color:var(--text-strong)}
+.dh-outil{margin:0 0 8px;font-size:17px;line-height:1.45}
+.dh-demo{margin:0 0 16px;font-size:15px;color:var(--text-2)}
+.dh-demo strong{color:var(--text)}
+.choix{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.choix a{display:flex;flex-direction:column;gap:2px;padding:10px 18px;background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);color:var(--text);text-decoration:none;box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--or),var(--ombre)}
+.choix a:first-child{border-color:var(--accent)}
+.choix b{font-size:18px;color:var(--accent)}
+
+/* Téléphone */
+.ph-hdr{padding:12px 16px}
+.ph-main{padding:18px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.vp-375 .frise{height:48px;opacity:.2}
+.vp-375 .dragon{display:none}
+.vp-375 .divider-new svg{width:110px}
+.vp-375 .pop{position:static;width:auto;margin:0 0 16px}
+
+/* États */
+.vide-msg{margin:0;padding:18px;text-align:center;color:var(--text-2);background:var(--surface);border:2px dashed var(--border-strong);border-radius:var(--radius)}
+.chargement{height:100%;display:grid;place-items:center;font:14px var(--mono);color:var(--text-2)}
+.alerte{margin:0;padding:12px 14px;border-radius:8px;font-size:15px;color:#9a1b1b;background:#f6dcd2;border:2px solid #b5523f}
+.succes{margin:0;padding:12px 14px;border-radius:8px;font-size:15px;color:#2a1a0c;background:var(--surface);border:2px solid #2f6a32;box-shadow:var(--ombre)}
+.succes b{color:#245c2a}
+.fc{background:#000 !important;color:#fff}
+.fc *{border-color:#fff !important;box-shadow:none !important;background:#000 !important;color:#fff !important}
+.fc .decor,.fc .divider-new{display:none}
+
+/* Tableau des jetons */
+.tbl{background:#fdf8ea;border:2px solid #6e522c;border-radius:12px;padding:16px 20px;max-width:980px;overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:6px 8px;border-bottom:1px solid #d6bf8e;vertical-align:top}
+.sw{display:inline-block;width:16px;height:16px;border:1px solid #6e522c;border-radius:4px;vertical-align:-3px;margin-right:6px}
+.regles{max-width:980px;padding-left:20px;color:#2a1a0c}
+.regles li{margin:6px 0}
+
+@media (max-width:480px){.doc{padding:24px 16px 60px}.doc-head h1{font-size:24px}}
+</style>
+</head>
+<body>
+
+<!-- Symboles partagés : décor (aria-hidden) et couverture de la démo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="frise" viewBox="0 0 1280 96" preserveAspectRatio="xMidYMax slice">
+      <path fill="#6e522c" d="M0 96V74Q120 58 260 70T520 66Q600 62 640 70V52h8v-7h7v7h7v-7h7v7h7V70h18V30h-5v-9h7v6h7v-6h7v6h7v-6h7v9h-5V70h18V44h7v-7h7v7h7v-7h7v7h7V70h24V58h6v-6h6v6h6v-6h6v6h6V72Q900 60 1040 70T1280 66V96Z"/>
+      <path fill="#6e522c" d="M698 30l15-20l15 20Z M640 52l13-14l13 14Z M778 44l13-14l13 14Z"/>
+      <path stroke="#6e522c" stroke-width="2" fill="none" d="M713 10V0"/><path fill="#9a1b1b" d="M713 0h14l-4 4l4 4h-14Z"/>
+      <path fill="#6e522c" d="M90 96V72h5v-5h5v5h5v-5h5v5h5V96Z M1150 96V68h6v-6h6v6h6v-6h6v6h6V96Z" opacity=".7"/>
+    </symbol>
+    <symbol id="dragon" viewBox="0 0 200 140">
+      <path fill="#7a4d08" opacity=".6" d="M118 92L156 26Q150 50 160 64Z"/>
+      <path fill="#7a4d08" d="M8 116Q28 126 46 110Q66 92 90 98Q108 102 124 94Q140 86 148 72Q156 60 168 58L180 54L194 48L186 60L196 68L180 70Q166 72 160 84Q150 112 120 118Q92 124 70 114Q56 108 44 120Q30 132 8 116Z"/>
+      <path fill="#7a4d08" opacity=".9" d="M98 98L52 18Q66 32 80 30Q84 16 96 8Q102 26 114 28Q124 14 140 12Q130 40 134 66Q122 84 118 96Z"/>
+      <path stroke="#7a4d08" stroke-width="3.5" stroke-linecap="round" fill="none" d="M92 116l-6 14M114 114l2 14M172 56l4-12M178 56l10-8"/>
+      <circle cx="180" cy="61" r="2" fill="#fdf8ea"/>
+    </symbol>
+    <symbol id="ornement" viewBox="0 0 150 20">
+      <g fill="none" stroke="#6e522c" stroke-width="1.6" stroke-linecap="round">
+        <path d="M4 10h42M104 10h42"/>
+        <path d="M46 10c4-7 12-7 12 0c0 4-5 5-7 2M104 10c-4-7-12-7-12 0c0 4 5 5 7 2"/>
+        <path d="M20 10c3-5 9-5 10 0M130 10c-3-5-9-5-10 0"/>
+      </g>
+      <path fill="#b8862b" stroke="#6e522c" stroke-width="1.4" d="M66 2h18v8c0 5-4 8-9 9c-5-1-9-4-9-9Z"/>
+      <path stroke="#6e522c" stroke-width="1.2" d="M75 2v17M66 9h18"/>
+    </symbol>
+    <symbol id="ecu" viewBox="0 0 14 16"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M1 1h12v7c0 4-3 6-6 7c-3-1-6-3-6-7Z"/><path stroke="currentColor" stroke-width="1.2" d="M7 1v14"/></symbol>
+    <symbol id="fleuron" viewBox="0 0 22 22"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M2 20V6c0-3 1-4 4-4h14M2 12c4 0 6-2 6-6M8 2c0 3 2 5 5 5"/><circle cx="2" cy="2" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="blason" viewBox="0 0 160 160"><g fill="none" stroke="#7a4d08" stroke-width="2.5"><path d="M30 20l100 110M130 20L30 130M24 14l12 12M136 14l-12 12" stroke-width="2"/><path d="M80 30h40v40c0 26-20 40-40 50c-20-10-40-24-40-50V30z" fill="#f8efd9"/><path d="M80 30v90M40 62h80"/></g></symbol>
+    <symbol id="chateau" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+      <rect width="400" height="300" fill="#1b2233"/><rect y="170" width="400" height="130" fill="#252c3f"/>
+      <circle cx="300" cy="70" r="34" fill="#f3e8c8"/>
+      <path d="M0 250 L60 215 L120 238 L190 205 L260 232 L330 210 L400 236 V300 H0Z" fill="#121726"/>
+      <path d="M130 230 V150 h14 v-10 h10 v10 h12 v-10 h10 v10 h14 V110 h-6 v-12 h8 v8 h8 v-8 h8 v8 h8 v-8 h8 v12 h-6 v120Z" fill="#0b0f1a"/>
+      <path d="M232 230 V160 h10 v-8 h8 v8 h8 v-8 h8 v8 h10 V230Z" fill="#0b0f1a"/>
+      <rect x="211" y="118" width="6" height="10" fill="#d9472b"/><circle cx="214" cy="123" r="14" fill="#d9472b" opacity=".25"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="doc">
+  <header class="doc-head">
+    <h1>Ticket 104 : travail du thème médiéval</h1>
+    <p>L'ambiance Médiéval passe d'un simple parchemin à une aventure fantasy : un château en frise au pied de l'écran, un dragon dans le coin, des bandeaux héraldiques sur les panneaux, un fanion pour le badge « Démo ».</p>
+    <p>Les éléments se détachent mieux : fond plus soutenu, panneaux plus clairs (écart de 1,40:1 contre 1,12:1 aujourd'hui), bordures plus foncées, ombre douce couleur encre. Les couleurs de texte ne changent pas et gardent toutes au moins 4,5:1. Les quatre autres ambiances ne bougent pas.</p>
+  </header>
+
+  <!-- 1 -->
+  <section class="screen" aria-labelledby="e1">
+    <h2 id="e1">1. Avant et après : un panneau, une carte, un bouton</h2>
+    <p class="note">Même contenu, même taille. À gauche les jetons actuels, à droite la proposition. Le panneau, la carte de personnage et le bouton principal se lisent du premier coup d'œil, et le dragon remplace le blason dans le coin.</p>
+    <div class="scroll-x"><div class="row" style="flex-wrap:nowrap">
+      <div>
+        <p class="label-dev">Avant</p>
+        <div class="viewport vp-620 old">
+          <svg class="decor blason" aria-hidden="true" style="transform:scaleY(-1)"><use href="#blason"/></svg>
+          <div style="display:grid;grid-template-columns:240px 1fr;gap:18px;padding:24px">
+            <section class="panel"><div class="panel-head">Actions</div><div class="panel-body"><button class="btn primary" type="button">Ordonner un test</button><button class="btn secondary" type="button">Lancer une attaque</button></div></section>
+            <div><h3 class="sec-title"><span class="orn" aria-hidden="true">⚜︎</span>Joueurs</h3>
+              <div class="cards">
+                <div class="card"><div class="card-top"><span class="avatar">AL</span><div><div class="nom">Aldric</div><div class="etat">Sain</div></div><span class="pv">24<span> / 24</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+                <div class="card"><div class="card-top"><span class="avatar">YS</span><div><div class="nom">Ysolde</div><div class="etat">Blessée</div></div><span class="pv">9<span> / 18</span></span></div><div class="track"><div class="fill blesse" style="width:50%"></div></div></div>
+              </div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="label-dev">Après</p>
+        <div class="viewport vp-620 med">
+          <div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div>
+          <svg class="decor dragon" aria-hidden="true" style="width:150px;height:106px;bottom:40px"><use href="#dragon"/></svg>
+          <div style="display:grid;grid-template-columns:240px 1fr;gap:18px;padding:24px">
+            <section class="panel"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Actions</span></div><div class="panel-body"><button class="btn primary" type="button">Ordonner un test</button><button class="btn secondary" type="button">Lancer une attaque</button></div></section>
+            <div><h3 class="sec-title">Joueurs</h3>
+              <div class="cards">
+                <div class="card"><div class="card-top"><span class="avatar">AL</span><div><div class="nom">Aldric</div><div class="etat">Sain</div></div><span class="pv">24<span> / 24</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+                <div class="card"><div class="card-top"><span class="avatar">YS</span><div><div class="nom">Ysolde</div><div class="etat">Blessée</div></div><span class="pv">9<span> / 18</span></span></div><div class="track"><div class="fill blesse" style="width:50%"></div></div></div>
+              </div></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <ul class="legend"><li>Fond / panneau : 1,12:1 avant, <span class="ok">1,40:1 après</span></li><li>Bordure forte sur fond : 4,86:1</li><li>Bouton principal : liseré or, socle encre de 3 px</li></ul>
+  </section>
+
+  <!-- 2 -->
+  <section class="screen" aria-labelledby="e2">
+    <h2 id="e2">2. Vue MJ en Médiéval, 1280 x 720 : cas nominal</h2>
+    <p class="note">Château en frise au bas de l'écran (96 px de haut, opacité 26 %), dragon en vol au dessus du coin droit (opacité 32 %). Tout le décor est sous le contenu et ne reçoit aucun clic. Ornement d'en-tête en rinceaux autour d'un petit écu. Bandeaux héraldiques sur les en-têtes de panneau. Barres de PV en vert forêt, ocre et rouge sang dans un cadre de parchemin.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1280x720 med">
+        <div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div>
+        <svg class="decor dragon" aria-hidden="true"><use href="#dragon"/></svg>
+        <header class="hdr">
+          <div class="brand"><svg aria-hidden="true" width="36" height="36" viewBox="0 0 56 56" fill="none" stroke="#7a4d08" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><p class="brand-title">AUSPEX</p><p class="brand-sub">Maître de jeu</p></div></div>
+          <div class="hdr-right"><button class="pill" type="button">Comment marchent les dés ?</button><span class="pill"><span class="dot" aria-hidden="true"></span>En ligne</span></div>
+          <span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span>
+        </header>
+        <main class="main">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <section class="panel"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Code d'accès de la table</span></div><div class="panel-body"><p class="code">DRAGON</p></div></section>
+            <section class="panel"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Actions</span></div><div class="panel-body"><button class="btn primary" type="button">Ordonner un test</button><button class="btn secondary" type="button">Lancer une attaque</button></div></section>
+          </div>
+          <section><h2 class="sec-title">Joueurs</h2>
+            <div class="cards">
+              <div class="card"><div class="card-top"><span class="avatar">AL</span><div><div class="nom">Aldric</div><div class="etat">Sain</div></div><span class="pv">24<span> / 24</span></span></div><div class="track" role="progressbar" aria-label="Points de vie d'Aldric" aria-valuemin="0" aria-valuemax="24" aria-valuenow="24"><div class="fill" style="width:100%"></div></div></div>
+              <div class="card"><div class="card-top"><span class="avatar">YS</span><div><div class="nom">Ysolde</div><div class="etat">Blessée</div></div><span class="pv">9<span> / 18</span></span></div><div class="track" role="progressbar" aria-label="Points de vie d'Ysolde" aria-valuemin="0" aria-valuemax="18" aria-valuenow="9"><div class="fill blesse" style="width:50%"></div></div></div>
+              <div class="card"><div class="card-top"><span class="avatar">BR</span><div><div class="nom">Brannoc</div><div class="etat">Critique</div></div><span class="pv">3<span> / 15</span></span></div><div class="track" role="progressbar" aria-label="Points de vie de Brannoc" aria-valuemin="0" aria-valuemax="15" aria-valuenow="3"><div class="fill critique" style="width:20%"></div></div></div>
+            </div>
+          </section>
+          <section><h2 class="sec-title">PNJ</h2>
+            <div class="card ennemi"><div class="card-top"><span class="avatar">DR</span><div><div class="nom">Le dragon rouge</div><div class="etat">Sain</div></div><span class="pv">60<span> / 60</span></span></div><div class="track" role="progressbar" aria-label="Points de vie du dragon rouge" aria-valuemin="0" aria-valuemax="60" aria-valuenow="60"><div class="fill" style="width:100%"></div></div></div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">Décor : pointer-events none, z-index -1, aria-hidden</li><li>Frise et dragon dans le bas de l'écran, loin des boutons</li></ul>
+  </section>
+
+  <!-- 3 -->
+  <section class="screen" aria-labelledby="e3">
+    <h2 id="e3">3. Démo, étape guidée : popin, repère et voile, 1280 x 720</h2>
+    <p class="note">Le voile passe de 45 % à 55 % d'encre : le décor s'efface derrière. La popin devient un feuillet de manuscrit (double filet, liseré or, fleurons dans les coins, lettrine sur le titre d'étape). Le repère « Cliquez ici » gagne un filet clair et un halo doré : c'est l'élément le plus lumineux de l'écran. Le bouton visé reste cliquable, le repère ne capte aucun clic.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1280x720 med">
+        <div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div>
+        <svg class="decor dragon" aria-hidden="true"><use href="#dragon"/></svg>
+        <header class="hdr">
+          <div class="brand"><svg aria-hidden="true" width="36" height="36" viewBox="0 0 56 56" fill="none" stroke="#7a4d08" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><p class="brand-title">AUSPEX</p><p class="brand-sub">Maître de jeu</p></div></div>
+          <div class="hdr-right"><span class="fanion">Démo</span><button class="pill" type="button">Comment marchent les dés ?</button><span class="pill"><span class="dot" aria-hidden="true"></span>En ligne</span></div>
+          <span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span>
+        </header>
+        <main class="main">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <section class="panel"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Code d'accès de la table</span></div><div class="panel-body"><p class="code">DRAGON</p></div></section>
+            <section class="panel" style="overflow:visible"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Actions</span></div><div class="panel-body">
+              <div class="cible"><button class="btn primary" type="button">Ordonner un test</button><span class="voile" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici : Ordonner un test</span></span></div>
+              <button class="btn secondary" type="button">Lancer une attaque</button></div></section>
+          </div>
+          <section><h2 class="sec-title">Joueurs</h2>
+            <div class="cards">
+              <div class="card"><div class="card-top"><span class="avatar">AL</span><div><div class="nom">Aldric</div><div class="etat">Sain</div></div><span class="pv">24<span> / 24</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+              <div class="card"><div class="card-top"><span class="avatar">YS</span><div><div class="nom">Ysolde</div><div class="etat">Sain</div></div><span class="pv">18<span> / 18</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+            </div>
+          </section>
+          <section><h2 class="sec-title">PNJ</h2>
+            <div class="card ennemi"><div class="card-top"><span class="avatar">DR</span><div><div class="nom">Le dragon rouge</div><div class="etat">Sain</div></div><span class="pv">60<span> / 60</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+          </section>
+        </main>
+        <aside class="pop" aria-label="Scénario guidé">
+          <svg class="coin c1" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c2" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c3" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c4" aria-hidden="true"><use href="#fleuron"/></svg>
+          <div class="pop-head"><div><p class="pop-title">Le dragon de Pierrenoire</p><p class="pop-meta">Vous êtes le MJ · Étape 1 sur 5</p></div><button class="pop-toggle" type="button" aria-expanded="true">Réduire</button></div>
+          <div class="pop-body">
+            <ol class="steps" aria-label="Progression de la démo"><li class="fait"></li><li></li><li></li><li></li><li></li></ol>
+            <h3>La porte dérobée</h3>
+            <p class="say"><span class="say-tag">À vous</span>Ordonnez un test de Perception (sans malus) à toute l'équipe.</p>
+            <div style="border-top:1px solid var(--border-soft)"><button class="lien" type="button">Recommencer la démo</button></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">Ordre de visibilité : repère, popin, bouton, puis le reste</li><li>--demo-dim 0,55 · --demo-dim-reduit 0,32 · --demo-dim-modale 0,25</li></ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="screen" aria-labelledby="e4">
+    <h2 id="e4">4. Accueil de la démo, 1024 x 600 : décor qui ne gêne pas</h2>
+    <p class="note">Sur une fenêtre basse, la frise reste collée au bas de l'écran, sous les cartes de choix, et le dragon se réduit à 120 px. Aucun ornement ne passe sur un texte ou un bouton, aucun défilement n'apparaît. Les cartes de choix gagnent un liseré or et l'ombre encre.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1024x600 med">
+        <div class="decor frise" aria-hidden="true" style="height:64px"><svg><use href="#frise"/></svg></div>
+        <svg class="decor dragon" aria-hidden="true" style="width:120px;height:85px;bottom:30px;right:10px"><use href="#dragon"/></svg>
+        <header class="hdr" style="padding:12px 28px">
+          <div class="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 56 56" fill="none" stroke="#7a4d08" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><p class="brand-title">AUSPEX</p></div>
+          <span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span>
+        </header>
+        <main class="dh" style="padding:18px 28px 70px;gap:28px">
+          <figure class="cover" style="max-height:400px"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <span class="fanion" style="align-self:flex-start">Démo</span>
+            <h1 class="dh-title" style="font-size:26px;margin:8px 0">Le dragon de Pierrenoire</h1>
+            <p class="dh-outil" style="font-size:16px">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+            <p class="dh-demo" style="margin-bottom:12px"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+            <ul class="choix">
+              <li><a href="#mj"><b>Jouer le MJ</b><span>Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+              <li><a href="#joueur"><b>Jouer Aldric</b><span>Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+            </ul>
+          </div>
+        </main>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">scrollHeight 600 = innerHeight 600</li><li>Marge basse du contenu : 70 px, au dessus de la frise</li></ul>
+  </section>
+
+  <!-- 5 -->
+  <section class="screen" aria-labelledby="e5">
+    <h2 id="e5">5. Téléphone, 375 px : vue Joueur et étape de démo</h2>
+    <p class="note">À 480 px de large et moins, le dragon disparaît et la frise descend à 48 px et 20 % d'opacité. L'ornement d'en-tête passe à 110 px. La popin du guide reste en bas de l'écran, avec le même cadre de manuscrit.</p>
+    <div class="row">
+      <div>
+        <p class="label-dev">Vue Joueur, Aldric</p>
+        <div class="viewport vp-375 med">
+          <div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div>
+          <header class="hdr ph-hdr"><div class="brand"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 56 56" fill="none" stroke="#7a4d08" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><p class="brand-title" style="font-size:19px">AUSPEX</p><p class="brand-sub">Table DRAGON</p></div></div><span class="pill"><span class="dot" aria-hidden="true"></span>En ligne</span><span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span></header>
+          <main class="ph-main">
+            <section class="card" style="gap:12px"><div class="card-top"><span class="avatar" style="width:56px;height:56px">AL</span><div><div class="nom" style="font-size:22px;font-family:var(--title)">Aldric</div><div class="etat">Chevalier · Sain</div></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="etat" style="font-size:14px">Points de vie</span><span class="pv" style="font-size:20px">24<span> / 24</span></span></div><div class="track"><div class="fill" style="width:100%"></div></div></section>
+            <p class="card" style="margin:0;flex-direction:row;align-items:center">En attente d'un ordre du Maître de Jeu.</p>
+            <section class="panel"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Caractéristiques</span></div>
+              <div class="panel-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:13px">
+                <div><span style="display:block;color:var(--text-2)">Agilité</span><b class="mono" style="font-size:20px">42</b></div><div><span style="display:block;color:var(--text-2)">Perception</span><b class="mono" style="font-size:20px">38</b></div><div><span style="display:block;color:var(--text-2)">Force</span><b class="mono" style="font-size:20px">51</b></div>
+              </div></section>
+            <button class="btn primary" type="button">Lancer le jet demandé</button>
+          </main>
+        </div>
+      </div>
+      <div>
+        <p class="label-dev">Étape de démo, popin en bas</p>
+        <div class="viewport vp-375 med">
+          <div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div>
+          <header class="hdr ph-hdr"><div class="brand"><p class="brand-title" style="font-size:19px">AUSPEX</p></div><span class="fanion">Démo</span><span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span></header>
+          <main class="ph-main">
+            <section class="panel" style="overflow:visible"><div class="panel-head"><span style="display:flex;align-items:center;gap:8px"><svg class="ecu" aria-hidden="true"><use href="#ecu"/></svg>Actions</span></div><div class="panel-body" style="padding-top:34px">
+              <div class="cible"><button class="btn primary" type="button">Ordonner un test</button><span class="voile" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici</span></span></div></div></section>
+            <aside class="pop" aria-label="Scénario guidé" style="position:relative;margin-top:8px">
+              <svg class="coin c1" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c2" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c3" aria-hidden="true"><use href="#fleuron"/></svg><svg class="coin c4" aria-hidden="true"><use href="#fleuron"/></svg>
+              <div class="pop-head"><div><p class="pop-title">Le dragon de Pierrenoire</p><p class="pop-meta">Étape 1 sur 5</p></div><button class="pop-toggle" type="button" aria-expanded="true">Réduire</button></div>
+              <div class="pop-body"><h3>La porte dérobée</h3><p class="say"><span class="say-tag">À vous</span>Ordonnez un test de Perception à toute l'équipe.</p></div>
+            </aside>
+          </main>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="screen" aria-labelledby="e6">
+    <h2 id="e6">6. États : vide, chargement, erreur, succès</h2>
+    <p class="note">Le thème habille aussi les états existants, sans changer leurs textes. Pendant le chargement, rien ne s'affiche tant que l'ambiance n'est pas lue, comme aujourd'hui : pas de décor qui clignote.</p>
+    <div class="row">
+      <div><p class="label-dev">Vide : table sans personnage</p>
+        <div class="viewport vp-375 court med"><div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div><main class="ph-main"><h2 class="sec-title">Joueurs</h2><p class="vide-msg">Aucun personnage à la table pour l'instant. Importez une fiche depuis l'Accueil MJ.</p></main></div></div>
+      <div><p class="label-dev">Chargement</p>
+        <div class="viewport vp-375 court med" style="height:240px"><div class="chargement">Chargement de la table…</div></div></div>
+      <div><p class="label-dev">Erreur</p>
+        <div class="viewport vp-375 court med"><main class="ph-main"><p class="alerte" role="alert"><strong>Connexion perdue.</strong> Nouvelle tentative dans quelques secondes. Vos données sont conservées.</p><button class="btn secondary" type="button">Réessayer maintenant</button></main></div></div>
+      <div><p class="label-dev">Succès : jet réussi</p>
+        <div class="viewport vp-375 court med"><main class="ph-main"><p class="succes" role="status"><b>Réussite, 2 degrés.</b> Aldric a obtenu 18 pour un seuil de 38 en Perception.</p></main></div></div>
+    </div>
+    <div class="row" style="margin-top:28px">
+      <div><p class="label-dev">Contraste renforcé du système (forced-colors: active)</p>
+        <div class="viewport vp-375 court med fc"><div class="decor frise" aria-hidden="true"><svg><use href="#frise"/></svg></div><header class="hdr ph-hdr"><p class="brand-title">AUSPEX</p><span class="divider-new" aria-hidden="true"><svg><use href="#ornement"/></svg></span></header><main class="ph-main"><div class="card"><div class="card-top"><span class="avatar">AL</span><span class="nom">Aldric</span><span class="pv">24 / 24</span></div></div><button class="btn primary" type="button">Ordonner un test</button></main></div></div>
+      <div style="max-width:560px"><p class="label-dev">Mouvement réduit (prefers-reduced-motion: reduce)</p>
+        <p style="margin:0;color:#5b4126">Le décor Médiéval est fixe : aucune animation ajoutée. La pulsation du repère « Cliquez ici » est déjà coupée dans ce mode ; le halo doré reste affiché en continu, sans clignoter.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="screen" aria-labelledby="e7">
+    <h2 id="e7">7. Accueil MJ : aperçu de l'ambiance Médiéval</h2>
+    <p class="note">La ligne Médiéval de <span class="mono">src/ambiances.js</span> suit le nouveau bloc CSS : pastilles fond, panneau et accent mises à jour, nouvelle description. L'emblème ⚜︎ reste.</p>
+    <div class="row">
+      <div class="viewport vp-375 court" style="background:#07120c;color:#eaf6ee;padding:16px;height:auto">
+        <div style="position:relative;display:flex;align-items:center;gap:16px;min-height:56px;padding:10px 14px;border:2px solid #2a5c40;border-radius:8px">
+          <span style="display:flex"><span style="width:24px;height:24px;border-radius:50%;border:2px solid #b3d1bd;background:#e6d2a3;margin-right:-6px"></span><span style="width:24px;height:24px;border-radius:50%;border:2px solid #b3d1bd;background:#fdf8ea;margin-right:-6px"></span><span style="width:24px;height:24px;border-radius:50%;border:2px solid #b3d1bd;background:#7a4d08"></span></span>
+          <span style="display:flex;flex-direction:column"><span style="font-weight:600">Médiéval</span><span style="font-size:14px;color:#b3d1bd">Châteaux, dragons, encre et or</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="screen" aria-labelledby="e8">
+    <h2 id="e8">8. Règles pour le dev</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Jeton</th><th>Avant</th><th>Après</th><th>Contrôle</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">--bg</td><td><span class="sw" style="background:#efe2c4"></span>#efe2c4</td><td><span class="sw" style="background:#e6d2a3"></span>#e6d2a3</td><td>texte 11,28 · text-2 6,33 · accent 4,88 · warn 4,56 · amber 4,81 · danger 5,54</td></tr>
+          <tr><td class="mono">--surface</td><td><span class="sw" style="background:#f8efd9"></span>#f8efd9</td><td><span class="sw" style="background:#fdf8ea"></span>#fdf8ea</td><td>fond / panneau 1,40 (objectif 1,15) · placeholder 6,64</td></tr>
+          <tr><td class="mono">--surface-2</td><td><span class="sw" style="background:#e6d3a8"></span>#e6d3a8</td><td><span class="sw" style="background:#eedcb0"></span>#eedcb0</td><td>texte 12,38 · warn 5,01</td></tr>
+          <tr><td class="mono">--border</td><td>#a9895a</td><td>#9c7c4c</td><td>décoratif</td></tr>
+          <tr><td class="mono">--border-soft</td><td>#d2bb8d</td><td>#d6bf8e</td><td>décoratif</td></tr>
+          <tr><td class="mono">--border-strong</td><td>#7f6238</td><td>#6e522c</td><td>4,86 sur fond, 6,81 sur panneau (objectif 3)</td></tr>
+          <tr><td class="mono">--demo-dim / -reduit / -modale</td><td>0,45 / 0,25 / 0,20</td><td>rgba(30,18,6) 0,55 / 0,32 / 0,25</td><td>voile plus franc</td></tr>
+          <tr><td class="mono">nouveaux, décor seul</td><td>aucun</td><td>--or #b8862b, --encre #4a2e04, --pv-sain #2f6a32, --pv-blesse #8a5a00, --pv-critique #8e1414</td><td>jamais pour du texte</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="regles">
+      <li>Tout passe par <span class="mono">[data-ambiance='medieval']</span> dans <span class="mono">src/styles.css</span>, plus la ligne Médiéval de <span class="mono">src/ambiances.js</span> (aperçu #e6d2a3, #fdf8ea, #7a4d08 et description « Châteaux, dragons, encre et or »). Les couleurs de texte ne changent pas.</li>
+      <li><span class="mono">--corner</span> devient le dragon. Un nouveau <span class="mono">.app-shell::after</span> réservé au Médiéval porte la frise du château : <span class="mono">position: fixed; bottom: 0; left: 0; right: 0; height: 96px; opacity: .26; pointer-events: none; z-index: -1</span>. Le dragon se place au dessus (<span class="mono">bottom: 54px</span>, 190 x 134 px).</li>
+      <li><span class="mono">--divider</span> ne peut pas porter une image : en Médiéval, <span class="mono">.stage-header::after</span> prend <span class="mono">content: ''</span>, 150 x 20 px, et l'ornement en image de fond SVG.</li>
+      <li>Panneaux, cartes de personnage et modales : bordure 2 px <span class="mono">--border-strong</span> et ombre <span class="mono">0 1px 0 rgba(110,82,44,.35), 0 6px 16px rgba(42,26,12,.18)</span>.</li>
+      <li>En-têtes de panneau : aplat <span class="mono">--surface-2</span>, filet bas 2 px or, police de titre. Ils gardent leur hauteur et leurs boutons.</li>
+      <li><span class="mono">.primary-btn</span> : bordure encre, liseré intérieur or, socle <span class="mono">0 3px 0 var(--encre)</span>. Survol sur <span class="mono">--accent-hover</span>, focus 3 px <span class="mono">--focus</span> décalé de 4 px. Les boutons secondaires prennent un fond <span class="mono">--surface</span>.</li>
+      <li>Barres de PV : cadre carré 2 px encre, fond parchemin, remplissage vert forêt, ocre ou rouge sang selon les seuils actuels (sain, blessé, critique et hors combat).</li>
+      <li><span class="mono">.demo-pop</span> : double filet, anneau or, fleurons de coin en image de fond, lettrine sur le titre d'étape. <span class="mono">.demo-coach</span> : bordure 4 px, filet clair, halo or.</li>
+      <li>Badge « Démo » : fanion à queue d'aronde, fond <span class="mono">--warn</span>, texte <span class="mono">--warn-ink</span> (contraste déjà testé).</li>
+      <li>Petit écran (480 px et moins) : dragon masqué, frise 48 px à 20 %. Contraste renforcé : frise, dragon, ornements, fleurons et ombres retirés. Aucune animation ajoutée.</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>
