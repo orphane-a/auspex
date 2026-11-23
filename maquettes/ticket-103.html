@@ -100,13 +100,13 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
   <header class="doc-head">
     <h1>Ticket 103 : première page de la démo</h1>
     <p>La page d'accueil de la démo rappelle à quoi sert Auspex, explique ce que fait la démo et tient dans la hauteur de l'écran. L'image de couverture est la seule partie élastique.</p>
-    <p>Ambiance Médiéval (celle de la démo), jetons existants de <span class="mono">src/styles.css</span>. Les trois cartes et leurs liens ne changent pas.</p>
+    <p>Ambiance Médiéval (celle de la démo), jetons existants de <span class="mono">src/styles.css</span>. Retour design du 23/11 : la carte « Les deux vues côte à côte » est retirée des choix. Il reste deux cartes, « Jouer le MJ » et « Jouer Aldric », avec leurs liens inchangés. La page /?vues=deux reste accessible par son adresse, elle n'est simplement plus proposée ici.</p>
   </header>
 
   <!-- 1 -->
   <section class="screen" aria-labelledby="e1">
     <h2 id="e1">1. Ordinateur portable, 1280 x 720 : cas nominal</h2>
-    <p class="note">Deux colonnes à partir de 1024 px de large : l'image à gauche suit la hauteur de la colonne de droite et se recadre. À droite : pastille, titre du scénario, préambule en deux paragraphes, puis les trois cartes. Le bloc de texte occupe environ 490 px sur 720 : aucune barre de défilement.</p>
+    <p class="note">Deux colonnes à partir de 1024 px de large : l'image à gauche suit la hauteur de la colonne de droite et se recadre. À droite : pastille, titre du scénario, préambule en deux paragraphes, puis les deux cartes de choix. Le bloc de texte occupe environ 420 px sur 720 : aucune barre de défilement.</p>
     <div class="scroll-x">
       <div class="viewport vp-1280x720">
         <main class="dh">
@@ -122,14 +122,13 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
               <ul class="dh-list">
                 <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                 <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
               </ul>
             </div>
           </div>
         </main>
       </div>
     </div>
-    <ul class="legend"><li class="ok">scrollHeight 720 = innerHeight 720</li><li>Liens inchangés : /mj, /joueur, /?vues=deux</li></ul>
+    <ul class="legend"><li class="ok">scrollHeight 720 = innerHeight 720</li><li>Liens inchangés : /mj, /joueur</li><li>Carte « Les deux vues côte à côte » retirée</li></ul>
   </section>
 
   <!-- 2 -->
@@ -151,7 +150,6 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
               <ul class="dh-list">
                 <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                 <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
               </ul>
             </div>
           </div>
@@ -180,14 +178,13 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
               <ul class="dh-list">
                 <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                 <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
               </ul>
             </div>
           </div>
         </main>
       </div>
     </div>
-    <ul class="legend"><li class="ok">Préambule et trois cartes entiers, sans défilement</li></ul>
+    <ul class="legend"><li class="ok">Préambule et deux cartes entiers, sans défilement</li></ul>
   </section>
 
   <!-- 4 -->
@@ -208,7 +205,6 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
               <ul class="dh-list">
                 <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                 <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
               </ul>
             </div>
           </div>
@@ -229,7 +225,7 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
   <!-- 6 -->
   <section class="screen" aria-labelledby="e6">
     <h2 id="e6">6. Téléphone, 375 x 667</h2>
-    <p class="note">En dessous de 1024 px de large, une seule colonne et le défilement est autorisé. Le préambule et la première carte sont visibles sans défiler (ligne pointillée = bas de l'écran). L'image passe sous les cartes pour ne pas les pousser.</p>
+    <p class="note">En dessous de 1024 px de large, une seule colonne et le défilement est autorisé. Le préambule et la première carte sont visibles sans défiler, la seconde arrive juste après (ligne pointillée = bas de l'écran). L'image passe sous les cartes pour ne pas les pousser.</p>
     <div class="row">
       <div>
         <p class="label-dev">écran visible, sans défiler</p>
@@ -247,7 +243,6 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
                 <ul class="dh-list">
                   <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                   <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                  <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
                 </ul>
               </div>
             </div>
@@ -270,7 +265,6 @@ body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-
                 <ul class="dh-list">
                   <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
                   <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
-                  <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
                 </ul>
               </div>
             </div>
