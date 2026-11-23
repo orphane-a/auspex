@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { dragonScenario } from './dragon.js'
 import { getScenario, stepOutcome } from './index.js'
 import { avatarSvg } from './avatar.js'
@@ -89,6 +91,33 @@ describe('scénario du dragon (ticket 97)', () => {
     for (const e of all) expect(e.avatar.startsWith('data:image/svg+xml')).toBe(true)
     expect(new Set(all.map((e) => e.color)).size).toBe(all.length)
     expect(avatarSvg({ color: '#000', initial: '<' })).toContain('&lt;')
+  })
+})
+
+describe('illustrations de la démo', () => {
+  const turns = dragonScenario.steps.flatMap((s) => s.combat?.turns ?? [])
+  const images = [
+    dragonScenario.cover,
+    dragonScenario.team,
+    ...dragonScenario.steps.map((s) => s.image),
+    ...turns.map((t) => t.image),
+    ...Object.values(dragonScenario.endings).map((e) => e.image),
+  ]
+
+  it('illustre l’accueil, chaque étape, chaque tour de combat et chaque fin', () => {
+    expect(images).toHaveLength(2 + dragonScenario.steps.length + turns.length + Object.keys(dragonScenario.endings).length)
+    expect(images.every(Boolean)).toBe(true)
+  })
+
+  it('pointe vers des fichiers présents dans public/demo, avec un texte alternatif', () => {
+    for (const image of images) {
+      expect(image.alt.length).toBeGreaterThan(10)
+      expect(existsSync(fileURLToPath(new URL(`../../public${image.src}`, import.meta.url)))).toBe(true)
+    }
+  })
+
+  it('n’utilise pas deux fois la même image', () => {
+    expect(new Set(images.map((i) => i.src)).size).toBe(images.length)
   })
 })
 

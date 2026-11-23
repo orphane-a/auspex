@@ -13,6 +13,17 @@ import { useDemoPresence } from './useDemoPresence.js'
 
 const AUTO_DELAY = 900
 
+// Illustration d'une étape. Le rapport largeur/hauteur est réservé par le CSS : la
+// popin ne change pas de hauteur quand l'image arrive.
+function DemoImage({ image }) {
+  if (!image) return null
+  return (
+    <figure className="demo-figure">
+      <img src={image.src} alt={image.alt} width="480" height="360" decoding="async" />
+    </figure>
+  )
+}
+
 function load(key, fallback) {
   try {
     const raw = localStorage.getItem(key)
@@ -318,6 +329,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
   } else if (move.join !== undefined) {
     body = (
       <>
+        <DemoImage image={scenario.team} />
         <div className="guide-read">
           <span className="guide-tag">Bienvenue</span>
           {scenario.title} : une courte aventure pour découvrir Auspex. Vous jouez {cast.hero?.name}, ses compagnons et le MJ sont joués par le guide.
@@ -332,6 +344,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
     const dragonPv = cast.dragon?.pv
     body = (
       <div className="guide-end">
+        <DemoImage image={move.ending.image} />
         <h3>{move.ending.title}</h3>
         <p>{move.ending.text}</p>
         {dragonPv && (
@@ -345,6 +358,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
     body = (
       <>
         <h3 className="guide-step-title">{step.title}</h3>
+        <DemoImage image={step.image} />
         <div className="guide-read">
           <span className="guide-tag">{mode === 'mj' ? 'À lire aux joueurs' : 'Le MJ raconte'}</span>
           {step.read}
@@ -366,6 +380,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
             </span>
           )}
         </h3>
+        {move.turn && !move.target && <DemoImage image={move.turn.image} />}
         {move.turn && <p className="demo-story-line">{move.turn.read}</p>}
         {move.rolls?.length > 0 && (
           <ul className="demo-rolls" aria-label="Jets de l'équipe">

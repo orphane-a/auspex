@@ -12,6 +12,11 @@ export default function DemoHome({ scenario }) {
       <p className="demo-chip">Démo</p>
       <h1 className="demo-home-title">{scenario.title}</h1>
       <p className="demo-home-lead">Une courte aventure pour découvrir Auspex. Un guide raconte l'histoire et montre où cliquer.</p>
+      {scenario.cover && (
+        <figure className="demo-figure demo-home-cover">
+          <img src={scenario.cover.src} alt={scenario.cover.alt} width="480" height="360" decoding="async" />
+        </figure>
+      )}
       <ul className="demo-home-list">
         {CHOICES.map((c) => (
           <li key={c.href}>

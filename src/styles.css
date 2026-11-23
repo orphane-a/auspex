@@ -1766,6 +1766,27 @@ input {
 .guide-end p {
   margin: 0;
 }
+.demo-figure {
+  margin: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+}
+.demo-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: 50% 35%;
+}
+.demo-home-cover {
+  margin: 0 0 24px;
+}
+.demo-home-cover img {
+  aspect-ratio: 2 / 1;
+}
 .guide-spinner {
   width: 18px;
   height: 18px;
