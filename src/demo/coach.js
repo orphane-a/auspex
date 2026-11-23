@@ -81,6 +81,17 @@ function attackModalTarget({ attacker, defender, weapon, fireModeLabel }) {
   return { el: findButton(modal, '.modal-foot .btn', (t) => t.includes('Engager le combat')), hint: 'Engager le combat' }
 }
 
+// Ticket 102 : marge autour du bouton visé, partagée par le cadre qui pulse et par la
+// découpe du voile, pour qu'ils restent exactement superposés.
+export const HOLE_MARGIN = 6
+
+export function dimHole(rect, margin = HOLE_MARGIN) {
+  if (!rect) return null
+  const { top, left, width, height } = rect
+  if (![top, left, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return null
+  return { top: top - margin, left: left - margin, width: width + margin * 2, height: height + margin * 2 }
+}
+
 export function resolveTarget(target) {
   if (!target) return null
   switch (target.kind) {
