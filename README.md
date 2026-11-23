@@ -15,6 +15,11 @@ npm run dev      # backend (3001) + Vite (5173)
 - `npm run demo` — instance de démo du scénario guidé « Le dragon de Pierrenoire »
   (`SCENARIO=dragon`, base séparée dans `server/demo-data/`). La démo s'ouvre toujours en
   ambiance Médiéval, celle du scénario ; la table habituelle reste en Cyber par défaut.
+  Pendant la démo, un voile léger assombrit Auspex pour faire ressortir la popin du guide,
+  avec une découpe sur le bouton à cliquer (`.demo-dim`, rendu par `src/demo/DemoGuide.jsx`).
+  Il est purement visuel (aucun clic bloqué). Son intensité se règle par ambiance dans
+  `src/styles.css` avec les jetons `--demo-dim` (45 %), `--demo-dim-reduit` (25 %, popin
+  réduite) et `--demo-dim-modale` (20 %, au dessus d'une modale).
 
 Au premier démarrage, la base `server/table.sqlite` est créée et peuplée à partir des fiches
 d'exemple dans `PNJ_test/`.

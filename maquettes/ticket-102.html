@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auspex, ticket 102 : en démo, un voile assombrit le reste de l'interface</title>
+<style>
+/* Variables par ambiance : bloc à reprendre tel quel dans src/styles.css (sélecteur :root[data-ambiance="..."]). */
+[data-ambiance="cyber"]{--bg:#07120c;--surface:#0e1f16;--surface-2:#133022;--border:#2a5c40;--border-soft:#1d3f2c;--border-strong:#4f8f69;--text:#eaf6ee;--text-2:#b3d1bd;--accent:#5ef29c;--accent-ink:#04140b;--warn:#f2c94c;--danger:#ff9a70;--danger-bg:#2a1712;--danger-border:#a8573a;--focus:#ffe14d;--text-strong:#ffffff;}
+[data-ambiance="medieval"]{--bg:#efe2c4;--surface:#f8efd9;--surface-2:#e6d3a8;--border:#a9895a;--border-soft:#d2bb8d;--border-strong:#7f6238;--text:#2a1a0c;--text-2:#5b4126;--accent:#7a4d08;--accent-ink:#fff8e6;--warn:#7a5400;--danger:#9a1b1b;--danger-bg:#f6dcd2;--danger-border:#b5523f;--focus:#1d4fa8;--text-strong:#1a0f05;}
+[data-ambiance="espace"]{--bg:#050a1a;--surface:#0c1530;--surface-2:#132045;--border:#2b3f72;--border-soft:#1b2a52;--border-strong:#5872b4;--text:#eef3ff;--text-2:#b0bfe0;--accent:#4fd8ff;--accent-ink:#03141f;--warn:#ffd166;--danger:#ff9a55;--danger-bg:#2a170c;--danger-border:#b1622f;--focus:#ffffff;--text-strong:#ffffff;}
+[data-ambiance="horreur"]{--bg:#e6dbc0;--surface:#f2e9d3;--surface-2:#d9caa6;--border:#968a68;--border-soft:#c9bb95;--border-strong:#6c6246;--text:#1b1912;--text-2:#4a4434;--accent:#2c5638;--accent-ink:#f2ecd6;--warn:#6a4700;--danger:#8e1e17;--danger-bg:#f1d6cc;--danger-border:#a8503e;--focus:#5b2a9a;--text-strong:#0f0e0a;}
+[data-ambiance="gothique"]{--bg:#0d0a10;--surface:#18121e;--surface-2:#241a2d;--border:#4d3858;--border-soft:#33263d;--border-strong:#806290;--text:#f1ecf3;--text-2:#c4b9ca;--accent:#f0607a;--accent-ink:#160609;--warn:#c9a6ff;--danger:#ffad5c;--danger-bg:#2b190c;--danger-border:#a8653a;--focus:#e9e4ec;--text-strong:#ffffff;}
+
+[data-ambiance]{--radius:12px;--radius-sm:8px;--font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--font-title:var(--font-mono);--title-spacing:.14em}
+[data-ambiance="medieval"],[data-ambiance="horreur"]{--font-title:Georgia,'Times New Roman',serif;--title-spacing:.08em}
+[data-ambiance="gothique"]{--font-title:'Palatino Linotype',Palatino,Georgia,serif;--title-spacing:.18em}
+*{box-sizing:border-box}
+body{margin:0;background:#07120c;font-family:'IBM Plex Sans',system-ui,sans-serif;line-height:1.5}
+.doc{background:var(--bg);color:var(--text);padding:32px 24px 64px;max-width:1240px;margin:0 auto}
+.doc-head h1{font-family:var(--font-mono);font-size:26px;color:var(--accent);margin:0 0 8px;letter-spacing:.04em}
+.doc-head p{color:var(--text-2);max-width:820px;margin:0 0 10px}
+.decor-list{color:var(--text-2);max-width:860px;margin:0 0 10px;padding-left:20px;font-size:15px}.decor-list li{margin:4px 0}.decor-list strong{color:var(--text)}
+code{font-family:var(--font-mono);font-size:.92em;color:var(--text)}
+.screen-block{margin-top:56px}
+.screen-title{font-size:22px;font-weight:600;margin:0 0 6px;color:var(--text)}
+.screen-note{color:var(--text-2);margin:0 0 18px;max-width:860px;font-size:15px}
+.frame{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:16px;border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;transition:background-color .25s ease,color .25s ease}
+.frame .app{padding:24px;display:flex;flex-direction:column;gap:12px}
+.desk .app{max-width:760px;margin:0 auto}
+.row2,.row3,.row-phones{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.half{flex:1 1 420px}.third{flex:1 1 300px}
+.phone{width:375px;flex:none}
+.phone .app{padding:16px}
+.mt{margin-top:16px}.mt8{margin-top:-4px}.mt14{margin-top:2px}
+/* reprise des composants existants */
+.stage-header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:36px;height:36px;color:var(--accent);flex:none}
+.brand-title{font-family:var(--font-title);font-weight:600;font-size:22px;letter-spacing:var(--title-spacing);color:var(--accent);line-height:1.1}
+.brand-subtitle{font-size:14px;color:var(--text-2);margin-top:2px}
+.online-chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.panel-titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap}
+.pt-title{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px}
+.diamond{width:14px;height:14px;border:2px solid var(--accent);transform:rotate(45deg);display:inline-block;margin:0 3px}
+.tag{font-size:14px;color:var(--text-2)}
+.section-label{font-size:22px;font-weight:600;color:var(--text);padding:0}
+.primary-btn{cursor:pointer;min-height:48px;padding:0 24px;font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:2px solid var(--accent);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;gap:10px;align-self:flex-start}
+.primary-btn:disabled{opacity:.7;cursor:progress}
+.primary-btn.full{align-self:stretch}
+.text-input{width:100%;min-height:48px;padding:10px 14px;font:inherit;color:var(--text);background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius-sm)}
+.text-input::placeholder{color:var(--text-2)}
+.form-error{color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:15px}
+.whoall-hint{color:var(--text-2);font-size:15px;background:var(--surface);border:1px dashed var(--border-strong);border-radius:var(--radius);padding:16px;text-align:center}
+.roster-row{display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.roster-name{font-size:19px;font-weight:600}.roster-name.big{font-size:24px;font-family:var(--font-title)}
+.roster-cls{font-size:15px;color:var(--text-2)}
+.av{width:48px;height:48px;flex:none;border-radius:50%;border:2px solid var(--accent);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;color:var(--text)}
+.av.lg{width:72px;height:72px;font-size:24px}
+:focus-visible,.st-focus{outline:3px solid var(--focus);outline-offset:3px}
+/* nouveau composant : choix d'ambiance */
+.amb-picker{border:none;margin:0;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;gap:14px;min-width:0}
+.amb-picker legend{float:left;width:100%;margin:0}
+.amb-picker legend+*{clear:both}
+.hint{margin:0;font-size:15px;color:var(--text-2)}
+.amb-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.amb-grid.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.amb-list{display:flex;flex-direction:column;gap:8px}
+.amb-card{position:relative;cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:14px 12px;min-height:48px;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text)}
+.amb-card input{position:absolute;opacity:0;width:1px;height:1px}
+.amb-card:hover{border-color:var(--border-strong)}
+.amb-card.selected{border-color:var(--accent);background:var(--surface-2);box-shadow:0 0 0 1px var(--accent) inset}
+.amb-card:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:3px}
+.amb-card .sw{display:flex}
+.amb-card .sw i{width:24px;height:24px;border-radius:50%;border:2px solid var(--text-2);margin-right:-6px}
+.amb-name{font-weight:600;font-size:16px;line-height:1.25}
+.amb-desc{font-size:14px;color:var(--text-2);line-height:1.3}
+.check{position:absolute;top:8px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.amb-card.line{flex-direction:row;align-items:center;gap:16px;padding:10px 44px 10px 14px}
+.amb-card.line .check{top:50%;transform:translateY(-50%)}
+.locked .amb-card{cursor:not-allowed;opacity:.75}
+.spinner{width:18px;height:18px;border-radius:50%;border:3px solid currentColor;border-right-color:transparent;animation:spin 1s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cap{margin:4px 0 0;font-size:13px;color:var(--text-2);border-top:1px solid var(--border-soft);padding-top:8px}
+.toast{margin:0;display:flex;gap:10px;align-items:center;padding:12px 16px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm)}
+.ok{width:24px;height:24px;flex:none;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.okline{margin:0;display:flex;gap:10px;align-items:center;font-size:15px;font-weight:500}
+.player-head{display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.pv{display:flex;justify-content:space-between;align-items:baseline;color:var(--text-2);font-size:15px}
+.pv strong{font-family:var(--font-mono);font-size:22px;color:var(--text)}.pv em{font-style:normal;font-size:16px;color:var(--text-2);font-weight:500}
+.bar{height:12px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.wait{margin:0;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.alert-line{margin:0;color:var(--warn);font-weight:600;font-size:15px}
+.split{display:grid;grid-template-columns:1fr 1fr}
+.pane{border-right:1px solid var(--border)}.pane:last-child{border-right:none}
+.pane-head{display:flex;justify-content:space-between;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.pane-head a{color:var(--accent)}
+.danger-row{border-color:var(--danger-border)}.dz{color:var(--danger)}
+.loading{display:flex;align-items:center;gap:12px;color:var(--text-2);font-weight:500}
+.skel{height:56px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border-soft)}.skel.short{width:60%}
+.states{display:flex;flex-wrap:wrap;gap:8px}
+.st{font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;border:2px solid currentColor;background:transparent}
+.st-accent{color:var(--accent)}.st-warn{color:var(--warn)}.st-danger{color:var(--danger);background:var(--danger-bg)}.st-focus{color:var(--text)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.gname{font-family:var(--font-title);font-size:20px;font-weight:600;color:var(--accent);letter-spacing:.03em}
+.gcard .app{padding:16px}.gcard .roster-row{padding:12px}
+.ratios{margin:0;padding:0;list-style:none;font-size:13px;color:var(--text-2)}.ratios li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid var(--border-soft)}.ratios strong{color:var(--text);font-family:var(--font-mono);font-weight:600}
+@media (max-width:900px){.amb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.pane{border-right:none;border-bottom:1px solid var(--border)}}
+@media (max-width:480px){.doc{padding:24px 16px 48px}.phone{width:100%}.frame .app{padding:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Décor par ambiance (version 2, retour du 22 novembre) =====
+   Tout est décoratif : pseudo éléments ou images de fond, jamais de texte lu par les lecteurs d'écran,
+   placé sous le contenu, sans effet sur les clics. Les contrastes du texte restent ceux de la version 1.
+   Bloc à reprendre dans src/styles.css avec les variables d'ambiance. */
+[data-ambiance="cyber"]{--orn:"▸";--divider:"◇ ◇ ◇";
+ --texture:repeating-linear-gradient(0deg,rgba(94,242,156,.035) 0 1px,transparent 1px 3px),linear-gradient(rgba(94,242,156,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(94,242,156,.05) 1px,transparent 1px);
+ --texture-size:auto,32px 32px,32px 32px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%235ef29c' stroke-width='2' opacity='.32'%3E%3Cpath d='M160 20H110L90 40H50M160 60H120L100 80V120M160 100H140V140H90M130 0V30M70 0V20'/%3E%3Ccircle cx='46' cy='40' r='4'/%3E%3Ccircle cx='100' cy='124' r='4'/%3E%3Ccircle cx='86' cy='140' r='4'/%3E%3C/svg%3E")}
+[data-ambiance="medieval"]{--orn:"⚜\FE0E";--divider:"❧ ✦ ☙";
+ --texture:radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(122,77,8,.16) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .48 0 0 0 0 .30 0 0 0 0 .03 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+ --texture-size:auto,160px 160px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%237a4d08' stroke-width='2.5' opacity='.3'%3E%3Cpath d='M30 20l100 110M130 20L30 130M24 14l12 12M136 14l-12 12' stroke-width='2'/%3E%3Cpath d='M80 30h40v40c0 26-20 40-40 50c-20-10-40-24-40-50V30z' fill='%23f8efd9'/%3E%3Cpath d='M80 30v90M40 62h80'/%3E%3C/svg%3E")}
+[data-ambiance="espace"]{--orn:"✦";--divider:"·  ✦  ·";
+ --texture:radial-gradient(1.5px 1.5px at 24px 36px,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 120px 80px,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 180px 160px,rgba(79,216,255,.6),transparent),radial-gradient(1.5px 1.5px at 70px 190px,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 210px 20px,rgba(255,255,255,.45),transparent),radial-gradient(ellipse at 15% 100%,rgba(79,216,255,.08),transparent 55%);
+ --texture-size:240px 240px,240px 240px,240px 240px,240px 240px,240px 240px,auto;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%234fd8ff' stroke-width='2' opacity='.35'%3E%3Ccircle cx='100' cy='60' r='30'/%3E%3Cellipse cx='100' cy='60' rx='58' ry='14' transform='rotate(-20 100 60)'/%3E%3Ccircle cx='30' cy='120' r='3' fill='%234fd8ff'/%3E%3Ccircle cx='50' cy='20' r='2' fill='%234fd8ff'/%3E%3Cpath d='M140 120l4 10l10 4l-10 4l-4 10l-4-10l-10-4l10-4z' fill='%234fd8ff'/%3E%3C/svg%3E")}
+[data-ambiance="horreur"]{--orn:"◉";--divider:"◆ ◆ ◆";
+ --texture:radial-gradient(circle at 88% 90%,transparent 38px,rgba(108,98,70,.20) 40px,rgba(108,98,70,.07) 45px,transparent 47px),radial-gradient(ellipse at center,transparent 45%,rgba(60,50,30,.20) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .18 0 0 0 0 .1 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+ --texture-size:auto,auto,160px 160px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%232c5638' stroke-width='2' opacity='.32'%3E%3Cpath d='M120 0A40 40 0 0 0 160 40M100 0A60 60 0 0 0 160 60M40 0H100M44 31L102 16M56 60L108 30M75 85L118 42M100 104L130 52M129 116L144 58M160 120V60'/%3E%3Cpath d='M18 130q22-18 44 0q-22 18-44 0z'/%3E%3Ccircle cx='40' cy='130' r='6'/%3E%3C/svg%3E")}
+[data-ambiance="gothique"]{--orn:"✠";--divider:"✠";
+ --texture:radial-gradient(ellipse at 50% 0%,rgba(240,96,122,.10),transparent 60%),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.45) 100%);
+ --texture-size:auto,auto;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%23f0607a' stroke-width='2' opacity='.3'%3E%3Cpath d='M70 160V70Q70 30 100 10Q130 30 130 70V160M85 160V78Q85 50 100 36Q115 50 115 78V160'/%3E%3Ccircle cx='100' cy='62' r='9'/%3E%3Cpath d='M100 53v18M91 62h18'/%3E%3Cpath d='M40 30a18 18 0 1 0 14 30a14 14 0 1 1 -14 -30z' fill='%23f0607a' fill-opacity='.5'/%3E%3C/svg%3E")}
+
+/* 1. Texture de fond de l'écran */
+.frame{position:relative;background-color:var(--bg);background-image:var(--texture);background-size:var(--texture-size)}
+/* 2. Motif dans le coin haut droit, sous le contenu */
+.frame::before{content:"";position:absolute;top:0;right:0;width:150px;height:150px;background:var(--corner) no-repeat top right/contain;pointer-events:none;z-index:0}
+.frame>*{position:relative;z-index:1}
+.phone::before,.gcard::before{width:110px;height:110px}
+/* 3. Ornement devant les titres de section */
+.section-label::before,.gname::before{content:var(--orn);content:var(--orn) / "";color:var(--accent);margin-right:10px;font-size:.8em;font-weight:400;font-variant-emoji:text}
+/* 4. Séparateur d'en-tête */
+.stage-header{position:relative}
+.stage-header::after{content:var(--divider);content:var(--divider) / "";position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);padding:0 12px;background:var(--bg);color:var(--border-strong);font-size:13px;letter-spacing:.3em;line-height:1;white-space:pre}
+[data-ambiance="medieval"] .stage-header,[data-ambiance="horreur"] .stage-header{border-bottom:3px double var(--border-strong)}
+[data-ambiance="gothique"] .stage-header{border-bottom-color:var(--border-strong)}
+/* 5. Cadres des panneaux */
+[data-ambiance="cyber"] :is(.panel-titlebar,.amb-picker,.player-head),
+[data-ambiance="espace"] :is(.panel-titlebar,.amb-picker,.player-head){background-image:linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent));background-size:16px 2px,2px 16px,16px 2px,2px 16px;background-position:top left,top left,bottom right,bottom right;background-repeat:no-repeat}
+[data-ambiance="cyber"] .panel-titlebar{border-radius:2px}
+[data-ambiance="medieval"] :is(.panel-titlebar,.amb-picker,.player-head),
+[data-ambiance="horreur"] :is(.panel-titlebar,.amb-picker,.player-head){box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--border-soft)}
+[data-ambiance="gothique"] :is(.panel-titlebar,.amb-picker,.player-head){border-top:3px solid var(--accent);border-radius:var(--radius-sm) var(--radius-sm) var(--radius) var(--radius)}
+[data-ambiance="medieval"] .av,[data-ambiance="gothique"] .av{border-style:double;border-width:4px}
+/* 6. Emblème de chaque ambiance dans les cartes de choix (couleurs de l'ambiance concernée) */
+.amb-card .sw{align-items:center}
+.amb-card .sw .emb{margin-left:14px;width:30px;height:26px;border-radius:6px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:400;font-variant-emoji:text}
+/* Contraste renforcé du système : on retire tout le décor */
+@media (forced-colors:active){.frame{background-image:none}.frame::before,.stage-header::after,.section-label::before,.gname::before{display:none}}
+
+
+/* ===== Ticket 101 : composants de la démo (repris de src/styles.css) ===== */
+[data-ambiance]{--warn-bg:#2a2410;--warn-border:#8a7a2a;--shadow:rgba(0,0,0,.45)}
+[data-ambiance="medieval"]{--warn-bg:#f3e3b5;--warn-border:#a98a3a;--shadow:rgba(60,40,10,.25)}
+.demo-chip{display:inline-flex;align-items:center;align-self:flex-start;font-size:14px;font-weight:600;color:var(--warn);background:var(--surface);border:1px dashed var(--warn);border-radius:999px;padding:5px 12px}
+.demo-home{max-width:720px;margin:0 auto;padding:40px 16px;display:flex;flex-direction:column}
+.demo-home-title{font-family:var(--font-title);letter-spacing:.02em;font-size:32px;margin:12px 0 8px;line-height:1.2;color:var(--text)}
+.demo-home-lead{font-size:18px;color:var(--text-2);margin:0 0 24px}
+.demo-home-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.demo-home-card{display:flex;flex-direction:column;gap:4px;padding:18px 20px;background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:16px}
+.demo-home-card.hover{border-color:var(--accent)}
+.demo-home-card-title{font-size:20px;font-weight:600;color:var(--accent)}
+.phone .demo-home{padding:28px 0}.phone .demo-home-title{font-size:26px}.phone .demo-home-lead{font-size:16px}
+.demo-pop{width:400px;max-width:100%;display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:2px solid var(--border-strong);border-radius:var(--radius);box-shadow:0 12px 40px var(--shadow)}
+.demo-pop.inline{margin-left:auto}
+.demo-pop-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.demo-pop-title{font-weight:600;font-size:17px;font-family:var(--font-title)}
+.demo-meta{font-size:14px;color:var(--text-2)}
+.demo-pop-toggle{flex:none;min-height:44px;padding:0 14px;background:var(--surface-2);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);font:inherit;font-size:14px}
+.demo-pop-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.guide-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.guide-steps li{flex:1;height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+.guide-steps li.done{background:var(--border-strong);border-color:var(--border-strong)}
+.guide-steps li.now{background:var(--accent);border-color:var(--accent)}
+.guide-step-title{font-size:22px;line-height:1.2;margin:2px 0 0;font-weight:600;font-family:var(--font-title)}
+.guide-read{background:var(--bg);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px 16px;font-size:16px;line-height:1.6;margin:0}
+.guide-tag{display:block;font-size:13px;color:var(--text-2);margin-bottom:4px}
+.guide-alert{border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;margin:0}
+.guide-alert.err{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--text)}
+.guide-alert.warn{background:var(--warn-bg);border:1px solid var(--warn-border)}
+.guide-alert.info{background:var(--surface-2);border:1px solid var(--border)}
+.guide-link{align-self:flex-start;background:none;border:none;padding:8px 0;min-height:44px;color:var(--accent);text-decoration:underline;font:inherit;font-size:15px}
+.guide-dialog{background:var(--bg);border:2px solid var(--border-strong);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px}
+.guide-dialog h4{margin:0;font-size:20px;font-family:var(--font-title)}.guide-dialog p{margin:0}
+.guide-btn-row{display:flex;gap:10px;flex-wrap:wrap}.guide-btn-row>*{flex:1}
+.secondary-btn{min-height:48px;padding:10px 20px;border:2px solid var(--border);background:transparent;border-radius:var(--radius-sm);color:var(--text);font:inherit;font-weight:500}
+.demo-say{margin:0;padding:12px 14px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:16px;line-height:1.5}
+.demo-pop-foot{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--border)}
+.mj-layout{display:grid;grid-template-columns:1fr 400px;gap:20px;align-items:start}
+.roster{display:flex;flex-direction:column;gap:10px}
+.roster-row .meta{margin-left:auto;text-align:right;font-size:14px;color:var(--text-2)}
+.roster-row .meta strong{display:block;font-family:var(--font-mono);font-size:18px;color:var(--text)}
+.roster-row.foe{border-color:var(--danger-border)}
+.roster-row.foe .av{border-color:var(--danger)}
+.phone .demo-pop{width:100%;box-shadow:0 -6px 24px var(--shadow)}
+.blank{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:14px}
+.timeline{display:flex;gap:16px;flex-wrap:wrap}
+.timeline>div{flex:1 1 260px}
+.tl-label{font-size:14px;font-weight:600;color:var(--text-2);margin:0 0 8px}
+.cmp{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.cmp>div{flex:1 1 440px;min-width:0}
+.badge-before,.badge-after{display:inline-block;font-size:13px;font-weight:600;border-radius:999px;padding:3px 10px;margin-bottom:8px;border:1px solid var(--border-strong);color:var(--text-2)}
+.badge-after{color:var(--accent);border-color:var(--accent)}
+.api{width:100%;border-collapse:collapse;font-size:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.api th,.api td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+.api th{color:var(--text-2);font-weight:600}
+.api-wrap{overflow-x:auto}
+.join-box{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.join-box label{font-weight:600}
+.text-input[readonly]{background:var(--surface-2);color:var(--text-2)}
+.split .app{padding:14px}
+@media (max-width:900px){.mj-layout{grid-template-columns:1fr}.demo-pop.inline{margin-left:0;width:100%}}
+
+/* ===== Ticket 102 : voile de la démo ===== */
+/* Jetons à reprendre dans src/styles.css : :root (Cyber) et chaque :root[data-ambiance="..."].
+   Ambiances sombres : noir. Ambiances claires : la teinte de leur --overlay, pour éviter un gris sale sur le parchemin. */
+[data-ambiance]{--halo:rgba(0,0,0,.45);--warn-ink:#000;--overlay:rgba(2,6,4,.82);
+ --demo-dim:rgba(0,0,0,.45);--demo-dim-reduit:rgba(0,0,0,.25);--demo-dim-modale:rgba(0,0,0,.2)}
+[data-ambiance="medieval"]{--halo:rgba(42,26,12,.3);--warn-ink:#fff8e6;--overlay:rgba(42,26,12,.6);
+ --demo-dim:rgba(42,26,12,.45);--demo-dim-reduit:rgba(42,26,12,.25);--demo-dim-modale:rgba(42,26,12,.2)}
+[data-ambiance="horreur"]{--halo:rgba(27,25,18,.3);--warn-ink:#f2ecd6;--overlay:rgba(27,25,18,.6);
+ --demo-dim:rgba(27,25,18,.45);--demo-dim-reduit:rgba(27,25,18,.25);--demo-dim-modale:rgba(27,25,18,.2)}
+[data-ambiance="espace"]{--overlay:rgba(2,4,12,.82)}
+[data-ambiance="gothique"]{--overlay:rgba(6,4,8,.85)}
+
+/* Une scène = la fenêtre d'une vue. Le voile ne déborde jamais d'une scène. */
+.scene{position:relative;overflow:hidden}
+.scene.h560{height:560px}.scene.h620{height:620px}.scene.h760{height:760px}
+.frame>.scene-app{position:relative;z-index:1}
+/* Voile plein, quand il n'y a pas de cible */
+.frame>.dim,.pane>.dim{position:absolute;inset:0;z-index:32;pointer-events:none;background:var(--demo-dim);transition:opacity .2s ease}
+/* Cible : la découpe est posée sur le rectangle du repère (marge 6 px), l'ombre très large fait le voile autour */
+.target{position:relative;display:block}
+.target.inline{display:inline-block}
+.hole{position:absolute;inset:-6px;z-index:32;pointer-events:none;border-radius:10px;box-shadow:0 0 0 100vmax var(--demo-dim);transition:inset .2s ease,box-shadow .2s ease}
+.coach{position:absolute;inset:-6px;z-index:35;pointer-events:none;border:3px solid var(--warn);border-radius:10px;box-shadow:0 0 0 4px var(--halo);animation:demoPulse 1.4s ease-in-out infinite}
+.coach-label{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;padding:4px 10px;border-radius:999px;background:var(--warn);color:var(--warn-ink);font-size:14px;font-weight:700}
+.coach-label.below{bottom:auto;top:calc(100% + 8px)}
+@keyframes demoPulse{0%,100%{outline:0 solid transparent}50%{outline:6px solid var(--warn-glow,rgba(255,200,80,.35))}}
+/* Popin réduite : voile allégé */
+.reduit{--demo-dim:var(--demo-dim-reduit)}
+/* Modale ouverte : son fond --overlay assombrit déjà, le voile passe à 20 % pour ne pas cumuler */
+.avec-modale{--demo-dim:var(--demo-dim-modale)}
+/* Popin posée dans la scène, au dessus du voile */
+.frame>.demo-pop.float,.pane>.demo-pop.float{position:absolute;right:20px;bottom:20px;z-index:40;margin:0}
+.frame>.demo-pop.float.top{bottom:auto;top:20px}
+.phone>.demo-pop.float{left:8px;right:8px;bottom:8px;width:auto}
+.pane>.demo-pop.float{right:12px;bottom:12px;width:300px}
+
+/* Tableau de bord MJ simplifié */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.top-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.help-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;background:transparent;border:1px solid var(--border-strong);border-radius:999px;color:var(--text);font:inherit;font-size:14px}
+.dash{display:grid;grid-template-columns:260px 1fr 1fr;gap:16px;align-items:start}
+.block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.block h3{margin:0;font-size:14px;font-weight:600;color:var(--text-2)}
+.code-value{font-family:var(--font-mono);font-size:22px;font-weight:600;margin:0}
+.btn{cursor:pointer;min-height:48px;padding:0 20px;border-radius:var(--radius-sm);font:inherit;font-size:16px;font-weight:600;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.block-w{width:100%}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border-strong);font-weight:500}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:var(--danger-ink,#1a0904)}
+.col-title{margin:0 0 8px;font-size:18px;font-weight:600}
+.mini-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px}
+.mini-row .av{width:40px;height:40px;font-size:14px}
+.mini-row .meta{margin-left:auto;font-family:var(--font-mono);font-weight:600}
+.mini-row.foe{border-color:var(--danger-border)}.mini-row.foe .av{border-color:var(--danger)}
+/* Modale de test */
+.m-overlay{position:absolute;inset:0;background:var(--overlay);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20}
+.modal{width:620px;max-height:100%;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border-strong);border-radius:14px;overflow:hidden}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border)}
+.modal-head h2{margin:0;font-size:20px;font-family:var(--font-title)}
+.modal-body{padding:14px 20px;display:flex;flex-direction:column;gap:14px}
+.modal-foot{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.field{border:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.field legend{font-weight:600;margin-bottom:6px;padding:0}
+.field .n{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border-strong);align-items:center;justify-content:center;font-size:13px;margin-right:8px;font-family:var(--font-mono)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chipb{min-height:40px;padding:0 12px;background:var(--bg);border:1px solid var(--border);border-radius:999px;color:var(--text);font:inherit;font-size:15px}
+.chipb.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.recap{margin:0;font-size:15px;color:var(--text-2)}
+.close-x{min-width:44px;min-height:44px;background:transparent;border:1px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text);font:inherit}
+/* Vue joueur */
+.roll-zone{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px}
+.roll-zone p{margin:0}
+.big{min-height:60px;font-size:18px;width:100%}
+/* États et légendes */
+.state-label{display:inline-block;font-size:13px;font-weight:600;border-radius:999px;padding:3px 10px;margin-bottom:8px;border:1px solid var(--border-strong);color:var(--text-2);background:var(--surface)}
+.state-label.on{color:var(--accent);border-color:var(--accent)}
+.helper-text{color:var(--text-2);padding:40px 0;text-align:center}
+.ladder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.ladder li{display:flex;gap:12px;align-items:baseline;padding:8px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-sm)}
+.ladder b{font-family:var(--font-mono);min-width:44px;color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--text-2);margin:10px 0 0}
+.legend span{display:inline-flex;gap:8px;align-items:center}
+.sw-dim{width:18px;height:18px;border-radius:4px;border:1px solid var(--border-strong)}
+.amb-mini .scene{height:300px}
+.amb-mini .app{padding:14px;gap:10px}
+.amb-mini .demo-pop.float{width:auto;left:12px;right:12px;bottom:12px}
+.amb-mini .demo-pop-head{padding:10px 12px 8px}
+.amb-mini .demo-say{font-size:14px;padding:8px 10px}
+.half{min-width:0}.frame>.demo-pop.float{max-width:calc(100% - 24px)}
+@media (prefers-reduced-motion:reduce){.coach{animation:none}.dim,.hole{transition:none}}
+@media (max-width:900px){.dash{grid-template-columns:1fr}.scene.h560,.scene.h620{height:auto;min-height:620px}.frame>.demo-pop.float{position:relative;right:auto;bottom:auto;margin:12px}}
+</style>
+</head>
+<body>
+<main class="doc" data-ambiance="medieval">
+<header class="doc-head">
+<h1>Ticket 102 : en démo, un voile assombrit le reste de l'interface</h1>
+<p>Pendant la démo, un voile sombre et léger se pose sur Auspex. La popin du guide et le bouton à cliquer restent pleinement lumineux : on sait tout de suite où regarder. Le voile est purement visuel, il ne bloque aucun clic.</p>
+<ul class="decor-list">
+ <li><strong>Avec un bouton à cliquer</strong> : voile partout, sauf la popin et une découpe aux coins arrondis autour du bouton, à la place exacte du cadre qui pulse.</li>
+ <li><strong>Sans bouton à cliquer</strong> (récit, fin, confirmation, cible introuvable) : voile partout sauf la popin.</li>
+ <li><strong>Popin réduite</strong> : voile allégé à 25 %, la découpe reste.</li>
+ <li><strong>Modale ouverte</strong> : son fond est déjà sombre, le voile descend à 20 % pour ne pas cumuler.</li>
+ <li><strong>Hors démo</strong> : rien ne change.</li>
+ <li><strong>Aucun nouveau texte d'interface</strong> : la popin et le repère « Cliquez ici » gardent leurs textes.</li>
+</ul>
+<p class="legend"><span><i class="sw-dim" style="background:rgba(42,26,12,.45)"></i>voile 45 %</span><span><i class="sw-dim" style="background:rgba(42,26,12,.25)"></i>popin réduite, 25 %</span><span><i class="sw-dim" style="background:rgba(42,26,12,.2)"></i>par dessus une modale, 20 %</span></p>
+</header>
+
+<!-- ÉCRAN 1 -->
+<section class="screen-block">
+<h2 class="screen-title">1. Vue MJ, le guide montre un bouton (ordinateur)</h2>
+<p class="screen-note">Étape 1, « La porte dérobée ». Tout le tableau de bord est assombri, y compris la barre du haut et le badge « Démo ». Le bouton « Ordonner un test » apparaît dans une découpe, sans aucun assombrissement, sous le cadre jaune qui pulse. Il reste cliquable, comme le reste de l'écran.</p>
+<div class="frame scene h560" data-ambiance="medieval">
+ <div class="app scene-app">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div>
+   <div class="top-right"><span class="demo-chip">Démo</span><button type="button" class="help-btn">Comment marchent les dés ?</button><span class="online-chip"><span class="dot"></span>En ligne</span></div></div>
+  <div class="dash">
+   <div style="display:flex;flex-direction:column;gap:12px">
+    <section class="block"><h3>Code d'accès de la table</h3><p class="code-value">DRAGON</p></section>
+    <section class="block"><h3>Actions</h3>
+     <span class="target"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici : Ordonner un test</span></span></span>
+     <button type="button" class="btn ghost block-w">Lancer une attaque</button>
+    </section>
+   </div>
+   <div><p class="col-title">Joueurs</p>
+    <div class="mini-row"><div class="av">AL</div><div>Aldric</div><span class="meta">24 / 24</span></div>
+    <div class="mini-row"><div class="av">YS</div><div>Ysolde</div><span class="meta">18 / 18</span></div>
+    <div class="mini-row"><div class="av">BR</div><div>Brannoc</div><span class="meta">15 / 15</span></div>
+   </div>
+   <div><p class="col-title">PNJ</p>
+    <div class="mini-row foe"><div class="av">DR</div><div>Le dragon rouge</div><span class="meta">60 / 60</span></div>
+   </div>
+  </div>
+ </div>
+ <aside class="demo-pop float" aria-label="Scénario guidé">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 1 sur 5</div></div><button type="button" class="demo-pop-toggle">Réduire</button></div>
+  <div class="demo-pop-body">
+   <ol class="guide-steps"><li class="now"></li><li></li><li></li><li></li><li></li></ol>
+   <h3 class="guide-step-title">La porte dérobée</h3>
+   <p class="demo-say"><span class="state-label on" style="margin:0 8px 0 0">À vous</span>Ordonnez un test de Perception (sans malus) à toute l'équipe.</p>
+   <div class="demo-pop-foot"><button type="button" class="guide-link">Recommencer la démo</button></div>
+  </div>
+ </aside>
+</div>
+</section>
+
+<!-- ÉCRAN 2 -->
+<section class="screen-block">
+<h2 class="screen-title">2. Étape de récit, sans bouton à cliquer (ordinateur)</h2>
+<p class="screen-note">Le guide raconte. Il n'y a pas de cible : le voile couvre tout l'écran sauf la popin. Le passage de l'écran 1 à l'écran 2 se fait par un fondu de 200 ms, la découpe glisse vers la nouvelle cible quand elle change.</p>
+<div class="frame scene h560" data-ambiance="medieval">
+ <div class="app scene-app">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div>
+   <div class="top-right"><span class="demo-chip">Démo</span><button type="button" class="help-btn">Comment marchent les dés ?</button><span class="online-chip"><span class="dot"></span>En ligne</span></div></div>
+  <div class="dash">
+   <div style="display:flex;flex-direction:column;gap:12px">
+    <section class="block"><h3>Code d'accès de la table</h3><p class="code-value">DRAGON</p></section>
+    <section class="block"><h3>Actions</h3><button type="button" class="btn block-w">Ordonner un test</button><button type="button" class="btn ghost block-w">Lancer une attaque</button></section>
+   </div>
+   <div><p class="col-title">Joueurs</p>
+    <div class="mini-row"><div class="av">AL</div><div>Aldric</div><span class="meta">24 / 24</span></div>
+    <div class="mini-row"><div class="av">YS</div><div>Ysolde</div><span class="meta">18 / 18</span></div>
+    <div class="mini-row"><div class="av">BR</div><div>Brannoc</div><span class="meta">15 / 15</span></div>
+   </div>
+   <div><p class="col-title">PNJ</p><div class="mini-row foe"><div class="av">DR</div><div>Le dragon rouge</div><span class="meta">60 / 60</span></div></div>
+  </div>
+ </div>
+ <div class="dim" aria-hidden="true"></div>
+ <aside class="demo-pop float" aria-label="Scénario guidé">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 2 sur 5</div></div><button type="button" class="demo-pop-toggle">Réduire</button></div>
+  <div class="demo-pop-body">
+   <ol class="guide-steps"><li class="done"></li><li class="now"></li><li></li><li></li><li></li></ol>
+   <h3 class="guide-step-title">La cour aux sentinelles</h3>
+   <p class="guide-read"><span class="guide-tag">À lire aux joueurs</span>Derrière la muraille, une cour pavée. Deux gardes de pierre semblent dormir debout, mais leurs yeux brillent dans le noir. Il faut traverser sans bruit.</p>
+   <button type="button" class="primary-btn full">Continuer</button>
+   <div class="demo-pop-foot"><button type="button" class="guide-link">Recommencer la démo</button></div>
+  </div>
+ </aside>
+</div>
+</section>
+
+<!-- ÉCRAN 3 -->
+<section class="screen-block">
+<h2 class="screen-title">3. Cible dans une modale ouverte (ordinateur)</h2>
+<p class="screen-note">La modale « Ordonner un test » a son propre fond sombre. Le voile descend alors à 20 % : le contenu de la modale reste lisible, la puce « Discrétion » reste lumineuse dans sa découpe. Quand le corps de la modale défile, la découpe suit la puce. La popin passe en haut parce qu'elle cacherait la cible.</p>
+<div class="frame scene h620 avec-modale" data-ambiance="medieval">
+ <div class="app scene-app" style="height:100%">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div>
+   <div class="top-right"><span class="demo-chip">Démo</span><span class="online-chip"><span class="dot"></span>En ligne</span></div></div>
+  <div class="m-overlay" style="justify-content:flex-start;padding-left:60px">
+   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m3">
+    <div class="modal-head"><h2 id="m3">Ordonner un test</h2><button type="button" class="close-x" aria-label="Fermer">✕</button></div>
+    <div class="modal-body">
+     <fieldset class="field"><legend><span class="n">1</span>Compétence</legend>
+      <div class="chips"><button type="button" class="chipb">Perception</button><span class="target inline"><button type="button" class="chipb">Discrétion</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici : Discrétion</span></span></span><button type="button" class="chipb">Fouille</button><button type="button" class="chipb">Athlétisme</button><button type="button" class="chipb">Esquive</button></div></fieldset>
+     <fieldset class="field"><legend><span class="n">2</span>Malus</legend><div class="chips"><button type="button" class="chipb on">Aucun</button><button type="button" class="chipb">+10</button><button type="button" class="chipb">+20</button><button type="button" class="chipb">−10</button></div></fieldset>
+     <fieldset class="field"><legend><span class="n">3</span>Qui lance</legend><div class="chips"><button type="button" class="chipb">Toute l'équipe (3)</button></div></fieldset>
+    </div>
+    <div class="modal-foot"><p class="recap">Choisissez une compétence.</p><button type="button" class="btn block-w" disabled style="opacity:.5">Transmettre l'ordre</button></div>
+   </div>
+  </div>
+ </div>
+ <aside class="demo-pop float top" aria-label="Scénario guidé" style="width:340px">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 2 sur 5</div></div><button type="button" class="demo-pop-toggle">Ouvrir</button></div>
+  <p class="demo-say" style="margin:10px 16px 14px">Ordonnez un test de Discrétion (malus +10) à toute l'équipe.</p>
+ </aside>
+</div>
+</section>
+
+<!-- ÉCRAN 4 -->
+<section class="screen-block">
+<h2 class="screen-title">4. Popin réduite : voile allégé (ordinateur)</h2>
+<p class="screen-note">Après « Réduire », la personne veut regarder l'interface : le voile passe à 25 %. La découpe reste sur la cible, ici le bouton d'esquive du dragon pendant le combat.</p>
+<div class="frame scene h560 reduit" data-ambiance="medieval">
+ <div class="app scene-app">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div>
+   <div class="top-right"><span class="demo-chip">Démo</span><span class="online-chip"><span class="dot"></span>En ligne</span></div></div>
+  <div class="dash">
+   <div style="display:flex;flex-direction:column;gap:12px">
+    <section class="block" style="border-color:var(--danger-border)"><h3>Attaque en cours</h3><p style="margin:0">Aldric attaque le dragon rouge, épée longue, corps à corps.</p><p style="margin:0;font-weight:600">Touché, 2 degrés de réussite.</p>
+     <span class="target"><button type="button" class="btn danger block-w">Lancer l'esquive du PNJ</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label below">Cliquez ici : Esquive du dragon</span></span></span>
+    </section>
+   </div>
+   <div><p class="col-title">Joueurs</p>
+    <div class="mini-row"><div class="av">AL</div><div>Aldric</div><span class="meta">24 / 24</span></div>
+    <div class="mini-row"><div class="av">YS</div><div>Ysolde</div><span class="meta">18 / 18</span></div>
+   </div>
+   <div><p class="col-title">PNJ</p><div class="mini-row foe"><div class="av">DR</div><div>Le dragon rouge</div><span class="meta">60 / 60</span></div></div>
+  </div>
+ </div>
+ <aside class="demo-pop float" aria-label="Scénario guidé" style="width:360px">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 5 sur 5</div></div><button type="button" class="demo-pop-toggle" aria-expanded="false">Ouvrir</button></div>
+  <p class="demo-say" style="margin:10px 16px 14px">Touché ! Lancez l'esquive du dragon rouge.</p>
+ </aside>
+</div>
+</section>
+
+<!-- ÉCRAN 5 -->
+<section class="screen-block">
+<h2 class="screen-title">5. États : chargement, erreur, cible introuvable, confirmation, fin de démo (ordinateur)</h2>
+<p class="screen-note">Le voile n'existe que lorsque la popin du guide est affichée. Dans tous les autres états avec popin, il couvre tout sauf la popin, sans découpe.</p>
+<div class="row2">
+ <div class="half">
+  <span class="state-label">Chargement : pas encore de guide, donc pas de voile</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <div class="helper-text"><span class="loading" style="justify-content:center"><span class="spinner"></span>Connexion au serveur…</span></div>
+  </div></div>
+ </div>
+ <div class="half">
+  <span class="state-label">Erreur : le serveur de démo ne répond plus</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <section class="block"><h3>Actions</h3><button type="button" class="btn block-w">Nouveau test</button></section>
+  </div>
+  <div class="dim" aria-hidden="true"></div>
+  <aside class="demo-pop float" style="width:330px;bottom:12px;right:12px"><div class="demo-pop-body" style="padding:12px">
+   <p class="demo-say" style="font-size:15px">Les compagnons lancent les dés…</p>
+   <div class="guide-alert err" role="alert">Le serveur de démo ne répond pas. Vérifiez qu’il tourne, puis réessayez.</div>
+  </div></aside></div>
+ </div>
+ <div class="half">
+  <span class="state-label">Cible introuvable : voile plein, consigne écrite visible</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <section class="block"><h3>Actions</h3><button type="button" class="btn block-w">Demander un jet</button><button type="button" class="btn ghost block-w">Lancer une attaque</button></section>
+  </div>
+  <div class="dim" aria-hidden="true"></div>
+  <aside class="demo-pop float" style="width:330px;bottom:12px;right:12px"><div class="demo-pop-body" style="padding:12px">
+   <p class="demo-say" style="font-size:15px"><span class="state-label on" style="margin:0 8px 0 0">À vous</span>Ordonnez un test de Fouille (sans malus) à toute l'équipe.</p>
+  </div></aside></div>
+  <p class="screen-note mt">Le bouton s'appelle ici « Demander un jet » : le guide ne le trouve pas. Aucune découpe fantôme, aucune erreur dans la console.</p>
+ </div>
+ <div class="half">
+  <span class="state-label">Confirmation « Recommencer la démo ? »</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <section class="block"><h3>Actions</h3><button type="button" class="btn block-w">Ordonner un test</button></section>
+  </div>
+  <div class="dim" aria-hidden="true"></div>
+  <aside class="demo-pop float" style="width:360px;bottom:12px;right:12px"><div class="demo-pop-body" style="padding:12px">
+   <div class="guide-dialog" role="dialog" aria-labelledby="rz"><h4 id="rz">Recommencer la démo ?</h4><p>Les PV et les jets sont remis à zéro, les personnages et le dragon recréés.</p><div class="guide-btn-row"><button type="button" class="primary-btn">Recommencer</button><button type="button" class="secondary-btn">Annuler</button></div></div>
+  </div></aside></div>
+ </div>
+ <div class="half">
+  <span class="state-label on">Succès : fin de la démo</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <div class="mini-row foe"><div class="av">DR</div><div>Le dragon rouge</div><span class="meta">0 / 60</span></div>
+  </div>
+  <div class="dim" aria-hidden="true"></div>
+  <aside class="demo-pop float" style="width:360px;bottom:12px;right:12px"><div class="demo-pop-body" style="padding:12px">
+   <h3 class="guide-step-title">Le dragon est vaincu</h3><p style="margin:0">Le château retrouve le silence. Aldric, Ysolde et Brannoc repartent avec une écaille rouge en souvenir.</p>
+  </div></aside></div>
+ </div>
+ <div class="half">
+  <span class="state-label">Vide : table de démo vide</span>
+  <div class="frame scene" data-ambiance="medieval" style="height:300px"><div class="app scene-app">
+   <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+   <p class="whoall-hint">Aucun personnage à cette table.</p>
+  </div>
+  <div class="dim" aria-hidden="true"></div>
+  <aside class="demo-pop float" style="width:360px;bottom:12px;right:12px"><div class="demo-pop-body" style="padding:12px">
+   <div class="guide-alert warn">La table de démo est vide. Recommencez la démo pour recréer les personnages et le dragon.</div>
+   <button type="button" class="guide-link">Recommencer la démo</button>
+  </div></aside></div>
+ </div>
+</div>
+</section>
+
+<!-- ÉCRAN 6 -->
+<section class="screen-block">
+<h2 class="screen-title">6. Vue joueur sur téléphone (375 pixels)</h2>
+<p class="screen-note">À gauche, le guide montre « Lancer le dé » : la popin passe en haut pour ne pas cacher la zone de jet, le bouton brille dans sa découpe. À droite, une étape de récit : voile plein, la popin occupe le bas de l'écran.</p>
+<div class="row-phones">
+ <div class="frame phone scene h760" data-ambiance="medieval"><div class="app scene-app">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Joueur</div></div></div><span class="demo-chip">Démo</span></div>
+  <div class="player-head"><div class="av lg">AL</div><div><div class="roster-name big">Aldric</div><div class="roster-cls">Chevalier</div></div></div>
+  <div class="pv"><span>Points de vie</span><span><strong>24</strong> <em>/ 24</em></span></div>
+  <div class="bar"><i style="width:100%"></i></div>
+  <div style="height:150px"></div>
+  <div class="roll-zone"><p><strong>Test de Perception</strong></p><p class="hint">Seuil 45, sans malus.</p>
+   <span class="target"><button type="button" class="btn big">Lancer le dé</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici : Lancer le dé</span></span></span>
+  </div>
+ </div>
+ <aside class="demo-pop float top" aria-label="Scénario guidé" style="left:8px;right:8px;top:8px;width:auto">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous jouez Aldric · Étape 1 sur 5</div></div><button type="button" class="demo-pop-toggle">Ouvrir</button></div>
+  <p class="demo-say" style="margin:10px 16px 14px">Cliquez sur « Lancer le dé » pour le test de Perception.</p>
+ </aside></div>
+ <div class="frame phone scene h760" data-ambiance="medieval"><div class="app scene-app">
+  <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Joueur</div></div></div><span class="demo-chip">Démo</span></div>
+  <div class="player-head"><div class="av lg">AL</div><div><div class="roster-name big">Aldric</div><div class="roster-cls">Chevalier</div></div></div>
+  <div class="pv"><span>Points de vie</span><span><strong>24</strong> <em>/ 24</em></span></div>
+  <div class="bar"><i style="width:100%"></i></div>
+  <p class="wait">En attente d'un ordre du Maître de Jeu.</p>
+ </div>
+ <div class="dim" aria-hidden="true"></div>
+ <aside class="demo-pop float" aria-label="Scénario guidé">
+  <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous jouez Aldric · Étape 3 sur 5</div></div><button type="button" class="demo-pop-toggle">Réduire</button></div>
+  <div class="demo-pop-body"><ol class="guide-steps"><li class="done"></li><li class="done"></li><li class="now"></li><li></li><li></li></ol>
+   <h3 class="guide-step-title">La bibliothèque</h3>
+   <p class="guide-read"><span class="guide-tag">Le MJ raconte</span>Des rayons couverts de poussière montent jusqu'au plafond. Quelque part ici dort un plan du château, roulé dans un étui de cuir.</p>
+   <button type="button" class="primary-btn full">Continuer</button></div>
+ </aside></div>
+</div>
+</section>
+
+<!-- ÉCRAN 7 -->
+<section class="screen-block">
+<h2 class="screen-title">7. Écran partagé, chaque vue a son voile (ordinateur)</h2>
+<p class="screen-note">Les deux vues sont deux iframes : chacune pose son voile et sa découpe dans sa propre fenêtre. Le voile de gauche ne déborde pas sur la droite. Les en-têtes « Vue MJ » et « Vue joueur » appartiennent à la page qui entoure les iframes : ils restent clairs.</p>
+<div class="frame" data-ambiance="medieval">
+ <div class="split">
+  <div><div class="pane-head"><span>Vue MJ</span><a>Ouvrir seule</a></div>
+   <div class="pane scene" style="height:440px">
+    <div class="app scene-app">
+     <div class="top"><div class="brand"><div class="brand-title">AUSPEX</div></div><span class="demo-chip">Démo</span></div>
+     <section class="block"><h3>Actions</h3><span class="target"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"><span class="coach-label">Cliquez ici : Ordonner un test</span></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section>
+    </div>
+    <aside class="demo-pop float"><div class="demo-pop-body" style="padding:12px"><p class="demo-say" style="font-size:15px"><span class="state-label on" style="margin:0 8px 0 0">À vous</span>Ordonnez un test de Perception (sans malus) à toute l'équipe.</p></div></aside>
+   </div></div>
+  <div><div class="pane-head"><span>Vue joueur</span><a>Ouvrir seule</a></div>
+   <div class="pane scene" style="height:440px">
+    <div class="app scene-app">
+     <div class="player-head"><div class="av lg">AL</div><div><div class="roster-name big">Aldric</div><div class="roster-cls">Chevalier</div></div></div>
+     <p class="wait">En attente d'un ordre du Maître de Jeu.</p>
+    </div>
+    <div class="dim" aria-hidden="true"></div>
+    <aside class="demo-pop float"><div class="demo-pop-body" style="padding:12px"><p class="demo-say" style="font-size:15px">Attendez que le MJ ordonne le test de Perception.</p></div></aside>
+   </div></div>
+ </div>
+</div>
+</section>
+
+<!-- ÉCRAN 8 -->
+<section class="screen-block">
+<h2 class="screen-title">8. Le voile dans chaque ambiance</h2>
+<p class="screen-note">Un seul jeton, <code>--demo-dim</code>, redéfini par ambiance. Ambiances sombres : noir à 45 %. Ambiances claires (Médiéval, Horreur) : la teinte brune de leur <code>--overlay</code> à 45 %, pour ne pas griser le parchemin. Le cadre jaune et son étiquette gardent leurs couleurs <code>--warn</code>.</p>
+<div class="gallery">
+ <div class="amb-mini"><p class="gname">Cyber</p><div class="frame scene" data-ambiance="cyber"><div class="app scene-app"><span class="demo-chip">Démo</span><section class="block"><span class="target" style="margin-top:28px"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section></div><aside class="demo-pop float"><div class="demo-pop-head"><div class="demo-pop-title">Le guide</div></div><p class="demo-say" style="margin:8px 12px 12px">Ordonnez un test.</p></aside></div></div>
+ <div class="amb-mini"><p class="gname">Médiéval</p><div class="frame scene" data-ambiance="medieval"><div class="app scene-app"><span class="demo-chip">Démo</span><section class="block"><span class="target" style="margin-top:28px"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section></div><aside class="demo-pop float"><div class="demo-pop-head"><div class="demo-pop-title">Le guide</div></div><p class="demo-say" style="margin:8px 12px 12px">Ordonnez un test.</p></aside></div></div>
+ <div class="amb-mini"><p class="gname">Espace</p><div class="frame scene" data-ambiance="espace"><div class="app scene-app"><span class="demo-chip">Démo</span><section class="block"><span class="target" style="margin-top:28px"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section></div><aside class="demo-pop float"><div class="demo-pop-head"><div class="demo-pop-title">Le guide</div></div><p class="demo-say" style="margin:8px 12px 12px">Ordonnez un test.</p></aside></div></div>
+ <div class="amb-mini"><p class="gname">Horreur</p><div class="frame scene" data-ambiance="horreur"><div class="app scene-app"><span class="demo-chip">Démo</span><section class="block"><span class="target" style="margin-top:28px"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section></div><aside class="demo-pop float"><div class="demo-pop-head"><div class="demo-pop-title">Le guide</div></div><p class="demo-say" style="margin:8px 12px 12px">Ordonnez un test.</p></aside></div></div>
+ <div class="amb-mini"><p class="gname">Gothique</p><div class="frame scene" data-ambiance="gothique"><div class="app scene-app"><span class="demo-chip">Démo</span><section class="block"><span class="target" style="margin-top:28px"><button type="button" class="btn block-w">Ordonner un test</button><span class="hole" aria-hidden="true"></span><span class="coach" aria-hidden="true"></span></span><button type="button" class="btn ghost block-w">Lancer une attaque</button></section></div><aside class="demo-pop float"><div class="demo-pop-head"><div class="demo-pop-title">Le guide</div></div><p class="demo-say" style="margin:8px 12px 12px">Ordonnez un test.</p></aside></div></div>
+</div>
+</section>
+
+<!-- ÉCRAN 9 -->
+<section class="screen-block">
+<h2 class="screen-title">9. Table habituelle, hors démo : aucun voile (référence)</h2>
+<p class="screen-note">Sans scénario, <code>DemoGuide</code> n'est pas monté : pas de voile, pas de cadre, pas de badge « Démo ». L'écran est strictement celui d'aujourd'hui.</p>
+<div class="frame scene" data-ambiance="cyber" style="height:300px"><div class="app scene-app">
+ <div class="top"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div><span class="online-chip"><span class="dot"></span>En ligne</span></div>
+ <div class="dash"><section class="block"><h3>Actions</h3><button type="button" class="btn block-w">Ordonner un test</button><button type="button" class="btn ghost block-w">Lancer une attaque</button></section>
+  <div><p class="col-title">Joueurs</p><div class="mini-row"><div class="av">DJ</div><div>Djoko</div><span class="meta">130 / 130</span></div></div><div></div></div>
+</div></div>
+</section>
+
+<!-- ÉCRAN 10 -->
+<section class="screen-block">
+<h2 class="screen-title">10. Pour la session de dev</h2>
+<p class="screen-note">Ordre d'empilement, de bas en haut. Le voile se glisse entre les modales et le cadre du repère.</p>
+<ol class="ladder">
+ <li><b>20</b><span>Modales d'Auspex (<code>.modal-overlay</code>, fond <code>--overlay</code>)</span></li>
+ <li><b>30</b><span>Aide sur les dés (<code>.help-pop</code>), assombrie comme le reste</span></li>
+ <li><b>32</b><span>Voile (<code>.demo-dim</code>), nouveau, <code>position: fixed</code>, <code>pointer-events: none</code>, <code>aria-hidden="true"</code></span></li>
+ <li><b>35</b><span>Cadre du repère (<code>.demo-coach</code>), inchangé</span></li>
+ <li><b>40</b><span>Popin du guide (<code>.demo-pop</code>), inchangée</span></li>
+</ol>
+<ul class="decor-list mt">
+ <li><strong>Technique</strong> : un seul élément rendu par <code>DemoGuide</code>. Avec cible, il prend le rectangle de <code>coach.rect</code> agrandi de 6 px de chaque côté, <code>border-radius: 10px</code> et <code>box-shadow: 0 0 0 100vmax var(--demo-dim)</code>. Sans cible, il couvre toute la fenêtre avec <code>background: var(--demo-dim)</code>. Les deux formes partagent le même calcul que le cadre, donc pas de décalage entre la découpe et le cadre qui pulse.</li>
+ <li><strong>Fonction pure à tester</strong> : par exemple <code>dimHole(rect)</code> dans <code>src/demo/coach.js</code>, qui renvoie <code>null</code> sans rectangle, sinon <code>{ top, left, width, height }</code> avec la marge de 6 px. Le cadre du repère peut l'utiliser aussi.</li>
+ <li><strong>Intensité</strong> : <code>--demo-dim</code> par défaut, <code>--demo-dim-reduit</code> quand la popin est réduite, <code>--demo-dim-modale</code> quand une <code>.modal-overlay</code> est présente dans la page. Les trois sont redéfinis dans <code>:root</code> et chaque <code>:root[data-ambiance]</code>.</li>
+ <li><strong>Mouvement</strong> : fondu d'opacité de 200 ms à l'apparition, glissement de 200 ms de <code>top</code>, <code>left</code>, <code>width</code>, <code>height</code> quand la cible change de bouton. Avec <code>prefers-reduced-motion: reduce</code>, aucune transition. Le suivi au défilement reste immédiat (même cadence que le repère, pas de transition pendant le défilement).</li>
+ <li><strong>Écran partagé</strong> : rien à faire de spécial, chaque iframe a sa propre fenêtre et son propre <code>DemoGuide</code>.</li>
+ <li><strong>Contraste forcé</strong> : sous <code>forced-colors: active</code>, le voile est masqué, le cadre du repère suffit.</li>
+</ul>
+</section>
+</main>
+</body>
+</html>
