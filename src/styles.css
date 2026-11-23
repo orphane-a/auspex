@@ -1766,8 +1766,7 @@ input {
 .guide-end p {
   margin: 0;
 }
-/* Les planches sont en 4:3. Dans la popin (colonne flex qui défile), flex: none empêche
-   l'image d'être écrasée en une fine bande quand le contenu dépasse la hauteur. */
+/* Les planches sont en 4:3. */
 .demo-figure {
   flex: none;
   margin: 0;
@@ -1781,10 +1780,28 @@ input {
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 3;
-  /* Sur un écran bas, l'image est un peu recadrée plutôt que de repousser le bouton à cliquer. */
-  max-height: 30vh;
   object-fit: cover;
   object-position: 50% 35%;
+}
+/* Dans la popin, l'image est la seule partie élastique : elle se recadre pour que le texte
+   et le bouton tiennent sans défiler, sans descendre sous 120px. Le reste garde sa taille. */
+.demo-pop-body .demo-figure {
+  flex: 0 1 auto;
+  aspect-ratio: 4 / 3;
+  max-height: 40vh;
+  min-height: 120px;
+}
+.demo-pop-body .demo-figure img {
+  height: 100%;
+  aspect-ratio: auto;
+}
+.demo-pop-body > .guide-end {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.demo-pop-body > :not(.demo-figure, .guide-end),
+.guide-end > :not(.demo-figure) {
+  flex-shrink: 0;
 }
 .demo-home-cover {
   margin: 0 0 24px;
