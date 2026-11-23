@@ -49,7 +49,7 @@ function TableApp() {
   const [view, setView] = useState(routeView ?? 'mj')
   const [mjSubView, setMjSubView] = useState(null) // null = decide from data; 'home' | 'dashboard' once the MJ picks
   const vals = useTableState()
-  const { scenario } = useScenario()
+  const { loading: scenarioLoading, scenario } = useScenario()
   const activeView = routeView ?? view
   // Connexion joueur (ticket 100) : l'écran reste en Cyber tant que le code tapé ne
   // correspond pas à la table, puis prend l'ambiance de la table.
@@ -57,13 +57,20 @@ function TableApp() {
   const onJoinScreen = activeView === 'joueur' && !vals.myCharacter && !scenario
   const ambianceAffichee = onJoinScreen && !joinCodeOk ? 'cyber' : vals.ambiance
   useEffect(() => {
-    if (vals.loading) return
+    // Ticket 101 : on attend aussi de savoir si c'est la démo, sinon l'écran de
+    // connexion joueur forcerait Cyber un instant avant de passer en Médiéval.
+    if (vals.loading || scenarioLoading) return
     appliquerAmbiance(ambianceAffichee, { memoriser: ambianceAffichee === vals.ambiance })
-  }, [vals.loading, ambianceAffichee, vals.ambiance])
+  }, [vals.loading, scenarioLoading, ambianceAffichee, vals.ambiance])
 
   // En démo, une table vide reste sur la vue MJ : la popin du guide propose alors
   // de recommencer la démo plutôt que d'importer des fiches.
   const showMjHome = mjSubView === 'home' || (mjSubView === null && vals.characters.length === 0 && !scenario)
+
+  // Ticket 101 : rien n'est dessiné tant qu'on ne sait pas si c'est la démo, comme à
+  // la racine. Un navigateur neuf ne voit donc jamais l'en-tête en Cyber avant que
+  // la démo passe en Médiéval.
+  if (scenarioLoading) return null
 
   const subtitle = activeView === 'mj' ? 'Maître de jeu' : vals.myCharacter ? `Joueur, table ${vals.tableCode}` : 'Joueur'
   const otherPath = routeView === 'mj' ? '/joueur' : '/mj'
@@ -117,7 +124,7 @@ function TableApp() {
         ) : activeView === 'mj' ? (
           showMjHome ? (
             <div className="screen-scroll">
-              <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
+              <MjHome vals={vals} ambianceInitiale={scenario?.ambiance} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
             </div>
           ) : (
             <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />

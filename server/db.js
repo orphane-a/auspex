@@ -159,6 +159,15 @@ export function clearRequest() {
   setRolls({})
 }
 
+// Change l'ambiance sans toucher au reste de la table (code, personnages, jets) :
+// sert au démarrage de la démo, qui revient toujours à l'ambiance du scénario
+// (ticket 101). L'ambiance arrive déjà contrôlée par l'appelant.
+export function setAmbiance(ambiance) {
+  ensureTableState()
+  db.prepare('UPDATE table_state SET ambiance = ? WHERE id = 1').run(ambiance)
+  return getTableState()
+}
+
 // L'ambiance arrive déjà contrôlée par la route (liste de src/ambiances.js).
 export function resetTable(ambiance = 'cyber') {
   ensureTableState()

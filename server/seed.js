@@ -2,8 +2,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
-import { addCharacter, addNpc, getTableState, listCharacters, listNpcs, removeNpc, resetTable, updateNpcDodgeBonus } from './db.js'
+import { addCharacter, addNpc, getTableState, listCharacters, listNpcs, removeNpc, resetTable, setAmbiance, updateNpcDodgeBonus } from './db.js'
 import { getScenario } from '../src/scenarios/index.js'
+import { AMBIANCE_PAR_DEFAUT, isAmbiance } from '../src/ambiances.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SEED_FILE = path.join(__dirname, '..', 'PJ_Djoko_mk4.xlsx')
@@ -15,7 +16,11 @@ const NPC_SEED_DIR = path.join(__dirname, '..', 'PNJ_test')
 export async function seedIfEmpty() {
   if (listCharacters().length > 0) return
   const scenario = activeScenario()
-  if (scenario) return seedScenarioCharacters(scenario)
+  if (scenario) {
+    // Base vide en démo : la table naît dans l'ambiance du scénario (ticket 101).
+    setAmbiance(ambianceDuScenario(scenario))
+    return seedScenarioCharacters(scenario)
+  }
   const djokoSheet = await readDjokoSheet()
   if (djokoSheet) {
     const { skills, avatar, pvBase, pvCurrent, armor, characteristics, weapons } = djokoSheet
@@ -138,6 +143,24 @@ export function activeScenario() {
   return scenario
 }
 
+// Ambiance d'une table neuve (ticket 101) : celle du scénario actif si elle est
+// valide, sinon l'ambiance par défaut. Seule règle, partagée par le seed, le
+// démarrage de la démo et POST /api/table/reset.
+export function ambianceDuScenario(scenario = activeScenario()) {
+  return isAmbiance(scenario?.ambiance) ? scenario.ambiance : AMBIANCE_PAR_DEFAUT
+}
+
+// Démarrage d'une instance de démo (ticket 101) : la table revient toujours à
+// l'ambiance du scénario, même sur une base existante, sans toucher aux personnages
+// ni au code. La démo reste ainsi une vitrine stable. Sans scénario : rien ne change.
+export function appliquerAmbianceDuScenario() {
+  const scenario = activeScenario()
+  if (!scenario) return null
+  const ambiance = ambianceDuScenario(scenario)
+  if (getTableState().ambiance !== ambiance) setAmbiance(ambiance)
+  return ambiance
+}
+
 function seedScenarioCharacters(scenario) {
   for (const c of scenario.characters) {
     addCharacter({
@@ -168,7 +191,7 @@ function seedScenarioNpc(scenario) {
 export async function resetScenarioTable(ambiance) {
   const scenario = activeScenario()
   if (!scenario) return false
-  resetTable(ambiance)
+  resetTable(ambiance ?? ambianceDuScenario(scenario))
   for (const npc of listNpcs()) removeNpc(npc.id)
   seedScenarioCharacters(scenario)
   seedScenarioNpc(scenario)

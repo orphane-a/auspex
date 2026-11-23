@@ -255,6 +255,11 @@ describe('POST /table/reset, ambiance (ticket 100)', () => {
     })
   }
 
+  it('hors démo, GET /scenario ne propose aucune ambiance (ticket 101)', async () => {
+    const { data } = await call('GET', '/scenario')
+    expect(data).toEqual({ scenario: null, ambiance: null })
+  })
+
   it('crée la table en cyber sans ambiance fournie', async () => {
     await call('POST', '/table/reset', { ambiance: 'gothique' })
     const { status, data } = await call('POST', '/table/reset')

@@ -2,10 +2,10 @@ import { Router } from 'express'
 import multer from 'multer'
 import { parseCharacterSheet, parseNpcSheet } from './xlsxParser.js'
 import { resolveRoll, degreesFromRoll } from './game.js'
-import { activeScenario, addFictionalCharacters, fictionalEnabled, resetScenarioTable, seedIfEmpty } from './seed.js'
+import { activeScenario, addFictionalCharacters, ambianceDuScenario, fictionalEnabled, resetScenarioTable, seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
 import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
-import { AMBIANCE_PAR_DEFAUT, isAmbiance } from '../src/ambiances.js'
+import { isAmbiance } from '../src/ambiances.js'
 import * as db from './db.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -42,12 +42,18 @@ export function createRoutes({ presence, buildSnapshot, autoRollDelayMs }) {
   // Mode démo (ticket 97) : exposé par une route à part plutôt que dans le snapshot,
   // pour ne pas toucher au protocole socket. Les textes du scénario restent côté
   // client (src/scenarios/), seul l'identifiant transite.
-  router.get('/scenario', (req, res) => res.json({ scenario: activeScenario()?.id ?? null }))
+  // Ticket 101 : l'ambiance du scénario part avec, pour que l'interface l'applique
+  // avant le premier rendu de la démo (pas d'éclair Cyber dans un navigateur neuf).
+  router.get('/scenario', (req, res) => {
+    const scenario = activeScenario()
+    res.json({ scenario: scenario?.id ?? null, ambiance: scenario ? ambianceDuScenario(scenario) : null })
+  })
 
-  // Ambiance (ticket 100) : absente = cyber ; inconnue = 400 avant toute remise à
+  // Ambiance (ticket 100) : absente = celle du scénario en démo (ticket 101), cyber
+  // sinon ; inconnue = 400 avant toute remise à
   // zéro, pour que la table en cours et son code restent intacts.
   router.post('/table/reset', async (req, res) => {
-    const ambiance = req.body?.ambiance ?? AMBIANCE_PAR_DEFAUT
+    const ambiance = req.body?.ambiance ?? ambianceDuScenario()
     if (!isAmbiance(ambiance)) {
       return res.status(400).json({ error: 'Ambiance inconnue. Choisissez l\'une des cinq ambiances proposées. La table actuelle n\'a pas changé.' })
     }

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auspex, ticket 101 : démo en ambiance médiévale</title>
+<style>
+/* Variables par ambiance : bloc à reprendre tel quel dans src/styles.css (sélecteur :root[data-ambiance="..."]). */
+[data-ambiance="cyber"]{--bg:#07120c;--surface:#0e1f16;--surface-2:#133022;--border:#2a5c40;--border-soft:#1d3f2c;--border-strong:#4f8f69;--text:#eaf6ee;--text-2:#b3d1bd;--accent:#5ef29c;--accent-ink:#04140b;--warn:#f2c94c;--danger:#ff9a70;--danger-bg:#2a1712;--danger-border:#a8573a;--focus:#ffe14d;--text-strong:#ffffff;}
+[data-ambiance="medieval"]{--bg:#efe2c4;--surface:#f8efd9;--surface-2:#e6d3a8;--border:#a9895a;--border-soft:#d2bb8d;--border-strong:#7f6238;--text:#2a1a0c;--text-2:#5b4126;--accent:#7a4d08;--accent-ink:#fff8e6;--warn:#7a5400;--danger:#9a1b1b;--danger-bg:#f6dcd2;--danger-border:#b5523f;--focus:#1d4fa8;--text-strong:#1a0f05;}
+[data-ambiance="espace"]{--bg:#050a1a;--surface:#0c1530;--surface-2:#132045;--border:#2b3f72;--border-soft:#1b2a52;--border-strong:#5872b4;--text:#eef3ff;--text-2:#b0bfe0;--accent:#4fd8ff;--accent-ink:#03141f;--warn:#ffd166;--danger:#ff9a55;--danger-bg:#2a170c;--danger-border:#b1622f;--focus:#ffffff;--text-strong:#ffffff;}
+[data-ambiance="horreur"]{--bg:#e6dbc0;--surface:#f2e9d3;--surface-2:#d9caa6;--border:#968a68;--border-soft:#c9bb95;--border-strong:#6c6246;--text:#1b1912;--text-2:#4a4434;--accent:#2c5638;--accent-ink:#f2ecd6;--warn:#6a4700;--danger:#8e1e17;--danger-bg:#f1d6cc;--danger-border:#a8503e;--focus:#5b2a9a;--text-strong:#0f0e0a;}
+[data-ambiance="gothique"]{--bg:#0d0a10;--surface:#18121e;--surface-2:#241a2d;--border:#4d3858;--border-soft:#33263d;--border-strong:#806290;--text:#f1ecf3;--text-2:#c4b9ca;--accent:#f0607a;--accent-ink:#160609;--warn:#c9a6ff;--danger:#ffad5c;--danger-bg:#2b190c;--danger-border:#a8653a;--focus:#e9e4ec;--text-strong:#ffffff;}
+
+[data-ambiance]{--radius:12px;--radius-sm:8px;--font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--font-title:var(--font-mono);--title-spacing:.14em}
+[data-ambiance="medieval"],[data-ambiance="horreur"]{--font-title:Georgia,'Times New Roman',serif;--title-spacing:.08em}
+[data-ambiance="gothique"]{--font-title:'Palatino Linotype',Palatino,Georgia,serif;--title-spacing:.18em}
+*{box-sizing:border-box}
+body{margin:0;background:#07120c;font-family:'IBM Plex Sans',system-ui,sans-serif;line-height:1.5}
+.doc{background:var(--bg);color:var(--text);padding:32px 24px 64px;max-width:1240px;margin:0 auto}
+.doc-head h1{font-family:var(--font-mono);font-size:26px;color:var(--accent);margin:0 0 8px;letter-spacing:.04em}
+.doc-head p{color:var(--text-2);max-width:820px;margin:0 0 10px}
+.decor-list{color:var(--text-2);max-width:860px;margin:0 0 10px;padding-left:20px;font-size:15px}.decor-list li{margin:4px 0}.decor-list strong{color:var(--text)}
+code{font-family:var(--font-mono);font-size:.92em;color:var(--text)}
+.screen-block{margin-top:56px}
+.screen-title{font-size:22px;font-weight:600;margin:0 0 6px;color:var(--text)}
+.screen-note{color:var(--text-2);margin:0 0 18px;max-width:860px;font-size:15px}
+.frame{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:16px;border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;transition:background-color .25s ease,color .25s ease}
+.frame .app{padding:24px;display:flex;flex-direction:column;gap:12px}
+.desk .app{max-width:760px;margin:0 auto}
+.row2,.row3,.row-phones{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.half{flex:1 1 420px}.third{flex:1 1 300px}
+.phone{width:375px;flex:none}
+.phone .app{padding:16px}
+.mt{margin-top:16px}.mt8{margin-top:-4px}.mt14{margin-top:2px}
+/* reprise des composants existants */
+.stage-header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:36px;height:36px;color:var(--accent);flex:none}
+.brand-title{font-family:var(--font-title);font-weight:600;font-size:22px;letter-spacing:var(--title-spacing);color:var(--accent);line-height:1.1}
+.brand-subtitle{font-size:14px;color:var(--text-2);margin-top:2px}
+.online-chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.panel-titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap}
+.pt-title{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px}
+.diamond{width:14px;height:14px;border:2px solid var(--accent);transform:rotate(45deg);display:inline-block;margin:0 3px}
+.tag{font-size:14px;color:var(--text-2)}
+.section-label{font-size:22px;font-weight:600;color:var(--text);padding:0}
+.primary-btn{cursor:pointer;min-height:48px;padding:0 24px;font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:2px solid var(--accent);border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;gap:10px;align-self:flex-start}
+.primary-btn:disabled{opacity:.7;cursor:progress}
+.primary-btn.full{align-self:stretch}
+.text-input{width:100%;min-height:48px;padding:10px 14px;font:inherit;color:var(--text);background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius-sm)}
+.text-input::placeholder{color:var(--text-2)}
+.form-error{color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:15px}
+.whoall-hint{color:var(--text-2);font-size:15px;background:var(--surface);border:1px dashed var(--border-strong);border-radius:var(--radius);padding:16px;text-align:center}
+.roster-row{display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.roster-name{font-size:19px;font-weight:600}.roster-name.big{font-size:24px;font-family:var(--font-title)}
+.roster-cls{font-size:15px;color:var(--text-2)}
+.av{width:48px;height:48px;flex:none;border-radius:50%;border:2px solid var(--accent);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;color:var(--text)}
+.av.lg{width:72px;height:72px;font-size:24px}
+:focus-visible,.st-focus{outline:3px solid var(--focus);outline-offset:3px}
+/* nouveau composant : choix d'ambiance */
+.amb-picker{border:none;margin:0;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;gap:14px;min-width:0}
+.amb-picker legend{float:left;width:100%;margin:0}
+.amb-picker legend+*{clear:both}
+.hint{margin:0;font-size:15px;color:var(--text-2)}
+.amb-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.amb-grid.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.amb-list{display:flex;flex-direction:column;gap:8px}
+.amb-card{position:relative;cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:14px 12px;min-height:48px;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text)}
+.amb-card input{position:absolute;opacity:0;width:1px;height:1px}
+.amb-card:hover{border-color:var(--border-strong)}
+.amb-card.selected{border-color:var(--accent);background:var(--surface-2);box-shadow:0 0 0 1px var(--accent) inset}
+.amb-card:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:3px}
+.amb-card .sw{display:flex}
+.amb-card .sw i{width:24px;height:24px;border-radius:50%;border:2px solid var(--text-2);margin-right:-6px}
+.amb-name{font-weight:600;font-size:16px;line-height:1.25}
+.amb-desc{font-size:14px;color:var(--text-2);line-height:1.3}
+.check{position:absolute;top:8px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.amb-card.line{flex-direction:row;align-items:center;gap:16px;padding:10px 44px 10px 14px}
+.amb-card.line .check{top:50%;transform:translateY(-50%)}
+.locked .amb-card{cursor:not-allowed;opacity:.75}
+.spinner{width:18px;height:18px;border-radius:50%;border:3px solid currentColor;border-right-color:transparent;animation:spin 1s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cap{margin:4px 0 0;font-size:13px;color:var(--text-2);border-top:1px solid var(--border-soft);padding-top:8px}
+.toast{margin:0;display:flex;gap:10px;align-items:center;padding:12px 16px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm)}
+.ok{width:24px;height:24px;flex:none;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.okline{margin:0;display:flex;gap:10px;align-items:center;font-size:15px;font-weight:500}
+.player-head{display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.pv{display:flex;justify-content:space-between;align-items:baseline;color:var(--text-2);font-size:15px}
+.pv strong{font-family:var(--font-mono);font-size:22px;color:var(--text)}.pv em{font-style:normal;font-size:16px;color:var(--text-2);font-weight:500}
+.bar{height:12px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.wait{margin:0;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.alert-line{margin:0;color:var(--warn);font-weight:600;font-size:15px}
+.split{display:grid;grid-template-columns:1fr 1fr}
+.pane{border-right:1px solid var(--border)}.pane:last-child{border-right:none}
+.pane-head{display:flex;justify-content:space-between;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.pane-head a{color:var(--accent)}
+.danger-row{border-color:var(--danger-border)}.dz{color:var(--danger)}
+.loading{display:flex;align-items:center;gap:12px;color:var(--text-2);font-weight:500}
+.skel{height:56px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border-soft)}.skel.short{width:60%}
+.states{display:flex;flex-wrap:wrap;gap:8px}
+.st{font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;border:2px solid currentColor;background:transparent}
+.st-accent{color:var(--accent)}.st-warn{color:var(--warn)}.st-danger{color:var(--danger);background:var(--danger-bg)}.st-focus{color:var(--text)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.gname{font-family:var(--font-title);font-size:20px;font-weight:600;color:var(--accent);letter-spacing:.03em}
+.gcard .app{padding:16px}.gcard .roster-row{padding:12px}
+.ratios{margin:0;padding:0;list-style:none;font-size:13px;color:var(--text-2)}.ratios li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid var(--border-soft)}.ratios strong{color:var(--text);font-family:var(--font-mono);font-weight:600}
+@media (max-width:900px){.amb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.pane{border-right:none;border-bottom:1px solid var(--border)}}
+@media (max-width:480px){.doc{padding:24px 16px 48px}.phone{width:100%}.frame .app{padding:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Décor par ambiance (version 2, retour du 22 novembre) =====
+   Tout est décoratif : pseudo éléments ou images de fond, jamais de texte lu par les lecteurs d'écran,
+   placé sous le contenu, sans effet sur les clics. Les contrastes du texte restent ceux de la version 1.
+   Bloc à reprendre dans src/styles.css avec les variables d'ambiance. */
+[data-ambiance="cyber"]{--orn:"▸";--divider:"◇ ◇ ◇";
+ --texture:repeating-linear-gradient(0deg,rgba(94,242,156,.035) 0 1px,transparent 1px 3px),linear-gradient(rgba(94,242,156,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(94,242,156,.05) 1px,transparent 1px);
+ --texture-size:auto,32px 32px,32px 32px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%235ef29c' stroke-width='2' opacity='.32'%3E%3Cpath d='M160 20H110L90 40H50M160 60H120L100 80V120M160 100H140V140H90M130 0V30M70 0V20'/%3E%3Ccircle cx='46' cy='40' r='4'/%3E%3Ccircle cx='100' cy='124' r='4'/%3E%3Ccircle cx='86' cy='140' r='4'/%3E%3C/svg%3E")}
+[data-ambiance="medieval"]{--orn:"⚜\FE0E";--divider:"❧ ✦ ☙";
+ --texture:radial-gradient(ellipse at 50% 40%,transparent 50%,rgba(122,77,8,.16) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .48 0 0 0 0 .30 0 0 0 0 .03 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+ --texture-size:auto,160px 160px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%237a4d08' stroke-width='2.5' opacity='.3'%3E%3Cpath d='M30 20l100 110M130 20L30 130M24 14l12 12M136 14l-12 12' stroke-width='2'/%3E%3Cpath d='M80 30h40v40c0 26-20 40-40 50c-20-10-40-24-40-50V30z' fill='%23f8efd9'/%3E%3Cpath d='M80 30v90M40 62h80'/%3E%3C/svg%3E")}
+[data-ambiance="espace"]{--orn:"✦";--divider:"·  ✦  ·";
+ --texture:radial-gradient(1.5px 1.5px at 24px 36px,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 120px 80px,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 180px 160px,rgba(79,216,255,.6),transparent),radial-gradient(1.5px 1.5px at 70px 190px,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 210px 20px,rgba(255,255,255,.45),transparent),radial-gradient(ellipse at 15% 100%,rgba(79,216,255,.08),transparent 55%);
+ --texture-size:240px 240px,240px 240px,240px 240px,240px 240px,240px 240px,auto;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%234fd8ff' stroke-width='2' opacity='.35'%3E%3Ccircle cx='100' cy='60' r='30'/%3E%3Cellipse cx='100' cy='60' rx='58' ry='14' transform='rotate(-20 100 60)'/%3E%3Ccircle cx='30' cy='120' r='3' fill='%234fd8ff'/%3E%3Ccircle cx='50' cy='20' r='2' fill='%234fd8ff'/%3E%3Cpath d='M140 120l4 10l10 4l-10 4l-4 10l-4-10l-10-4l10-4z' fill='%234fd8ff'/%3E%3C/svg%3E")}
+[data-ambiance="horreur"]{--orn:"◉";--divider:"◆ ◆ ◆";
+ --texture:radial-gradient(circle at 88% 90%,transparent 38px,rgba(108,98,70,.20) 40px,rgba(108,98,70,.07) 45px,transparent 47px),radial-gradient(ellipse at center,transparent 45%,rgba(60,50,30,.20) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .18 0 0 0 0 .1 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+ --texture-size:auto,auto,160px 160px;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%232c5638' stroke-width='2' opacity='.32'%3E%3Cpath d='M120 0A40 40 0 0 0 160 40M100 0A60 60 0 0 0 160 60M40 0H100M44 31L102 16M56 60L108 30M75 85L118 42M100 104L130 52M129 116L144 58M160 120V60'/%3E%3Cpath d='M18 130q22-18 44 0q-22 18-44 0z'/%3E%3Ccircle cx='40' cy='130' r='6'/%3E%3C/svg%3E")}
+[data-ambiance="gothique"]{--orn:"✠";--divider:"✠";
+ --texture:radial-gradient(ellipse at 50% 0%,rgba(240,96,122,.10),transparent 60%),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.45) 100%);
+ --texture-size:auto,auto;
+ --corner:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' fill='none' stroke='%23f0607a' stroke-width='2' opacity='.3'%3E%3Cpath d='M70 160V70Q70 30 100 10Q130 30 130 70V160M85 160V78Q85 50 100 36Q115 50 115 78V160'/%3E%3Ccircle cx='100' cy='62' r='9'/%3E%3Cpath d='M100 53v18M91 62h18'/%3E%3Cpath d='M40 30a18 18 0 1 0 14 30a14 14 0 1 1 -14 -30z' fill='%23f0607a' fill-opacity='.5'/%3E%3C/svg%3E")}
+
+/* 1. Texture de fond de l'écran */
+.frame{position:relative;background-color:var(--bg);background-image:var(--texture);background-size:var(--texture-size)}
+/* 2. Motif dans le coin haut droit, sous le contenu */
+.frame::before{content:"";position:absolute;top:0;right:0;width:150px;height:150px;background:var(--corner) no-repeat top right/contain;pointer-events:none;z-index:0}
+.frame>*{position:relative;z-index:1}
+.phone::before,.gcard::before{width:110px;height:110px}
+/* 3. Ornement devant les titres de section */
+.section-label::before,.gname::before{content:var(--orn);content:var(--orn) / "";color:var(--accent);margin-right:10px;font-size:.8em;font-weight:400;font-variant-emoji:text}
+/* 4. Séparateur d'en-tête */
+.stage-header{position:relative}
+.stage-header::after{content:var(--divider);content:var(--divider) / "";position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);padding:0 12px;background:var(--bg);color:var(--border-strong);font-size:13px;letter-spacing:.3em;line-height:1;white-space:pre}
+[data-ambiance="medieval"] .stage-header,[data-ambiance="horreur"] .stage-header{border-bottom:3px double var(--border-strong)}
+[data-ambiance="gothique"] .stage-header{border-bottom-color:var(--border-strong)}
+/* 5. Cadres des panneaux */
+[data-ambiance="cyber"] :is(.panel-titlebar,.amb-picker,.player-head),
+[data-ambiance="espace"] :is(.panel-titlebar,.amb-picker,.player-head){background-image:linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent)),linear-gradient(var(--accent),var(--accent));background-size:16px 2px,2px 16px,16px 2px,2px 16px;background-position:top left,top left,bottom right,bottom right;background-repeat:no-repeat}
+[data-ambiance="cyber"] .panel-titlebar{border-radius:2px}
+[data-ambiance="medieval"] :is(.panel-titlebar,.amb-picker,.player-head),
+[data-ambiance="horreur"] :is(.panel-titlebar,.amb-picker,.player-head){box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--border-soft)}
+[data-ambiance="gothique"] :is(.panel-titlebar,.amb-picker,.player-head){border-top:3px solid var(--accent);border-radius:var(--radius-sm) var(--radius-sm) var(--radius) var(--radius)}
+[data-ambiance="medieval"] .av,[data-ambiance="gothique"] .av{border-style:double;border-width:4px}
+/* 6. Emblème de chaque ambiance dans les cartes de choix (couleurs de l'ambiance concernée) */
+.amb-card .sw{align-items:center}
+.amb-card .sw .emb{margin-left:14px;width:30px;height:26px;border-radius:6px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:400;font-variant-emoji:text}
+/* Contraste renforcé du système : on retire tout le décor */
+@media (forced-colors:active){.frame{background-image:none}.frame::before,.stage-header::after,.section-label::before,.gname::before{display:none}}
+
+
+/* ===== Ticket 101 : composants de la démo (repris de src/styles.css) ===== */
+[data-ambiance]{--warn-bg:#2a2410;--warn-border:#8a7a2a;--shadow:rgba(0,0,0,.45)}
+[data-ambiance="medieval"]{--warn-bg:#f3e3b5;--warn-border:#a98a3a;--shadow:rgba(60,40,10,.25)}
+.demo-chip{display:inline-flex;align-items:center;align-self:flex-start;font-size:14px;font-weight:600;color:var(--warn);background:var(--surface);border:1px dashed var(--warn);border-radius:999px;padding:5px 12px}
+.demo-home{max-width:720px;margin:0 auto;padding:40px 16px;display:flex;flex-direction:column}
+.demo-home-title{font-family:var(--font-title);letter-spacing:.02em;font-size:32px;margin:12px 0 8px;line-height:1.2;color:var(--text)}
+.demo-home-lead{font-size:18px;color:var(--text-2);margin:0 0 24px}
+.demo-home-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.demo-home-card{display:flex;flex-direction:column;gap:4px;padding:18px 20px;background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);color:var(--text);text-decoration:none;font-size:16px}
+.demo-home-card.hover{border-color:var(--accent)}
+.demo-home-card-title{font-size:20px;font-weight:600;color:var(--accent)}
+.phone .demo-home{padding:28px 0}.phone .demo-home-title{font-size:26px}.phone .demo-home-lead{font-size:16px}
+.demo-pop{width:400px;max-width:100%;display:flex;flex-direction:column;background:var(--surface);color:var(--text);border:2px solid var(--border-strong);border-radius:var(--radius);box-shadow:0 12px 40px var(--shadow)}
+.demo-pop.inline{margin-left:auto}
+.demo-pop-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.demo-pop-title{font-weight:600;font-size:17px;font-family:var(--font-title)}
+.demo-meta{font-size:14px;color:var(--text-2)}
+.demo-pop-toggle{flex:none;min-height:44px;padding:0 14px;background:var(--surface-2);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);font:inherit;font-size:14px}
+.demo-pop-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.guide-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.guide-steps li{flex:1;height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+.guide-steps li.done{background:var(--border-strong);border-color:var(--border-strong)}
+.guide-steps li.now{background:var(--accent);border-color:var(--accent)}
+.guide-step-title{font-size:22px;line-height:1.2;margin:2px 0 0;font-weight:600;font-family:var(--font-title)}
+.guide-read{background:var(--bg);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px 16px;font-size:16px;line-height:1.6;margin:0}
+.guide-tag{display:block;font-size:13px;color:var(--text-2);margin-bottom:4px}
+.guide-alert{border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;margin:0}
+.guide-alert.err{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--text)}
+.guide-alert.warn{background:var(--warn-bg);border:1px solid var(--warn-border)}
+.guide-alert.info{background:var(--surface-2);border:1px solid var(--border)}
+.guide-link{align-self:flex-start;background:none;border:none;padding:8px 0;min-height:44px;color:var(--accent);text-decoration:underline;font:inherit;font-size:15px}
+.guide-dialog{background:var(--bg);border:2px solid var(--border-strong);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px}
+.guide-dialog h4{margin:0;font-size:20px;font-family:var(--font-title)}.guide-dialog p{margin:0}
+.guide-btn-row{display:flex;gap:10px;flex-wrap:wrap}.guide-btn-row>*{flex:1}
+.secondary-btn{min-height:48px;padding:10px 20px;border:2px solid var(--border);background:transparent;border-radius:var(--radius-sm);color:var(--text);font:inherit;font-weight:500}
+.demo-say{margin:0;padding:12px 14px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:16px;line-height:1.5}
+.demo-pop-foot{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--border)}
+.mj-layout{display:grid;grid-template-columns:1fr 400px;gap:20px;align-items:start}
+.roster{display:flex;flex-direction:column;gap:10px}
+.roster-row .meta{margin-left:auto;text-align:right;font-size:14px;color:var(--text-2)}
+.roster-row .meta strong{display:block;font-family:var(--font-mono);font-size:18px;color:var(--text)}
+.roster-row.foe{border-color:var(--danger-border)}
+.roster-row.foe .av{border-color:var(--danger)}
+.phone .demo-pop{width:100%;box-shadow:0 -6px 24px var(--shadow)}
+.blank{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:14px}
+.timeline{display:flex;gap:16px;flex-wrap:wrap}
+.timeline>div{flex:1 1 260px}
+.tl-label{font-size:14px;font-weight:600;color:var(--text-2);margin:0 0 8px}
+.cmp{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.cmp>div{flex:1 1 440px;min-width:0}
+.badge-before,.badge-after{display:inline-block;font-size:13px;font-weight:600;border-radius:999px;padding:3px 10px;margin-bottom:8px;border:1px solid var(--border-strong);color:var(--text-2)}
+.badge-after{color:var(--accent);border-color:var(--accent)}
+.api{width:100%;border-collapse:collapse;font-size:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.api th,.api td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+.api th{color:var(--text-2);font-weight:600}
+.api-wrap{overflow-x:auto}
+.join-box{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.join-box label{font-weight:600}
+.text-input[readonly]{background:var(--surface-2);color:var(--text-2)}
+.split .app{padding:14px}
+@media (max-width:900px){.mj-layout{grid-template-columns:1fr}.demo-pop.inline{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+<main class="doc" data-ambiance="medieval">
+<header class="doc-head">
+<h1>Ticket 101 : démo par défaut sur le thème médiéval</h1>
+<p>La démo joue « Le dragon de Pierrenoire », une aventure de fantasy. Elle démarre aujourd'hui en Cyber, noir et vert néon. Avec ce ticket, l'ambiance devient une donnée du scénario : la démo s'ouvre directement en Médiéval, sans réglage, et y revient après « Recommencer la démo ».</p>
+<p>Aucun nouveau composant, aucune nouvelle couleur : les écrans ci dessous sont les écrans existants de la démo, rendus avec les variables et le décor Médiéval du ticket 100. La table habituelle, sans scénario, garde Cyber par défaut.</p>
+<ul class="decor-list">
+ <li><strong>Ce qui change à l'écran</strong> : l'ambiance de départ de l'accueil de démo, de la vue MJ, de la vue joueur, de l'écran partagé, de la connexion joueur et du choix d'ambiance de l'accueil MJ.</li>
+ <li><strong>Ce qui ne change pas</strong> : les textes du guide, les personnages, le dragon, les couleurs du thème médiéval, la table habituelle.</li>
+ <li><strong>Aucun nouveau texte d'interface</strong> : les messages d'erreur et de confirmation sont ceux d'aujourd'hui.</li>
+</ul>
+</header>
+
+<!-- ÉCRAN 1 -->
+<section class="screen-block">
+<h2 class="screen-title">1. Accueil de la démo, avant et après (ordinateur)</h2>
+<p class="screen-note">Même contenu, seule l'ambiance change. Le titre du scénario prend la police de titre de l'ambiance (Georgia en Médiéval), le séparateur ❧ ✦ ☙ et l'écu en coin apparaissent.</p>
+<div class="cmp">
+ <div>
+  <span class="badge-before">Aujourd'hui : Cyber</span>
+  <div class="frame" data-ambiance="cyber">
+   <div class="demo-home">
+    <p class="demo-chip">Démo</p>
+    <h1 class="demo-home-title">Le dragon de Pierrenoire</h1>
+    <p class="demo-home-lead">Une courte aventure pour découvrir Auspex. Un guide raconte l'histoire et montre où cliquer.</p>
+    <ul class="demo-home-list">
+     <li><a class="demo-home-card"><span class="demo-home-card-title">Jouer le MJ</span><span>Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+     <li><a class="demo-home-card"><span class="demo-home-card-title">Jouer Aldric</span><span>Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+     <li><a class="demo-home-card"><span class="demo-home-card-title">Les deux vues côte à côte</span><span>Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+    </ul>
+   </div>
+  </div>
+ </div>
+ <div>
+  <span class="badge-after">Après le ticket : Médiéval</span>
+  <div class="frame" data-ambiance="medieval">
+   <div class="demo-home">
+    <p class="demo-chip">Démo</p>
+    <h1 class="demo-home-title">Le dragon de Pierrenoire</h1>
+    <p class="demo-home-lead">Une courte aventure pour découvrir Auspex. Un guide raconte l'histoire et montre où cliquer.</p>
+    <ul class="demo-home-list">
+     <li><a class="demo-home-card hover"><span class="demo-home-card-title">Jouer le MJ</span><span>Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+     <li><a class="demo-home-card"><span class="demo-home-card-title">Jouer Aldric</span><span>Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+     <li><a class="demo-home-card"><span class="demo-home-card-title">Les deux vues côte à côte</span><span>Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+    </ul>
+   </div>
+  </div>
+ </div>
+</div>
+</section>
+
+<!-- ÉCRAN 2 -->
+<section class="screen-block">
+<h2 class="screen-title">2. Premier chargement dans un navigateur neuf (état de chargement)</h2>
+<p class="screen-note">Rien n'est encore mémorisé dans le navigateur. Tant que <code>GET /api/scenario</code> n'a pas répondu, l'accueil ne rend rien (comportement actuel). Exigence souhaitable : la réponse porte <code>ambiance: 'medieval'</code> et <code>useScenario</code> l'applique avant le premier rendu de l'accueil, puis la mémorise. Le visiteur ne voit plus d'éclair vert.</p>
+<div class="timeline">
+ <div><p class="tl-label">Aujourd'hui, 0 à 150 ms</p><div class="frame" data-ambiance="cyber"><div class="blank">Fond Cyber, sans contenu</div></div></div>
+ <div><p class="tl-label">Aujourd'hui, à l'arrivée de l'instantané</p><div class="frame" data-ambiance="medieval"><div class="blank">Bascule brusque vers Médiéval</div></div></div>
+ <div><p class="tl-label">Après le ticket, dès la réponse de /api/scenario</p><div class="frame" data-ambiance="medieval"><div class="blank">Médiéval appliqué avant l'affichage de l'accueil</div></div></div>
+</div>
+<p class="screen-note mt">Le tout premier fond, avant la réponse, reste celui de l'ambiance par défaut pendant une fraction de seconde, sans aucun contenu. Aux visites suivantes, l'ambiance mémorisée (Médiéval) est posée dès le départ.</p>
+</section>
+
+<!-- ÉCRAN 3 -->
+<section class="screen-block">
+<h2 class="screen-title">3. Vue MJ de la démo avec le guide (ordinateur)</h2>
+<p class="screen-note">La table de démo est créée en Médiéval. L'en-tête de panneau affiche le code et le nom de l'ambiance. Le guide garde ses textes, il prend simplement les couleurs du parchemin.</p>
+<div class="frame desk" data-ambiance="medieval">
+ <div class="app" style="max-width:1100px">
+  <div class="stage-header"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div><span class="online-chip"><span class="dot"></span>En ligne</span></div>
+  <div class="mj-layout">
+   <div class="roster">
+    <div class="panel-titlebar"><span class="pt-title"><span class="diamond" aria-hidden="true"></span>Table de démo</span><span class="tag">Code DRAGON · Médiéval</span></div>
+    <div class="section-label">Personnages</div>
+    <div class="roster-row"><div class="av">AL</div><div><div class="roster-name">Aldric</div><div class="roster-cls">Chevalier · Épée longue</div></div><div class="meta"><strong>24 / 24</strong>PV</div></div>
+    <div class="roster-row"><div class="av">YS</div><div><div class="roster-name">Ysolde</div><div class="roster-cls">Archère · Arc long</div></div><div class="meta"><strong>18 / 18</strong>PV</div></div>
+    <div class="roster-row"><div class="av">BR</div><div><div class="roster-name">Brannoc</div><div class="roster-cls">Mage · Bâton ferré</div></div><div class="meta"><strong>15 / 15</strong>PV</div></div>
+    <div class="roster-row foe"><div class="av">DR</div><div><div class="roster-name">Le dragon rouge</div><div class="roster-cls">Griffes · Souffle de feu</div></div><div class="meta"><strong>60 / 60</strong>PV</div></div>
+   </div>
+   <aside class="demo-pop inline" aria-label="Scénario guidé">
+    <div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 1 sur 5</div></div><button class="demo-pop-toggle">Réduire</button></div>
+    <div class="demo-pop-body">
+     <ol class="guide-steps"><li class="now"></li><li></li><li></li><li></li><li></li></ol>
+     <h3 class="guide-step-title">La porte dérobée</h3>
+     <p class="guide-read"><span class="guide-tag">À lire aux joueurs</span>La nuit tombe sur le château de Pierrenoire. Les grandes portes sont closes. On raconte qu'une vieille porte de service se cache quelque part dans la muraille, sous le lierre.</p>
+     <button class="primary-btn full">Continuer</button>
+     <div class="demo-pop-foot"><button class="guide-link">Recommencer la démo</button></div>
+    </div>
+   </aside>
+  </div>
+ </div>
+</div>
+<p class="screen-note mt">Les PV et rôles des personnages sont illustratifs : ils viennent de <code>src/scenarios/dragon.js</code>, qui n'est pas modifié en dehors du champ <code>ambiance</code>.</p>
+</section>
+
+<!-- ÉCRAN 4 -->
+<section class="screen-block">
+<h2 class="screen-title">4. Recommencer la démo : confirmation, chargement, succès, erreur (ordinateur)</h2>
+<p class="screen-note">Les textes sont ceux d'aujourd'hui. La seule différence : après la remise à zéro, la table reste en Médiéval au lieu de repasser en Cyber. En cas d'erreur, la table n'a pas changé et garde aussi Médiéval.</p>
+<div class="row2">
+ <div class="half">
+  <p class="tl-label">Confirmation</p>
+  <div class="frame" data-ambiance="medieval"><div class="app">
+   <div class="guide-dialog" role="dialog"><h4>Recommencer la démo ?</h4><p>Les PV et les jets sont remis à zéro, les personnages et le dragon recréés. La table de Djoko n'est pas touchée.</p><div class="guide-btn-row"><button class="primary-btn">Recommencer</button><button class="secondary-btn">Annuler</button></div></div>
+  </div></div>
+ </div>
+ <div class="half">
+  <p class="tl-label">Chargement</p>
+  <div class="frame" data-ambiance="medieval"><div class="app">
+   <div class="guide-dialog" role="dialog"><h4>Recommencer la démo ?</h4><p>Les PV et les jets sont remis à zéro, les personnages et le dragon recréés. La table de Djoko n'est pas touchée.</p><div class="guide-btn-row"><button class="primary-btn" disabled><span class="spinner" aria-hidden="true"></span>Remise à zéro…</button><button class="secondary-btn" disabled>Annuler</button></div></div>
+  </div></div>
+ </div>
+ <div class="half">
+  <p class="tl-label">Succès : retour à l'étape 1, toujours en Médiéval</p>
+  <div class="frame" data-ambiance="medieval"><div class="app">
+   <div class="panel-titlebar"><span class="pt-title"><span class="diamond" aria-hidden="true"></span>Table de démo</span><span class="tag">Code DRAGON · Médiéval</span></div>
+   <ol class="guide-steps"><li class="now"></li><li></li><li></li><li></li><li></li></ol>
+   <h3 class="guide-step-title">La porte dérobée</h3>
+   <p class="guide-read"><span class="guide-tag">À lire aux joueurs</span>La nuit tombe sur le château de Pierrenoire. Les grandes portes sont closes.</p>
+  </div></div>
+ </div>
+ <div class="half">
+  <p class="tl-label">Erreur : la remise à zéro échoue</p>
+  <div class="frame" data-ambiance="medieval"><div class="app">
+   <div class="guide-dialog" role="dialog"><h4>Recommencer la démo ?</h4><p>Les PV et les jets sont remis à zéro, les personnages et le dragon recréés. La table de Djoko n'est pas touchée.</p><div class="guide-btn-row"><button class="primary-btn">Recommencer</button><button class="secondary-btn">Annuler</button></div></div>
+   <div class="guide-alert err" role="alert">Le serveur de démo ne répond pas. Vérifiez qu’il tourne, puis réessayez.</div>
+  </div></div>
+ </div>
+</div>
+<p class="screen-note mt">Message existant de <code>errorText</code> quand le serveur ne répond pas. La table garde son ambiance Médiéval.</p>
+</section>
+
+<!-- ÉCRAN 5 -->
+<section class="screen-block">
+<h2 class="screen-title">5. Vue joueur et guide (téléphone, 375 pixels)</h2>
+<p class="screen-note">Le visiteur qui choisit « Jouer Aldric » arrive sur la connexion avec le code imposé, déjà en Médiéval : en démo, le code ne peut pas être faux, donc l'écran prend tout de suite l'ambiance de la table. Hors démo, la connexion reste en Cyber tant que le code tapé ne correspond pas (ticket 100).</p>
+<div class="row-phones">
+ <div class="frame phone" data-ambiance="medieval"><div class="app">
+  <div class="stage-header"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Joueur</div></div></div></div>
+  <div class="join-box"><label for="c1">Code de la table</label><input id="c1" class="text-input" value="DRAGON" readonly></div>
+  <div class="demo-pop"><div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous jouez Aldric · Étape 1 sur 5</div></div><button class="demo-pop-toggle">Réduire</button></div>
+   <div class="demo-pop-body"><p class="guide-read"><span class="guide-tag">Bienvenue</span>Le dragon de Pierrenoire : une courte aventure pour découvrir Auspex. Vous jouez Aldric, ses compagnons et le MJ sont joués par le guide.</p><button class="primary-btn full">Rejoindre la table</button></div></div>
+ </div></div>
+ <div class="frame phone" data-ambiance="medieval"><div class="app">
+  <div class="stage-header"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Joueur</div></div></div><span class="online-chip"><span class="dot"></span>En ligne</span></div>
+  <div class="player-head"><div class="av lg">AL</div><div><div class="roster-name big">Aldric</div><div class="roster-cls">Chevalier</div></div></div>
+  <div class="pv"><span>Points de vie</span><span><strong>24</strong> <em>/ 24</em></span></div>
+  <div class="bar"><i style="width:100%"></i></div>
+  <div class="demo-pop"><div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous jouez Aldric · Étape 2 sur 5</div></div><button class="demo-pop-toggle">Ouvrir</button></div><p class="demo-say" style="margin:10px 16px 14px">Derrière la muraille, une cour pavée. Deux gardes de pierre semblent dormir debout, mais leurs yeux brillent dans le noir. Il faut traverser sans bruit.</p></div>
+ </div></div>
+</div>
+</section>
+
+<!-- ÉCRAN 6 -->
+<section class="screen-block">
+<h2 class="screen-title">6. Écran partagé, les deux vues côte à côte (ordinateur)</h2>
+<p class="screen-note">La racine <code>/?vues=deux</code> lit l'ambiance de la table pour ses propres en-têtes de panneaux. Les deux vues et le cadre qui les entoure sont en Médiéval.</p>
+<div class="frame" data-ambiance="medieval">
+ <div class="split">
+  <div class="pane"><div class="pane-head"><span>Vue MJ</span><a>Ouvrir seule</a></div><div class="app">
+   <div class="panel-titlebar"><span class="pt-title"><span class="diamond" aria-hidden="true"></span>Table de démo</span><span class="tag">Code DRAGON · Médiéval</span></div>
+   <div class="roster-row"><div class="av">AL</div><div><div class="roster-name">Aldric</div><div class="roster-cls">Chevalier</div></div><div class="meta"><strong>24 / 24</strong>PV</div></div>
+   <div class="roster-row foe"><div class="av">DR</div><div><div class="roster-name">Le dragon rouge</div><div class="roster-cls">Griffes · Souffle de feu</div></div><div class="meta"><strong>60 / 60</strong>PV</div></div>
+  </div></div>
+  <div class="pane"><div class="pane-head"><span>Vue joueur</span><a>Ouvrir seule</a></div><div class="app">
+   <div class="player-head"><div class="av lg">AL</div><div><div class="roster-name big">Aldric</div><div class="roster-cls">Chevalier</div></div></div>
+   <div class="pv"><span>Points de vie</span><span><strong>24</strong> <em>/ 24</em></span></div>
+   <div class="bar"><i style="width:100%"></i></div>
+   <p class="wait">En attente du MJ.</p>
+  </div></div>
+ </div>
+</div>
+</section>
+
+<!-- ÉCRAN 7 -->
+<section class="screen-block">
+<h2 class="screen-title">7. Accueil MJ en démo, choix d'ambiance présélectionné (ordinateur et téléphone)</h2>
+<p class="screen-note">Accessible en démo par « Gérer les personnages ». Le choix présélectionne l'ambiance du scénario (Médiéval) au lieu de Cyber. Hors démo, rien ne change : Cyber reste présélectionnée.</p>
+<div class="row2">
+ <div class="half">
+  <div class="frame" data-ambiance="medieval"><div class="app">
+   <fieldset class="amb-picker">
+    <legend class="section-label">Ambiance de la table</legend>
+    <p class="hint">Toute la table verra cette ambiance. Pour en changer, il faudra créer une nouvelle table.</p>
+    <div class="amb-grid cols2">
+     <label class="amb-card"><input type="radio" name="b1"><span class="sw"><i style="background:#07120c"></i><i style="background:#0e1f16"></i><i style="background:#5ef29c"></i><b class="emb" aria-hidden="true" style="background:#07120c;color:#5ef29c">▸</b></span><span class="amb-name">Cyber</span><span class="amb-desc">Noir et vert néon</span></label>
+     <label class="amb-card selected"><input type="radio" name="b1" checked><span class="sw"><i style="background:#efe2c4"></i><i style="background:#f8efd9"></i><i style="background:#7a4d08"></i><b class="emb" aria-hidden="true" style="background:#efe2c4;color:#7a4d08">⚜&#xFE0E;</b></span><span class="amb-name">Médiéval</span><span class="amb-desc">Parchemin, encre et or</span><span class="check" aria-hidden="true">✓</span></label>
+     <label class="amb-card"><input type="radio" name="b1"><span class="sw"><i style="background:#050a1a"></i><i style="background:#0c1530"></i><i style="background:#4fd8ff"></i><b class="emb" aria-hidden="true" style="background:#050a1a;color:#4fd8ff">✦</b></span><span class="amb-name">Espace</span><span class="amb-desc">Bleu nuit et cyan</span></label>
+     <label class="amb-card"><input type="radio" name="b1"><span class="sw"><i style="background:#e6dbc0"></i><i style="background:#f2e9d3"></i><i style="background:#2c5638"></i><b class="emb" aria-hidden="true" style="background:#e6dbc0;color:#2c5638">◉</b></span><span class="amb-name">Horreur années 20</span><span class="amb-desc">Sépia et vert sombre</span></label>
+     <label class="amb-card"><input type="radio" name="b1"><span class="sw"><i style="background:#0d0a10"></i><i style="background:#18121e"></i><i style="background:#f0607a"></i><b class="emb" aria-hidden="true" style="background:#0d0a10;color:#f0607a">✠</b></span><span class="amb-name">Gothique</span><span class="amb-desc">Noir, rouge sang et violet</span></label>
+    </div>
+   </fieldset>
+  </div></div>
+ </div>
+ <div class="frame phone" data-ambiance="medieval"><div class="app">
+  <fieldset class="amb-picker">
+   <legend class="section-label">Ambiance de la table</legend>
+   <p class="hint">Toute la table verra cette ambiance.</p>
+   <div class="amb-list">
+    <label class="amb-card line"><input type="radio" name="b2"><span class="sw"><i style="background:#07120c"></i><i style="background:#5ef29c"></i></span><span class="amb-name">Cyber</span></label>
+    <label class="amb-card line selected"><input type="radio" name="b2" checked><span class="sw"><i style="background:#efe2c4"></i><i style="background:#7a4d08"></i></span><span class="amb-name">Médiéval</span><span class="check" aria-hidden="true">✓</span></label>
+    <label class="amb-card line"><input type="radio" name="b2"><span class="sw"><i style="background:#050a1a"></i><i style="background:#4fd8ff"></i></span><span class="amb-name">Espace</span></label>
+    <label class="amb-card line"><input type="radio" name="b2"><span class="sw"><i style="background:#e6dbc0"></i><i style="background:#2c5638"></i></span><span class="amb-name">Horreur années 20</span></label>
+    <label class="amb-card line"><input type="radio" name="b2"><span class="sw"><i style="background:#0d0a10"></i><i style="background:#f0607a"></i></span><span class="amb-name">Gothique</span></label>
+   </div>
+  </fieldset>
+  <button class="primary-btn full">Créer la table</button>
+ </div></div>
+</div>
+</section>
+
+<!-- ÉCRAN 8 -->
+<section class="screen-block">
+<h2 class="screen-title">8. Table de démo vide et accueil de démo sur téléphone</h2>
+<p class="screen-note">État vide existant : si la table de démo n'a plus de personnages, le guide propose de recommencer. Le bouton recrée les personnages et le dragon, en Médiéval.</p>
+<div class="row-phones">
+ <div class="frame phone" data-ambiance="medieval"><div class="app">
+  <div class="demo-home">
+   <p class="demo-chip">Démo</p>
+   <h1 class="demo-home-title">Le dragon de Pierrenoire</h1>
+   <p class="demo-home-lead">Une courte aventure pour découvrir Auspex. Un guide raconte l'histoire et montre où cliquer.</p>
+   <ul class="demo-home-list">
+    <li><a class="demo-home-card"><span class="demo-home-card-title">Jouer le MJ</span><span>Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+    <li><a class="demo-home-card"><span class="demo-home-card-title">Jouer Aldric</span><span>Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+    <li><a class="demo-home-card"><span class="demo-home-card-title">Les deux vues côte à côte</span><span>Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+   </ul>
+  </div>
+ </div></div>
+ <div class="frame phone" data-ambiance="medieval"><div class="app">
+  <p class="whoall-hint">Aucun personnage à la table.</p>
+  <div class="demo-pop"><div class="demo-pop-head"><div><div class="demo-pop-title">Le dragon de Pierrenoire</div><div class="demo-meta">Vous êtes le MJ · Étape 1 sur 5</div></div><button class="demo-pop-toggle">Réduire</button></div>
+   <div class="demo-pop-body"><div class="guide-alert warn">La table de démo est vide. Recommencez la démo pour recréer les personnages et le dragon.</div><div class="demo-pop-foot"><button class="guide-link">Recommencer la démo</button></div></div></div>
+ </div></div>
+</div>
+</section>
+
+<!-- ÉCRAN 9 -->
+<section class="screen-block">
+<h2 class="screen-title">9. Table habituelle, sans scénario : inchangée (référence)</h2>
+<p class="screen-note">Sans <code>SCENARIO</code>, la table et la remise à zéro restent en Cyber par défaut, et l'accueil MJ présélectionne Cyber.</p>
+<div class="frame desk" data-ambiance="cyber"><div class="app">
+ <div class="stage-header"><div class="brand"><svg class="brand-mark" aria-hidden="true" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="3"><rect x="10" y="10" width="36" height="36" transform="rotate(45 28 28)"/><circle cx="28" cy="28" r="7"/></svg><div><div class="brand-title">AUSPEX</div><div class="brand-subtitle">Maître de jeu</div></div></div><span class="online-chip"><span class="dot"></span>En ligne</span></div>
+ <div class="panel-titlebar"><span class="pt-title"><span class="diamond" aria-hidden="true"></span>Accueil MJ</span><span class="tag">Code XR-4417 · Cyber</span></div>
+ <div class="roster-row"><div class="av">DJ</div><div><div class="roster-name">Djoko</div><div class="roster-cls">Garde impérial</div></div></div>
+</div></div>
+</section>
+
+<!-- RÉFÉRENCE -->
+<section class="screen-block">
+<h2 class="screen-title">10. Comportement attendu côté serveur (pour la session de dev)</h2>
+<p class="screen-note">Aucun écran nouveau, mais ces cas pilotent ce que voient les écrans ci dessus.</p>
+<div class="api-wrap"><table class="api">
+ <thead><tr><th>Situation</th><th>Démo (<code>SCENARIO=dragon</code>)</th><th>Hors démo</th></tr></thead>
+ <tbody>
+  <tr><td>Premier démarrage, base vide</td><td>Table créée en Médiéval</td><td>Cyber, inchangé</td></tr>
+  <tr><td>Redémarrage, base existante en Cyber</td><td>Passe en Médiéval, garde personnages et code</td><td>Inchangé</td></tr>
+  <tr><td><code>POST /api/table/reset</code> sans ambiance</td><td>Médiéval</td><td>Cyber</td></tr>
+  <tr><td>Avec <code>{ "ambiance": "espace" }</code></td><td>Espace</td><td>Espace</td></tr>
+  <tr><td>Avec <code>{ "ambiance": "inconnue" }</code></td><td>400 « Ambiance inconnue. Choisissez l'une des cinq ambiances proposées. La table actuelle n'a pas changé. » La table reste en Médiéval.</td><td>Même erreur 400</td></tr>
+  <tr><td>Scénario avec une ambiance hors liste</td><td>Retombe sur Cyber, sans planter</td><td>Sans objet</td></tr>
+  <tr><td><code>GET /api/scenario</code></td><td>Ajoute <code>ambiance: 'medieval'</code> (souhaitable)</td><td>Inchangé</td></tr>
+ </tbody>
+</table></div>
+</section>
+</main>
+</body>
+</html>

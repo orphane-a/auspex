@@ -23,6 +23,8 @@ services:
   # Instance de démo du scénario guidé (ticket 97) : même image, base séparée
   # (volume dédié) et SCENARIO=dragon. Elle ne partage aucune donnée avec la table
   # de Djoko, servie par le service « auspex » ci-dessus, qui reste inchangé.
+  # Ambiance Médiéval (ticket 101) : portée par le scénario, réappliquée à chaque
+  # démarrage, même sur un volume existant (personnages et code conservés).
   auspex-demo:
     build: .
     restart: unless-stopped
