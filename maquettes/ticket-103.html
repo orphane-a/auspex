@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auspex, maquette du ticket 103 : première page de la démo</title>
+<style>
+/* Jetons de l'ambiance Médiéval (src/styles.css, :root[data-ambiance='medieval']) : la démo s'ouvre toujours dans cette ambiance. */
+:root{
+  --bg:#efe2c4;--surface:#f8efd9;--surface-2:#e6d3a8;--border:#a9895a;--border-soft:#d2bb8d;--border-strong:#7f6238;
+  --text:#2a1a0c;--text-2:#5b4126;--text-strong:#1a0f05;--accent:#7a4d08;--accent-hover:#5e3b06;--warn:#7a5400;
+  --focus:#1d4fa8;--radius:12px;--radius-sm:8px;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --title:Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#e3d3ae;color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.doc{max-width:1360px;margin:0 auto;padding:40px 20px 80px}
+.doc-head h1{margin:0 0 6px;font-size:30px;font-family:var(--title);color:var(--text-strong)}
+.doc-head p{margin:0 0 6px;color:var(--text-2);max-width:820px}
+.screen{margin-top:56px}
+.screen>h2{margin:0 0 4px;font-size:22px;color:var(--accent);font-family:var(--mono);font-weight:600}
+.screen>p.note{margin:0 0 18px;color:var(--text-2);max-width:860px}
+.row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.label-dev{font-size:13px;color:var(--text-2);margin:0 0 8px;font-family:var(--mono)}
+.scroll-x{max-width:100%;overflow-x:auto;padding-bottom:6px}
+
+/* Cadres d'écran : taille exacte de la fenêtre visée */
+.viewport{position:relative;background:var(--bg);border:2px solid var(--border-strong);border-radius:10px;overflow:hidden;flex:none}
+.vp-1280x720{width:1280px;height:720px}
+.vp-1024x768{width:1024px;height:768px}
+.vp-1280x600{width:1280px;height:600px}
+.vp-375{width:375px;height:667px;border-radius:28px}
+.vp-375.long{height:auto}
+.fold{position:absolute;left:0;right:0;border-top:2px dashed #9a1b1b;pointer-events:none}
+.fold span{position:absolute;right:8px;top:-24px;font:12px var(--mono);color:#9a1b1b;background:var(--bg);padding:0 4px}
+
+/* ===== Page d'accueil de la démo (proposition) ===== */
+.dh{height:100%;padding:24px 32px;display:grid;place-items:center}
+.dh-inner{width:100%;max-width:1120px;max-height:100%;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:40px;align-items:stretch}
+.dh-inner.sans-image{grid-template-columns:minmax(0,720px);justify-content:center}
+.dh-cover{margin:0;min-height:0;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;background:#1b2233}
+.dh-cover svg{display:block;width:100%;height:100%}
+.dh-text{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.chip{align-self:flex-start;margin:0;font-size:14px;font-weight:600;color:var(--warn);background:var(--surface);border:1px dashed var(--warn);border-radius:999px;padding:3px 12px}
+.dh-title{margin:10px 0 10px;font-family:var(--title);font-size:32px;line-height:1.2;letter-spacing:.02em;color:var(--text-strong)}
+.dh-preambule{margin:0 0 20px;display:flex;flex-direction:column;gap:8px}
+.dh-preambule p{margin:0}
+.dh-outil{font-size:18px;line-height:1.45;color:var(--text)}
+.dh-demo{font-size:16px;color:var(--text-2)}
+.dh-demo strong{color:var(--text)}
+.dh-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.dh-card{display:flex;flex-direction:column;gap:2px;padding:12px 18px;background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--radius);color:var(--text);text-decoration:none;box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--border-soft)}
+.dh-card:hover,.dh-card:focus-visible{border-color:var(--accent)}
+.dh-card-title{font-size:19px;font-weight:600;color:var(--accent);line-height:1.3}
+.dh-card-text{font-size:15px;line-height:1.4}
+
+/* Fenêtre basse : image recadrée, plus de hauteur */
+.vp-1280x600 .dh{padding:16px 32px}
+.vp-1280x600 .dh-title{font-size:28px;margin:8px 0}
+
+/* Téléphone : une colonne, l'image passe sous les choix */
+.vp-375 .dh{height:auto;padding:20px 16px 24px;display:block}
+.vp-375 .dh-inner{grid-template-columns:1fr;gap:20px}
+.vp-375 .dh-text{order:1}
+.vp-375 .dh-cover{order:2;aspect-ratio:4/3}
+.vp-375 .dh-title{font-size:26px}
+.vp-375 .dh-outil{font-size:17px}
+
+/* Chargement : la racine ne rend rien tant que l'ambiance n'est pas lue */
+.vide{height:100%;display:grid;place-items:center;color:var(--text-2);font-size:14px;font-family:var(--mono)}
+
+.legend{margin:12px 0 0;padding:0;list-style:none;display:flex;gap:8px 20px;flex-wrap:wrap;font-size:14px;color:var(--text-2)}
+.ok{color:#245c2a;font-weight:600}
+.measures{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;max-width:860px}
+.measures table{border-collapse:collapse;width:100%;font-size:15px}
+.measures th,.measures td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border-soft)}
+.measures th{font-weight:600}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="chateau" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+      <rect width="400" height="300" fill="#1b2233"/>
+      <rect y="170" width="400" height="130" fill="#252c3f"/>
+      <circle cx="300" cy="70" r="34" fill="#f3e8c8"/>
+      <circle cx="80" cy="40" r="1.6" fill="#f3e8c8"/><circle cx="150" cy="70" r="1.2" fill="#f3e8c8"/><circle cx="220" cy="30" r="1.4" fill="#f3e8c8"/><circle cx="360" cy="140" r="1.2" fill="#f3e8c8"/>
+      <path d="M0 250 L60 215 L120 238 L190 205 L260 232 L330 210 L400 236 V300 H0Z" fill="#121726"/>
+      <path d="M130 230 V150 h14 v-10 h10 v10 h12 v-10 h10 v10 h14 V110 h-6 v-12 h8 v8 h8 v-8 h8 v8 h8 v-8 h8 v12 h-6 v120Z" fill="#0b0f1a"/>
+      <path d="M232 230 V160 h10 v-8 h8 v8 h8 v-8 h8 v8 h10 V230Z" fill="#0b0f1a"/>
+      <rect x="211" y="118" width="6" height="10" fill="#d9472b"/>
+      <circle cx="214" cy="123" r="14" fill="#d9472b" opacity=".25"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="doc">
+  <header class="doc-head">
+    <h1>Ticket 103 : première page de la démo</h1>
+    <p>La page d'accueil de la démo rappelle à quoi sert Auspex, explique ce que fait la démo et tient dans la hauteur de l'écran. L'image de couverture est la seule partie élastique.</p>
+    <p>Ambiance Médiéval (celle de la démo), jetons existants de <span class="mono">src/styles.css</span>. Les trois cartes et leurs liens ne changent pas.</p>
+  </header>
+
+  <!-- 1 -->
+  <section class="screen" aria-labelledby="e1">
+    <h2 id="e1">1. Ordinateur portable, 1280 x 720 : cas nominal</h2>
+    <p class="note">Deux colonnes à partir de 1024 px de large : l'image à gauche suit la hauteur de la colonne de droite et se recadre. À droite : pastille, titre du scénario, préambule en deux paragraphes, puis les trois cartes. Le bloc de texte occupe environ 490 px sur 720 : aucune barre de défilement.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1280x720">
+        <main class="dh">
+          <div class="dh-inner">
+            <figure class="dh-cover"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+            <div class="dh-text">
+              <p class="chip">Démo</p>
+              <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+              <div class="dh-preambule">
+                <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+              </div>
+              <ul class="dh-list">
+                <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">scrollHeight 720 = innerHeight 720</li><li>Liens inchangés : /mj, /joueur, /?vues=deux</li></ul>
+  </section>
+
+  <!-- 2 -->
+  <section class="screen" aria-labelledby="e2">
+    <h2 id="e2">2. Tablette paysage, 1024 x 768</h2>
+    <p class="note">Même disposition en deux colonnes, plus serrée. Le préambule passe sur plus de lignes, l'image s'allonge en hauteur et se recadre. Les cartes restent entières.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1024x768">
+        <main class="dh">
+          <div class="dh-inner">
+            <figure class="dh-cover"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+            <div class="dh-text">
+              <p class="chip">Démo</p>
+              <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+              <div class="dh-preambule">
+                <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+              </div>
+              <ul class="dh-list">
+                <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">scrollHeight 768 = innerHeight 768</li></ul>
+  </section>
+
+  <!-- 3 -->
+  <section class="screen" aria-labelledby="e3">
+    <h2 id="e3">3. Fenêtre basse, 1280 x 600</h2>
+    <p class="note">Les marges verticales passent de 24 à 16 px et le titre de 32 à 28 px (requête max-height: 640px). L'image se réduit avec la colonne. En une colonne (moins de 1024 px de large), l'image est masquée si la fenêtre fait moins de 700 px de haut, car c'est elle qui pousserait les cartes.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1280x600">
+        <main class="dh">
+          <div class="dh-inner">
+            <figure class="dh-cover"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+            <div class="dh-text">
+              <p class="chip">Démo</p>
+              <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+              <div class="dh-preambule">
+                <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+              </div>
+              <ul class="dh-list">
+                <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <ul class="legend"><li class="ok">Préambule et trois cartes entiers, sans défilement</li></ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="screen" aria-labelledby="e4">
+    <h2 id="e4">4. Cas d'erreur : scénario sans image de couverture</h2>
+    <p class="note">Si <span class="mono">scenario.cover</span> est absent, la figure n'est pas rendue et la grille passe à une seule colonne centrée de 720 px au plus. Pas d'espace vide, pas d'erreur dans la console.</p>
+    <div class="scroll-x">
+      <div class="viewport vp-1280x720">
+        <main class="dh">
+          <div class="dh-inner sans-image">
+            <div class="dh-text">
+              <p class="chip">Démo</p>
+              <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+              <div class="dh-preambule">
+                <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+              </div>
+              <ul class="dh-list">
+                <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="screen" aria-labelledby="e5">
+    <h2 id="e5">5. Chargement</h2>
+    <p class="note">Comportement actuel conservé : tant que <span class="mono">App.jsx</span> charge, rien n'est rendu, seul le fond de l'ambiance apparaît (moins d'une seconde). Pas de squelette ajouté, pour ne pas provoquer de saut de mise en page.</p>
+    <div class="row">
+      <div class="viewport vp-375" style="height:300px;width:480px;border-radius:10px"><div class="vide" aria-hidden="true">fond de l'ambiance, aucun contenu</div></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="screen" aria-labelledby="e6">
+    <h2 id="e6">6. Téléphone, 375 x 667</h2>
+    <p class="note">En dessous de 1024 px de large, une seule colonne et le défilement est autorisé. Le préambule et la première carte sont visibles sans défiler (ligne pointillée = bas de l'écran). L'image passe sous les cartes pour ne pas les pousser.</p>
+    <div class="row">
+      <div>
+        <p class="label-dev">écran visible, sans défiler</p>
+        <div class="viewport vp-375">
+          <main class="dh">
+            <div class="dh-inner">
+              <figure class="dh-cover"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+              <div class="dh-text">
+                <p class="chip">Démo</p>
+                <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+                <div class="dh-preambule">
+                  <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                  <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+                </div>
+                <ul class="dh-list">
+                  <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                  <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                  <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+                </ul>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+      <div>
+        <p class="label-dev">page entière</p>
+        <div class="viewport vp-375 long">
+          <main class="dh">
+            <div class="dh-inner">
+              <figure class="dh-cover"><svg role="img" aria-label="Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour."><use href="#chateau"/></svg></figure>
+              <div class="dh-text">
+                <p class="chip">Démo</p>
+                <h1 class="dh-title">Le dragon de Pierrenoire</h1>
+                <div class="dh-preambule">
+                  <p class="dh-outil">Auspex accompagne vos parties de jeu de rôle à distance. Un MJ humain mène l'histoire, l'équipe de joueurs suit et agit depuis son propre écran, et tout est synchronisé en direct.</p>
+                  <p class="dh-demo"><strong>Cette démo simule l'histoire qu'aurait racontée un MJ humain</strong>, pour vous montrer comment on utilise l'outil. Un guide vous indique où cliquer.</p>
+                </div>
+                <ul class="dh-list">
+                  <li><a class="dh-card" href="#mj"><span class="dh-card-title">Jouer le MJ</span><span class="dh-card-text">Vous menez la partie. Le guide joue Aldric et ses compagnons.</span></a></li>
+                  <li><a class="dh-card" href="#joueur"><span class="dh-card-title">Jouer Aldric</span><span class="dh-card-text">Vous êtes le chevalier. Le guide joue le MJ et vos compagnons.</span></a></li>
+                  <li><a class="dh-card" href="#deux"><span class="dh-card-title">Les deux vues côte à côte</span><span class="dh-card-text">Pour jouer à deux, ou voir la synchronisation en direct.</span></a></li>
+                </ul>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="screen" aria-labelledby="e7">
+    <h2 id="e7">7. Règles de mise en page pour le dev</h2>
+    <div class="measures">
+      <table>
+        <thead><tr><th scope="col">Condition</th><th scope="col">Disposition</th><th scope="col">Image</th><th scope="col">Défilement</th></tr></thead>
+        <tbody>
+          <tr><td>largeur ≥ 1024 px</td><td>deux colonnes 5fr / 6fr, gap 40 px, max 1120 px</td><td>suit la hauteur du texte, object-fit: cover</td><td>aucun, .demo-home en height: 100dvh</td></tr>
+          <tr><td>hauteur ≤ 640 px</td><td>marges 16 px, titre 28 px</td><td>se réduit avec la colonne</td><td>aucun à partir de 1024 x 600</td></tr>
+          <tr><td>largeur &lt; 1024 px</td><td>une colonne, image après les cartes</td><td>4/3, masquée si hauteur &lt; 700 px</td><td>autorisé sous 1024 x 600</td></tr>
+          <tr><td>sans scenario.cover</td><td>une colonne centrée, 720 px au plus</td><td>non rendue</td><td>aucun</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</body>
+</html>
