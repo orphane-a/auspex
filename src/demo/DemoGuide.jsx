@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import { degreeLabel } from '../gameLogic'
 import { nextMove, advance, castOf, syncProgress, INITIAL_PROGRESS } from '../scenarios/guide.js'
-import { resolveTarget } from './coach.js'
+import { dimHole, resolveTarget } from './coach.js'
 import { useDemoPresence } from './useDemoPresence.js'
 
 // Scénario guidé (ticket 97, retour du 22/11) : une popin posée par dessus Auspex,
@@ -117,6 +117,10 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
   const popRef = useRef(null)
   const lastTargetEl = useRef(null)
   const scrollTries = useRef({ count: 0, at: 0 })
+  // Ticket 102 : numéro du bouton visé, pour ne faire glisser la découpe et le cadre
+  // que lorsque la cible change de bouton (le suivi au défilement reste immédiat).
+  const targetSeq = useRef(0)
+  const [sliding, setSliding] = useState(false)
 
   const table = {
     characters: vals.characters,
@@ -210,6 +214,7 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
       }
       if (el !== lastTargetEl.current) {
         lastTargetEl.current = el
+        targetSeq.current += 1
         scrollTries.current = { count: 0, at: 0 }
       }
       const r = el.getBoundingClientRect()
@@ -223,7 +228,8 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
         el.scrollIntoView({ block: 'center', behavior: tries.count === 0 && !reduced ? 'smooth' : 'auto' })
       }
       const rect = { top: Math.round(r.top), left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) }
-      setCoach((c) => (c && c.hint === found.hint && sameRect(c.rect, rect) ? c : { rect, hint: found.hint }))
+      const seq = targetSeq.current
+      setCoach((c) => (c && c.hint === found.hint && c.seq === seq && sameRect(c.rect, rect) ? c : { rect, hint: found.hint, seq }))
     }
     tick()
     const id = setInterval(tick, 250)
@@ -259,6 +265,19 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
     if (squeeze !== squeezed) setSqueezed(squeeze)
     if (top !== placeTop) setPlaceTop(top)
   }, [coach, squeezed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Glissement court quand le repère passe d'un bouton à un autre (pas au premier
+  // affichage ni au défilement).
+  const coachSeq = coach?.seq ?? null
+  const prevSeq = useRef(null)
+  useEffect(() => {
+    const prev = prevSeq.current
+    prevSeq.current = coachSeq
+    if (prev == null || coachSeq == null || prev === coachSeq) return undefined
+    setSliding(true)
+    const t = setTimeout(() => setSliding(false), 220)
+    return () => clearTimeout(t)
+  }, [coachSeq])
 
   async function onContinue() {
     setError('')
@@ -413,14 +432,16 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
     )
   }
 
+  const hole = dimHole(coach?.rect)
+  const dimClass = `demo-dim${hole ? ' hole' : ''}${compact ? ' reduit' : ''}${sliding ? ' glisse' : ''}`
+
   return (
     <>
-      {coach && (
-        <div
-          className="demo-coach"
-          aria-hidden="true"
-          style={{ top: coach.rect.top - 6, left: coach.rect.left - 6, width: coach.rect.width + 12, height: coach.rect.height + 12 }}
-        >
+      {/* Ticket 102 : voile qui assombrit Auspex sous la popin, avec une découpe sur
+          le bouton visé. Purement visuel, il ne capte aucun clic. */}
+      <div className={dimClass} aria-hidden="true" style={hole || undefined} />
+      {hole && (
+        <div className={`demo-coach${sliding ? ' glisse' : ''}`} aria-hidden="true" style={hole}>
           <span className={`demo-coach-label${coach.rect.top < 60 ? ' below' : ''}`}>Cliquez ici : {coach.hint}</span>
         </div>
       )}

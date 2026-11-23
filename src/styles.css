@@ -39,6 +39,10 @@
   --surface-hover: #1a3d2b;
   --placeholder: #8fae99;
   --overlay: rgba(2, 6, 4, 0.82);
+  /* Voile de la démo (ticket 102) : normal, popin réduite, au dessus d'une modale. */
+  --demo-dim: rgba(0, 0, 0, 0.45);
+  --demo-dim-reduit: rgba(0, 0, 0, 0.25);
+  --demo-dim-modale: rgba(0, 0, 0, 0.2);
   --shadow-modal: rgba(0, 0, 0, 0.9);
   --shadow: rgba(0, 0, 0, 0.55);
   --halo: rgba(0, 0, 0, 0.45);
@@ -2031,6 +2035,63 @@ input {
     animation: none;
   }
 }
+
+/* Voile de la démo (ticket 102) : il assombrit Auspex (barre du haut, badge « Démo »
+   et modales compris) pour faire ressortir la popin et le bouton visé. Empilement :
+   modales 20, aide des dés 30, voile 32, repère 35, popin 40. Sans cible, il couvre
+   toute la fenêtre ; avec une cible, il prend le rectangle du repère et assombrit
+   tout autour par une ombre très large, ce qui laisse le bouton intact. Il ne capte
+   aucun clic. */
+.demo-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  pointer-events: none;
+  background: var(--demo-dim);
+  animation: demoDimIn 0.2s ease-out;
+}
+.demo-dim.hole {
+  inset: auto;
+  background: transparent;
+  border-radius: 10px;
+  box-shadow: 0 0 0 100vmax var(--demo-dim);
+}
+/* Popin réduite : la personne regarde l'interface, le voile s'allège. */
+.demo-dim.reduit {
+  --demo-dim: var(--demo-dim-reduit);
+}
+/* Une modale d'Auspex a déjà son fond sombre : on n'y ajoute qu'un voile léger. */
+:root:has(.modal-overlay) .demo-dim {
+  --demo-dim: var(--demo-dim-modale);
+}
+/* Glissement de la découpe et du cadre quand la cible change de bouton seulement. */
+.demo-dim.glisse,
+.demo-coach.glisse {
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+@keyframes demoDimIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-dim {
+    animation: none;
+  }
+  .demo-dim.glisse,
+  .demo-coach.glisse {
+    transition: none;
+  }
+}
+/* Couleurs forcées : le voile disparaît, le cadre du repère suffit. */
+@media (forced-colors: active) {
+  .demo-dim {
+    display: none;
+  }
+}
 @media (max-width: 600px) {
   .demo-pop {
     left: 8px;
@@ -3432,6 +3493,9 @@ input {
   --warn-glow: rgba(122, 84, 0, 0.3);
   --font-title: Georgia, 'Times New Roman', serif;
   --title-spacing: 0.08em;
+  --demo-dim: rgba(42, 26, 12, 0.45);
+  --demo-dim-reduit: rgba(42, 26, 12, 0.25);
+  --demo-dim-modale: rgba(42, 26, 12, 0.2);
 }
 :root[data-ambiance='espace'] {
   --bg: #050a1a;
@@ -3465,6 +3529,9 @@ input {
   --warn-border: #9a7f30;
   --warn-ink: #000;
   --warn-glow: rgba(255, 209, 102, 0.35);
+  --demo-dim: rgba(0, 0, 0, 0.45);
+  --demo-dim-reduit: rgba(0, 0, 0, 0.25);
+  --demo-dim-modale: rgba(0, 0, 0, 0.2);
 }
 :root[data-ambiance='horreur'] {
   --offline-opacity: 1;
@@ -3505,6 +3572,9 @@ input {
   --warn-glow: rgba(106, 71, 0, 0.3);
   --font-title: Georgia, 'Times New Roman', serif;
   --title-spacing: 0.08em;
+  --demo-dim: rgba(27, 25, 18, 0.45);
+  --demo-dim-reduit: rgba(27, 25, 18, 0.25);
+  --demo-dim-modale: rgba(27, 25, 18, 0.2);
 }
 :root[data-ambiance='gothique'] {
   --offline-opacity: 1;
@@ -3541,6 +3611,9 @@ input {
   --warn-glow: rgba(201, 166, 255, 0.35);
   --font-title: 'Palatino Linotype', Palatino, Georgia, serif;
   --title-spacing: 0.18em;
+  --demo-dim: rgba(0, 0, 0, 0.45);
+  --demo-dim-reduit: rgba(0, 0, 0, 0.25);
+  --demo-dim-modale: rgba(0, 0, 0, 0.2);
 }
 
 /* Fondu court au changement d'ambiance (coupé par prefers-reduced-motion plus haut). */
