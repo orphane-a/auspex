@@ -13,7 +13,7 @@ export function setLastDamage(damage) {
 // Single snapshot shape pushed to every client (MJ and players alike) so the
 // frontend never has to reconcile partial updates.
 export function buildSnapshot(isConnected) {
-  const { code, request, rolls, attack } = getTableState()
+  const { code, request, rolls, attack, ambiance } = getTableState()
   // Un personnage fictif (ticket 94) n'a jamais de fenêtre Joueur : il est présent
   // d'office, indépendamment des sockets, pour que le MJ teste seul une table complète.
   const characters = listCharacters().map((c) => ({ ...c, connected: c.fictional || isConnected(c.id) }))
@@ -32,7 +32,7 @@ export function buildSnapshot(isConnected) {
     .map(([name, characteristic]) => ({ name, characteristic }))
     .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
 
-  return { code, request, rolls, characters, availableSkills, lastDamage, attack, npcs: listNpcs(), fictionalEnabled: fictionalEnabled() }
+  return { code, ambiance, request, rolls, characters, availableSkills, lastDamage, attack, npcs: listNpcs(), fictionalEnabled: fictionalEnabled() }
 }
 
 // Used by the roll route's non-formé fallback (V2 §4/§5): a skill absent from one

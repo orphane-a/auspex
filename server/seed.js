@@ -165,10 +165,10 @@ function seedScenarioNpc(scenario) {
 // « Recommencer la démo » : resetTable() ne vide que les personnages, or le dragon
 // doit lui aussi revenir à ses PV de départ — on recrée donc les deux. Renvoie false
 // hors mode démo pour que la route garde exactement son comportement habituel.
-export async function resetScenarioTable() {
+export async function resetScenarioTable(ambiance) {
   const scenario = activeScenario()
   if (!scenario) return false
-  resetTable()
+  resetTable(ambiance)
   for (const npc of listNpcs()) removeNpc(npc.id)
   seedScenarioCharacters(scenario)
   seedScenarioNpc(scenario)

@@ -80,6 +80,11 @@ const tableStateColumns = db.prepare('PRAGMA table_info(table_state)').all().map
 if (!tableStateColumns.includes('attack')) {
   db.exec('ALTER TABLE table_state ADD COLUMN attack TEXT')
 }
+// Ambiance de la table (ticket 100) : une base créée avant cette évolution passe
+// en `cyber`, l'ambiance d'origine, sans toucher au reste de l'état.
+if (!tableStateColumns.includes('ambiance')) {
+  db.exec("ALTER TABLE table_state ADD COLUMN ambiance TEXT NOT NULL DEFAULT 'cyber'")
+}
 
 // Symmetric to a character's dodge_bonus (V3 §3/§4) — manual-only, never imported,
 // lets the MJ make a specific NPC (e.g. a boss) harder to hit despite the sheet
@@ -115,6 +120,7 @@ function rowToTableState(row) {
     // jamais faire planter les clients après ce déploiement (V3 §4) — elle est
     // traitée comme terminée plutôt que lue avec la nouvelle forme attacker/defender.
     attack: attack && attack.attacker && attack.defender ? attack : null,
+    ambiance: row.ambiance || 'cyber',
   }
 }
 
@@ -153,9 +159,11 @@ export function clearRequest() {
   setRolls({})
 }
 
-export function resetTable() {
+// L'ambiance arrive déjà contrôlée par la route (liste de src/ambiances.js).
+export function resetTable(ambiance = 'cyber') {
+  ensureTableState()
   const code = generateTableCode()
-  db.prepare('UPDATE table_state SET code = ?, request = NULL, rolls = ?, attack = NULL WHERE id = 1').run(code, '{}')
+  db.prepare('UPDATE table_state SET code = ?, request = NULL, rolls = ?, attack = NULL, ambiance = ? WHERE id = 1').run(code, '{}', ambiance)
   db.prepare('DELETE FROM characters').run()
   return getTableState()
 }

@@ -319,10 +319,11 @@ export function useTableState() {
     return api.addFictional()
   }
 
-  async function resetTable() {
-    await api.resetTable()
+  async function resetTable(ambiance) {
+    const data = await api.resetTable(ambiance)
     localStorage.removeItem(MY_CHARACTER_KEY)
     setMyCharacterId(null)
+    return data
   }
 
   function openLaunch() {
@@ -666,6 +667,8 @@ export function useTableState() {
     loading: !snapshot,
     code,
     tableCode: code,
+    // Ambiance de la table (ticket 100), appliquée au document par App.jsx.
+    ambiance: snapshot?.ambiance ?? 'cyber',
     characters,
     // L'écran « Choisir son personnage » ne propose jamais un fictif (ticket 94).
     joinableCharacters: characters.filter((c) => !c.fictional),

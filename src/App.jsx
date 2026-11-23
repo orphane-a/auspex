@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTableState } from './useTableState'
 import GmView from './GmView.jsx'
 import PlayerView from './PlayerView.jsx'
@@ -9,6 +9,8 @@ import DiceHelp from './DiceHelp.jsx'
 import { useScenario } from './useScenario'
 import DemoGuide from './demo/DemoGuide.jsx'
 import DemoHome from './demo/DemoHome.jsx'
+import { api, getSocket } from './api.js'
+import { appliquerAmbiance } from './ambianceDom.js'
 
 const ROUTES = { '/mj': 'mj', '/joueur': 'joueur' }
 // Dans une iframe de l'écran partagé, le bandeau « ouvrir l'autre vue » est inutile.
@@ -24,9 +26,22 @@ export default function App() {
 // 22/11) : on peut jouer seul côté MJ ou côté joueur, ou à deux côte à côte.
 function Root() {
   const { loading, scenario } = useScenario()
+  useAmbianceDeLaTable()
   if (loading) return null
   const bothViews = new URLSearchParams(window.location.search).get('vues') === 'deux'
   return scenario && !bothViews ? <DemoHome scenario={scenario} /> : <SplitScreen />
+}
+
+// La racine n'a pas l'état complet de la table : elle ne lit que l'ambiance, pour que
+// ses en-têtes de panneaux suivent la table comme les deux vues qu'elle encadre.
+function useAmbianceDeLaTable() {
+  useEffect(() => {
+    const socket = getSocket()
+    const onUpdate = (data) => appliquerAmbiance(data?.ambiance, { memoriser: true })
+    socket.on('state:update', onUpdate)
+    api.getTable().then(onUpdate, () => {})
+    return () => socket.off('state:update', onUpdate)
+  }, [])
 }
 
 function TableApp() {
@@ -36,6 +51,15 @@ function TableApp() {
   const vals = useTableState()
   const { scenario } = useScenario()
   const activeView = routeView ?? view
+  // Connexion joueur (ticket 100) : l'écran reste en Cyber tant que le code tapé ne
+  // correspond pas à la table, puis prend l'ambiance de la table.
+  const [joinCodeOk, setJoinCodeOk] = useState(false)
+  const onJoinScreen = activeView === 'joueur' && !vals.myCharacter && !scenario
+  const ambianceAffichee = onJoinScreen && !joinCodeOk ? 'cyber' : vals.ambiance
+  useEffect(() => {
+    if (vals.loading) return
+    appliquerAmbiance(ambianceAffichee, { memoriser: ambianceAffichee === vals.ambiance })
+  }, [vals.loading, ambianceAffichee, vals.ambiance])
 
   // En démo, une table vide reste sur la vue MJ : la popin du guide propose alors
   // de recommencer la démo plutôt que d'importer des fiches.
@@ -93,7 +117,7 @@ function TableApp() {
         ) : activeView === 'mj' ? (
           showMjHome ? (
             <div className="screen-scroll">
-              <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} />
+              <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
             </div>
           ) : (
             <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />
@@ -102,7 +126,7 @@ function TableApp() {
           <PlayerView vals={vals} />
         ) : (
           <div className="screen-scroll">
-            <JoinTable vals={vals} lockedCode={scenario ? vals.tableCode : null} />
+            <JoinTable vals={vals} lockedCode={scenario ? vals.tableCode : null} onCodeStatus={setJoinCodeOk} />
           </div>
         )}
       </main>

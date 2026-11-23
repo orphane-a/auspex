@@ -5,6 +5,7 @@ import { resolveRoll, degreesFromRoll } from './game.js'
 import { activeScenario, addFictionalCharacters, fictionalEnabled, resetScenarioTable, seedIfEmpty } from './seed.js'
 import { characteristicForSkillName, setLastDamage } from './state.js'
 import { HIT_LOCATIONS, applyDamage, effectiveSkillScore, npcDodgeScore, resolveWeaponDamage, rollD100 } from '../src/gameLogic.js'
+import { AMBIANCE_PAR_DEFAUT, isAmbiance } from '../src/ambiances.js'
 import * as db from './db.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -43,9 +44,15 @@ export function createRoutes({ presence, buildSnapshot, autoRollDelayMs }) {
   // client (src/scenarios/), seul l'identifiant transite.
   router.get('/scenario', (req, res) => res.json({ scenario: activeScenario()?.id ?? null }))
 
+  // Ambiance (ticket 100) : absente = cyber ; inconnue = 400 avant toute remise à
+  // zéro, pour que la table en cours et son code restent intacts.
   router.post('/table/reset', async (req, res) => {
-    if (!(await resetScenarioTable())) {
-      db.resetTable()
+    const ambiance = req.body?.ambiance ?? AMBIANCE_PAR_DEFAUT
+    if (!isAmbiance(ambiance)) {
+      return res.status(400).json({ error: 'Ambiance inconnue. Choisissez l\'une des cinq ambiances proposées. La table actuelle n\'a pas changé.' })
+    }
+    if (!(await resetScenarioTable(ambiance))) {
+      db.resetTable(ambiance)
       await seedIfEmpty() // dev convenience: re-seeds Djoko right away instead of leaving MjHome blank
     }
     respondWithSnapshot(res, 200)
