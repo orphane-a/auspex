@@ -6,13 +6,15 @@ import { Server } from 'socket.io'
 import { buildSnapshot } from './state.js'
 import { attachPresence } from './socket.js'
 import { createRoutes } from './routes.js'
-import { seedIfEmpty, seedNpcsIfEmpty } from './seed.js'
+import { appliquerAmbianceDuScenario, seedIfEmpty, seedNpcsIfEmpty } from './seed.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.join(__dirname, '../dist')
 
 await seedIfEmpty()
 await seedNpcsIfEmpty()
+// Démo (ticket 101) : ambiance du scénario à chaque démarrage, base neuve ou non.
+appliquerAmbianceDuScenario()
 
 const app = express()
 const server = http.createServer(app)

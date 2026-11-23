@@ -27,6 +27,9 @@ const SINGLE_SHOT = { single: true, semiCapacity: null, autoCapacity: null }
 export const dragonScenario = {
   id: 'dragon',
   title: 'Le dragon de Pierrenoire',
+  // Ambiance de la table de démo (ticket 101) : une aventure de fantasy s'ouvre en
+  // Médiéval. Contrôlée par isAmbiance côté serveur, Cyber sinon.
+  ambiance: 'medieval',
   characters: [
     {
       name: 'Aldric',
