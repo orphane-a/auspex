@@ -1766,7 +1766,10 @@ input {
 .guide-end p {
   margin: 0;
 }
+/* Les planches sont en 4:3. Dans la popin (colonne flex qui défile), flex: none empêche
+   l'image d'être écrasée en une fine bande quand le contenu dépasse la hauteur. */
 .demo-figure {
+  flex: none;
   margin: 0;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -1777,7 +1780,9 @@ input {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
+  /* Sur un écran bas, l'image est un peu recadrée plutôt que de repousser le bouton à cliquer. */
+  max-height: 32vh;
   object-fit: cover;
   object-position: 50% 35%;
 }
@@ -1785,7 +1790,7 @@ input {
   margin: 0 0 24px;
 }
 .demo-home-cover img {
-  aspect-ratio: 2 / 1;
+  max-height: 50vh;
 }
 .guide-spinner {
   width: 18px;
