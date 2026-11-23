@@ -12,6 +12,7 @@ import { useDemoPresence } from './useDemoPresence.js'
 // La progression est gardée dans le navigateur, une par vue (rien en base).
 
 const AUTO_DELAY = 900
+const AUTO_RETRY_DELAY = 3000
 
 // Illustration d'une étape. Le rapport largeur/hauteur est réservé par le CSS : la
 // popin ne change pas de hauteur quand l'image arrive.
@@ -175,9 +176,13 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
 
   // L'autre côté de la table, joué par le guide, avec un léger délai pour qu'on voie
   // les choses arriver. Chaque action n'est jouée qu'une fois (clé unique).
+  // Si l'action échoue (serveur de démo injoignable), elle est retentée toutes les
+  // quelques secondes : la démo repart seule dès que le serveur répond à nouveau.
   const auto = move.auto
+  const [autoRetry, setAutoRetry] = useState(0)
   useEffect(() => {
     if (!auto || doneAutos.current.has(auto.key)) return undefined
+    let retryTimer
     const timer = setTimeout(async () => {
       if (doneAutos.current.has(auto.key)) return
       doneAutos.current.add(auto.key)
@@ -187,10 +192,14 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
       } catch (err) {
         doneAutos.current.delete(auto.key)
         setError(errorText(err))
+        retryTimer = setTimeout(() => setAutoRetry((n) => n + 1), AUTO_RETRY_DELAY)
       }
     }, AUTO_DELAY)
-    return () => clearTimeout(timer)
-  }, [auto?.key]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(retryTimer)
+    }
+  }, [auto?.key, autoRetry]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Repère visuel : suit le bouton d'Auspex à cliquer (il bouge quand une modale
   // s'ouvre ou que la page défile). On ne fait défiler la page que lorsque le
@@ -458,7 +467,14 @@ export default function DemoGuide({ vals, scenario, mode, embedded }) {
           </button>
         </div>
         {compact ? (
-          move.say && <p className="demo-say compact">{move.say}</p>
+          <>
+            {move.say && <p className="demo-say compact">{move.say}</p>}
+            {error && (
+              <div className="guide-alert err compact" role="alert">
+                {error}
+              </div>
+            )}
+          </>
         ) : (
           <div className="demo-pop-body">
             <ol className="guide-steps" aria-label="Progression de la démo">
