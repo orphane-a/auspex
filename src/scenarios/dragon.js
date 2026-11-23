@@ -21,6 +21,12 @@ function skills(scores) {
   return Object.entries(scores).map(([name, score]) => ({ name, characteristic: linked[name], score }))
 }
 
+// Illustrations de la démo : des planches de BD découpées, rangées dans public/demo/.
+// Chaque image porte un texte alternatif, lu par les lecteurs d'écran.
+function img(file, alt) {
+  return { src: `/demo/${file}.webp`, alt }
+}
+
 const MELEE = { single: false, semiCapacity: null, autoCapacity: null, melee: true }
 const SINGLE_SHOT = { single: true, semiCapacity: null, autoCapacity: null }
 
@@ -30,6 +36,8 @@ export const dragonScenario = {
   // Ambiance de la table de démo (ticket 101) : une aventure de fantasy s'ouvre en
   // Médiéval. Contrôlée par isAmbiance côté serveur, Cyber sinon.
   ambiance: 'medieval',
+  cover: img('chateau', 'Le château de Pierrenoire de nuit sous la pleine lune, une lueur rouge à sa plus haute tour.'),
+  team: img('equipe', 'Aldric, Ysolde et Brannoc côte à côte dans un couloir de pierre éclairé à la torche.'),
   characters: [
     {
       name: 'Aldric',
@@ -95,6 +103,7 @@ export const dragonScenario = {
     {
       title: 'La porte dérobée',
       read: "La nuit tombe sur le château de Pierrenoire. Les grandes portes sont closes. On raconte qu'une vieille porte de service se cache quelque part dans la muraille, sous le lierre.",
+      image: img('porte', 'Ysolde pose la main sur une poignée de fer rouillée cachée sous le lierre de la muraille.'),
       test: { skill: 'Perception', malus: null },
       success: "Sous le lierre, une poignée de fer rouillée. La porte grince mais s'ouvre. L'équipe se glisse dans le château.",
       failure: "Personne ne trouve la porte. L'équipe finit par escalader la muraille, les mains écorchées, et retombe de l'autre côté.",
@@ -102,6 +111,7 @@ export const dragonScenario = {
     {
       title: 'La cour aux sentinelles',
       read: 'Derrière la muraille, une cour pavée. Deux gardes de pierre semblent dormir debout, mais leurs yeux brillent dans le noir. Il faut traverser sans bruit.',
+      image: img('cour', "Deux gardes de pierre aux yeux brillants surveillent la cour, l'équipe avance dans l'ombre du mur."),
       test: { skill: 'Discrétion', malus: '+10' },
       success: "Ysolde guide les autres d'ombre en ombre. Les gardes de pierre ne bougent pas. L'équipe atteint la porte de la bibliothèque.",
       failure: "Un caillou roule sous une botte. Les gardes tournent la tête, lentement. L'équipe court se cacher dans la bibliothèque, essoufflée mais entière.",
@@ -109,6 +119,7 @@ export const dragonScenario = {
     {
       title: 'La bibliothèque',
       read: "Des rayons couverts de poussière montent jusqu'au plafond. Quelque part ici dort un plan du château, roulé dans un étui de cuir.",
+      image: img('bibliotheque', 'Brannoc déroule un vieux plan sur une table, dans une bibliothèque éclairée à la bougie.'),
       test: { skill: 'Fouille', malus: null },
       success: "Brannoc déroule le plan sur une table. Une croix rouge marque la plus haute tour : la salle du trône. Le chemin passe par un vieil escalier.",
       failure: "Pas de plan, mais une odeur de fumée descend d'un escalier au fond de la salle. L'équipe décide de la suivre.",
@@ -116,6 +127,7 @@ export const dragonScenario = {
     {
       title: "L'escalier effondré",
       read: "L'escalier de la tour s'est écroulé à mi hauteur. Il manque une dizaine de marches au dessus du vide. Plus haut, une lueur rouge danse sur les murs.",
+      image: img('escalier', "Aldric saute au dessus du vide d'un escalier effondré et tend la main à Ysolde et Brannoc."),
       test: { skill: 'Athlétisme', malus: null },
       success: 'Aldric saute le premier et tend la main aux autres. La porte de la tour est juste au dessus.',
       failure: "Une marche cède, quelqu'un se rattrape de justesse. Après un long détour par les remparts, l'équipe arrive enfin devant la porte de la tour.",
@@ -123,6 +135,7 @@ export const dragonScenario = {
     {
       title: 'La salle du trône',
       read: "Au sommet de la tour, un trône brisé. Sur un lit de pièces d'or, le dragon rouge ouvre un œil. La chaleur monte. Aldric lève son épée.",
+      image: img('trone', "Dans la salle du trône, le dragon rouge ouvre un œil sur son lit de pièces d'or, face à l'épée d'Aldric."),
       // Un tour : Aldric frappe, puis le dragon riposte. Après `rounds` tours sans
       // victoire, le dragon s'envole (fin « escape ») : la démo ne s'éternise jamais.
       combat: {
@@ -134,6 +147,7 @@ export const dragonScenario = {
             weapon: 'Épée longue',
             fireMode: 'melee',
             read: 'Aldric charge et abat son épée sur le dragon.',
+            image: img('attaque-aldric', 'Aldric abat son épée sur le dragon rouge dans une gerbe d\'étincelles.'),
           },
           {
             attacker: { type: 'npc' },
@@ -141,6 +155,7 @@ export const dragonScenario = {
             weapon: 'Griffes',
             fireMode: 'melee',
             read: 'Le dragon rugit et lance ses griffes vers Aldric.',
+            image: img('griffes-dragon', 'Le dragon rugit et lance ses griffes vers Aldric, qui se protège derrière son bouclier.'),
           },
         ],
       },
@@ -149,14 +164,17 @@ export const dragonScenario = {
   endings: {
     victory: {
       title: 'Le dragon est vaincu',
+      image: img('fin-victoire', 'Le dragon est à terre, Aldric tient une écaille rouge, Ysolde et Brannoc sourient derrière lui.'),
       text: 'Le château retrouve le silence. Aldric, Ysolde et Brannoc repartent avec une écaille rouge en souvenir.',
     },
     escape: {
       title: "Le dragon s'envole, l'équipe survit",
+      image: img('fin-fuite', "Le dragon blessé brise un vitrail et s'envole dans la nuit, l'équipe le regarde partir."),
       text: 'Blessé, le dragon brise un vitrail et disparaît dans la nuit. Il reviendra peut être.',
     },
     retreat: {
       title: "L'équipe bat en retraite",
+      image: img('fin-retraite', 'Soutenu par Ysolde et Brannoc, Aldric blessé descend l\'escalier en retraite.'),
       text: "Aldric tombe à genoux. Ysolde et Brannoc le soutiennent et dévalent l'escalier. Ils reviendront, mieux préparés.",
     },
   },
