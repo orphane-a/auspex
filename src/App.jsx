@@ -117,7 +117,7 @@ function TableApp() {
         ) : activeView === 'mj' ? (
           showMjHome ? (
             <div className="screen-scroll">
-              <MjHome vals={vals} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
+              <MjHome vals={vals} ambianceInitiale={scenario?.ambiance} onGoToDashboard={() => setMjSubView('dashboard')} onStayHome={() => setMjSubView('home')} />
             </div>
           ) : (
             <GmView vals={vals} onManageCharacters={() => setMjSubView('home')} />

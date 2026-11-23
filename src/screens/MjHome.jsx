@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import Avatar, { FictifBadge, Spinner } from '../Avatar.jsx'
 import { HIT_LOCATIONS } from '../gameLogic.js'
-import { AMBIANCES, AMBIANCE_PAR_DEFAUT, nomAmbiance } from '../ambiances.js'
+import { AMBIANCES, AMBIANCE_PAR_DEFAUT, isAmbiance, nomAmbiance } from '../ambiances.js'
 
 // Choix de l'ambiance (ticket 100), juste au dessus du bouton de création. Les
 // pastilles et l'emblème montrent toujours les couleurs de chaque ambiance, quelle
-// que soit l'ambiance active. Cyber est présélectionnée à chaque visite.
-function AmbiancePicker({ vals, onStayHome }) {
-  const [choix, setChoix] = useState(AMBIANCE_PAR_DEFAUT)
+// que soit l'ambiance active. Cyber est présélectionnée à chaque visite, sauf en
+// démo où c'est l'ambiance du scénario (ticket 101).
+function AmbiancePicker({ vals, onStayHome, ambianceInitiale }) {
+  const [choix, setChoix] = useState(isAmbiance(ambianceInitiale) ? ambianceInitiale : AMBIANCE_PAR_DEFAUT)
   const [creating, setCreating] = useState(false)
   const [message, setMessage] = useState(null) // { kind: 'ok' | 'error', title?, text }
 
@@ -331,7 +332,7 @@ function NpcUploadForm({ vals }) {
   )
 }
 
-export default function MjHome({ vals, onGoToDashboard, onStayHome }) {
+export default function MjHome({ vals, onGoToDashboard, onStayHome, ambianceInitiale }) {
   const [name, setName] = useState('')
   const [cls, setCls] = useState('')
   const [file, setFile] = useState(null)
@@ -377,7 +378,7 @@ export default function MjHome({ vals, onGoToDashboard, onStayHome }) {
       </div>
 
       <div className="gm-body">
-        <AmbiancePicker vals={vals} onStayHome={onStayHome} />
+        <AmbiancePicker vals={vals} onStayHome={onStayHome} ambianceInitiale={ambianceInitiale} />
 
         <div style={{ marginTop: 24 }}>
           <FictionalPanel vals={vals} />
