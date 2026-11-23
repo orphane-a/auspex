@@ -1782,7 +1782,7 @@ input {
   height: auto;
   aspect-ratio: 4 / 3;
   /* Sur un écran bas, l'image est un peu recadrée plutôt que de repousser le bouton à cliquer. */
-  max-height: 32vh;
+  max-height: 30vh;
   object-fit: cover;
   object-position: 50% 35%;
 }
@@ -1829,7 +1829,9 @@ input {
   bottom: 20px;
   z-index: 40;
   width: min(400px, calc(100vw - 32px));
-  max-height: min(70vh, 640px);
+  /* Toute la hauteur de l'écran moins les marges : l'étape tient sans défiler. */
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   display: flex;
   flex-direction: column;
   background: var(--surface);
