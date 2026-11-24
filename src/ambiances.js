@@ -6,7 +6,7 @@
 // Aucun nom de jeu du commerce : les noms restent génériques.
 export const AMBIANCES = [
   { id: 'cyber', nom: 'Cyber', description: 'Noir et vert néon', embleme: '▸', apercu: { fond: '#07120c', surface: '#0e1f16', accent: '#5ef29c' } },
-  { id: 'medieval', nom: 'Médiéval', description: 'Parchemin, encre et or', embleme: '⚜︎', apercu: { fond: '#efe2c4', surface: '#f8efd9', accent: '#7a4d08' } },
+  { id: 'medieval', nom: 'Médiéval', description: 'Châteaux, dragons, encre et or', embleme: '⚜︎', apercu: { fond: '#e6d2a3', surface: '#fdf8ea', accent: '#7a4d08' } },
   { id: 'espace', nom: 'Espace', description: 'Bleu nuit et cyan', embleme: '✦', apercu: { fond: '#050a1a', surface: '#0c1530', accent: '#4fd8ff' } },
   { id: 'horreur', nom: 'Horreur années 20', description: 'Sépia et vert sombre', embleme: '◉', apercu: { fond: '#e6dbc0', surface: '#f2e9d3', accent: '#2c5638' } },
   { id: 'gothique', nom: 'Gothique', description: 'Noir, rouge sang et violet', embleme: '✠', apercu: { fond: '#0d0a10', surface: '#18121e', accent: '#f0607a' } },
