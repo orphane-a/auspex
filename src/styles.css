@@ -4089,7 +4089,7 @@ html[data-ambiance] .stage-header::after {
 }
 /* Petite hauteur sur ordinateur (1024 x 600 par exemple) : les colonnes descendent
    presque jusqu'en bas et cacheraient la frise. Le château et le dragon montent alors
-   en miniature dans l'en-tête, dans l'espace libre à droite du logo. */
+   en miniature dans l'en-tête, dans l'espace libre juste à droite du logo. */
 @media (min-width: 1024px) and (max-height: 680px) {
   :root[data-ambiance='medieval'] .app-shell::after {
     top: 12px;
@@ -4101,12 +4101,14 @@ html[data-ambiance] .stage-header::after {
     opacity: 0.34;
     background: var(--frise) left bottom / auto 100% no-repeat;
   }
+  /* Le dragon survole le village, à gauche du château : il reste loin des liens et
+     boutons de droite, dont la position dépend de la largeur de l'écran. */
   :root[data-ambiance='medieval'] .app-shell::before {
-    top: 12px;
+    top: 4px;
     bottom: auto;
-    left: 410px;
-    width: 40px;
-    height: 38px;
+    left: 244px;
+    width: 34px;
+    height: 32px;
     opacity: 0.4;
   }
 }
