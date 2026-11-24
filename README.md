@@ -23,6 +23,12 @@ npm run dev      # backend (3001) + Vite (5173)
   Il est purement visuel (aucun clic bloqué). Son intensité se règle par ambiance dans
   `src/styles.css` avec les jetons `--demo-dim` (45 %), `--demo-dim-reduit` (25 %, popin
   réduite) et `--demo-dim-modale` (20 %, au dessus d'une modale).
+  L'ambiance Médiéval (ticket 104) a son propre décor fantasy : frise de château au bas de
+  l'écran (`.app-shell::after`), dragon en vol (`--corner`), ornement d'en-tête, fleurons
+  sur la popin du guide, en SVG intégrés à `src/styles.css`. Ses jetons décoratifs (`--or`,
+  `--encre`, `--pv-sain`, `--pv-blesse`, `--pv-critique`) ne servent jamais pour du texte ;
+  le voile y est plus franc (55 %, 32 %, 25 %). Le décor est masqué en contraste renforcé
+  et réduit sous 480 px de large.
 
 Au premier démarrage, la base `server/table.sqlite` est créée et peuplée à partir des fiches
 d'exemple dans `PNJ_test/`.
